@@ -1,0 +1,4 @@
+#!/bin/sh
+rm app-build/*
+traceur --arrow-functions=true --unicode-expressions=true --numeric-literals=true --unicode-escape-sequences=true --block-binding=parse --generators=parse --symbols=parse --default-parameters=true --for-of=true --rest-parameters=true --spread=true --destructuring=true --classes=true --computed-property-names=true --dir app app-build --modules=commonjs
+node --use_strict --harmony index.js
