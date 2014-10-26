@@ -1,4 +1,10 @@
 
+//var traceur = require("traceur");
+//
+// console.log("traceur",traceur);
+//
+// return;
+
 var teoria = require("teoria");
 
 import {FunctionalMusic} from "./functionalMonads";
@@ -9,18 +15,44 @@ import {TomFRPSequencer} from "./tomSequencer";
 
 import {AbletonReceiver, AbletonSender} from "./oscAbleton";
 
-import {isIterable} from "./utils";
+import {isIterable,getIterator} from "./utils";
+
+var _ = require("underscore");
+
 
 
 //import {OSCNotePlayer} from "./tomOSCInstrument";
 
 
-var abletonSender = AbletonSender(8892);
+var abletonSender = AbletonSender(8893);
 var abletonReceiver = AbletonReceiver(8895);
 
 
 
+
 var m = FunctionalMusic();
+
+var traceur = require("traceur");
+var compiled = traceur.compile("export var x= 5; export var y=m.evt().pitch(12).repeat(100).velocity([100,110]);",{modules:"register", generators:"parse", blockBinding:"parse"});
+
+//console.log(exports);
+console.log(compiled, typeof compiled);
+
+var f = new Function("m","t","params", "teoria","return "+compiled);
+
+
+var runLiveCode = function(m,t,teoria,code) {
+  return eval(code);
+}
+
+var testNotes = f(m,t,null,teoria).y;
+
+//for (let t of testNotes)
+//  console.log(t);
+
+//compiled();
+
+//eval('import {liveCodeRun} from "./liveCodeRunner";')
 
 
 //import {liveCodeRun} from "./liveCodeRunner";
@@ -39,10 +71,11 @@ var struct = m.evt().repeat(5).set({
   duration:[t.bars(8),t.bars(4),t.bars(8),t.bars(16),t.bars(8)]
 }).loop().timeFromDurations();
 
-//for (let s of struct) {
-//  console.log(s);
-//}
+//var pitchBend = m.value((t,v) => 100).duration(t.bars(4)).loop().automatePlay("pitchBend");
 
+// for (let s of pitchBend) {
+//   console.log(s);
+// }
 
 var chordProg = "E7 F#7 E7 F#7 Cmaj9 A7 D9 Gmaj9 Cmaj9 F#7 b5 B7".split(" ");
 var chordProgMap = (n) => {
@@ -64,41 +97,108 @@ var evtTest = m.evt().loop().pitch(64).velocity([100,120,101]).duration(t.beats(
 .set({velocity: (n) => n.velocity*((n.time%t.bars(16))/t.bars(32)+0.5)})
 .set({velocity:[80,0,60,0,50]})
 //.swing(t.beats(1/4),0.05);
-//.notePlay();
+.notePlay();
 
-var evtTest2 = struct.branch((s) => s.name=="fast", evtTest,evtTest3).map(chordProgMap).notePlay();
-
-//console.log("evtTest",evtTest3);
-
-//for (let e of evtTest) {
-//    console.log("evtTest",e);
-//}
-
-
-//liveCodeRun("./liveCoding", OSCSequencer);
-
+var seqTest = m.evt()
+.pitch(60)
+.duration(t.beats(1/8))
+.velocity(100)
+.loop().metro(t.beats(1))
+.pitch([64,65,66,67,40,42])
+.pitch((n) => n.pitch)
+.delay(0.25)
+.notePlay();
 
 
-//OSCSequencer(evtTest2);
 
-
-var activeSequencers = [];
-
+var activeSequencers = {};
 var activeSequences = {};
+var generatorList = [];
 
-abletonReceiver.codeChange.onValue(function(code) {
 
-  console.log("got code",code);
+import webServer from "./webServer";
 
+
+webServer.liveCode.onValue(function(code) {
+  console.log("new code",code);
   console.log("stopping activeSequencers",activeSequencers)
-  for (let s of activeSequencers) {
-    s.stop();
-  }
 
-  var f = new Function("m","t","params", "teoria",code);
-  let sequences = f(m, t , abletonReceiver.param, teoria);
-  sequences = [sequences];
-  console.log("got new sequences",""+sequences);
-  activeSequencers = sequences.map((s) => OSCSequencer(s));
-  console.log("activeSequencers",activeSequencers.length);
+    var sequences = null
+    var passedTests = false;
+    try {
+      var compiled = traceur.compile(code.code,{modules:"register", generators:"parse", blockBinding:"parse"});
+      var f = new Function("m","t","params", "teoria","return "+compiled);
+      sequences = f(m, t , abletonReceiver.param, teoria);
+      console.log("testing if sequence emits events");
+      for (let k of Object.keys(sequences)) {
+        console.log("first event of sequence",k,getIterator(sequences[k]).next());
+      }
+      passedTests = true;
+    } catch(e) {
+      console.log("exception in live code",e);
+    }
+
+    //sequences = [sequences];
+    //console.log("got new sequences",""+sequences);
+
+    if (sequences == null || !passedTests)
+      return;
+
+    console.log("stopping",code.device,activeSequencers);
+    if (activeSequences[code.device]) {
+      if (activeSequencers[code.device])
+        for (let s of activeSequencers[code.device]) {
+          console.log("stopping sequencer",s);
+          if (s.stop)
+            s.stop();
+        }
+    }
+    console.log("stopped");
+    activeSequences[code.device] = {};
+    for (let k of Object.keys(sequences)) {
+      console.log("storing received sequence",k,""+sequences[k]);
+      activeSequences [code.device][k] = ""+sequences[k];
+    }
+
+    ///activeSequences[code.device] = sequences;
+    //console.log(webServer.generatorUpdate);
+    generatorList = [];
+    for (let dev of Object.keys(activeSequences))
+      for (let seq of Object.keys(activeSequences[dev]))
+        generatorList.push({name:seq});
+    console.log("sending gen list", generatorList);
+    if (generatorList.length > 0) {
+      webServer.generatorUpdate(generatorList);
+      abletonSender.generatorUpdate(generatorList);
+    }
+    activeSequencers[code.device] = Object.keys(sequences).map((k) => OSCSequencer(sequences[k],k));
+    console.log("activeSequencers",activeSequencers[code.device].length);
+
+});
+
+
+abletonReceiver.clipNotes.onValue(function(v) {
+  console.log(v);
+  if (!activeSequences["abletonClip"])
+    activeSequences["abletonClip"] = {};
+  var notes = _.sortBy(v.notes, (n) => n.time);
+  var seq=m.evt().repeat(notes.length)
+    .time(notes.map((n) => t.beats(n.time)))
+    .pitch(notes.map((n) => n.pitch))
+    .duration(notes.map((n) => t.beats(n.duration)))
+    .velocity(notes.map((n) => n.velocity)).loopLength(t.beats(v.loopEnd-v.loopStart)).notePlay();
+
+  activeSequences["abletonClip"][v.name] = ""+seq;
+  generatorList = [];
+  for (let dev of Object.keys(activeSequences))
+    for (let seq of Object.keys(activeSequences[dev]))
+      generatorList.push({name:seq});
+  if (generatorList.length > 0) {
+    webServer.generatorUpdate(generatorList);
+    abletonSender.generatorUpdate(generatorList);
+  }
+  activeSequencers["abletonClip"] = [OSCSequencer(seq,v.name)];
+
+//  for (let n of seq)
+//    console.log(n);
 });

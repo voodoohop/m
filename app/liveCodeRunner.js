@@ -1,7 +1,7 @@
 var hotload = require("hotload");
 
-var activeSequencers = [];
-var lastSequences = [];
+
+
 
 import {t} from "./time";
 import {FunctionalMusic} from "./functionalMonads";
@@ -11,6 +11,7 @@ var teoria = require("teoria");
 
 var m = FunctionalMusic();
 
+var activeSequencers = [];
 
 export function liveCodeRun(path, sequencer) {
   console.log("livecoderun");
@@ -23,7 +24,6 @@ export function liveCodeRun(path, sequencer) {
     }
     firstTime = null;
     let sequences = newCode.run(m,t,baconParam,teoria);
-    lastSequences = sequences;
     activeSequencers = sequences.map((s) => sequencer(s));
     console.log("activeSequencers",activeSequencers.length);
   });

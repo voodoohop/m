@@ -100,12 +100,12 @@ var MValue = mGenerator(function* (value) {
   if (isIterable(value)) {
     for (let v of value) {
 //      console.log("creating new MEvent for value",v);
-      yield* MEvent({type:"value", value: value});
+      yield* getIterator(MEvent({type:"value", value: value}));
     }
   }
   else {
 //    console.log("creating new MEvent for value",value);
-    yield* MEvent({type:"value", value: value || 0});
+    yield* getIterator(MEvent({type:"value", value: value || 0}));
   }
 },"value");
 
@@ -114,7 +114,7 @@ var MValue = mGenerator(function* (value) {
 var MNotePlayer = mGenerator(function*(node) {
 
   for (let me of node) {
-    let playMethod = function(baconTime, instrument) {
+    let playMethod = function(seqName, baconTime, instrument) {
       var noteOnTime = me.time;
       //console.log("noteOnTIme",me.time);
       var timeOfNoteOn = baconTime.skipWhile((t) => t < noteOnTime).take(1)
@@ -126,12 +126,12 @@ var MNotePlayer = mGenerator(function*(node) {
       //console.log("waiting for noteOn");
       timeOfNoteOn.onValue(function(currentTime) {
         //console.log("got to time of noteOn", me.time, currentTime)
-        instrument.noteOn( me.pitch, me.velocity, me.time);
+        instrument.noteOn(seqName, me.pitch, me.velocity, me.time);
       });
       //console.log("waiting for noteOff")
       timeOfNoteOff.onValue(function(currentTime) {
         //console.log("got to time of noteOff");
-        instrument.noteOff(me.pitch, currentTime);
+        instrument.noteOff(seqName,me.pitch, currentTime);
       });
 
     }
@@ -145,11 +145,11 @@ var MNotePlayer = mGenerator(function*(node) {
 
 var MAutomatePlay = mGenerator(function*(name,node) {
   for (let v of node) {
-    let playMethod = function(baconTime, instrument) {
+    let playMethod = function(seqName, baconTime, instrument) {
     //  console.log(me.value);
-      console.log("VAAALUE",v.duration,v.duration ? t < v.time + v.duration : true);
+      //console.log("VAAALUE",v.duration,v.duration ? t < v.time + v.duration : true);
       var stop = baconTime.skipWhile((t) => t < v.time).takeWhile((t) => v.duration ? t < v.time + v.duration : true)
-      .throttle(20).onValue((t) => instrument.param(name, v.value(t,v)))
+      .throttle(20).onValue((t) => instrument.param(seqName,name, v.value(t,v)))
     //  throw new Exception("aaaaa");
       return stop;
     };
@@ -201,6 +201,16 @@ var MLoop = mGenerator(function*(node) {
   }
 },"loop");
 
+
+let MLoopFixedLength = mGenerator(function*(loopLength,node) {
+  var time=0;
+  while (true) {
+    for (let n of node) {
+      yield addObjectProp(n, "time", time+n.time);
+    }
+    time+=loopLength;
+  }
+}, "loopFixedLength",2);
 
 let convertToObject = function(externalVal) {
   if (typeof externalVal != "object")
@@ -366,7 +376,7 @@ var MDuration = MProperty("duration");
 var MEventCount = MProperty("count", MCount(0,1));
 
 var MDelay = mGenerator(function*(amount,node) {
-  yield* MProperty("time", (n) => n.time+amount, node);
+  yield* getIterator(MProperty("time", (n) => n.time+amount, node));
 },"delay");
 
 
@@ -532,6 +542,7 @@ export var FunctionalMusic = function() {
     addFunction("branch",MBranch);
     addFunction("takeWhile", MTakeWhile);
     addFunction("skipWhile", MSkipWhile);
+    addFunction("loopLength", MLoopFixedLength);
 
 //    addFunction("note",MNoteEvent);
 
@@ -545,6 +556,7 @@ export var FunctionalMusic = function() {
     addFunction("externalProperty", MExternalProperty);
     addFunction("merge",MTimeOrderedMerge);
     addFunction("delay",MDelay);
+    addFunction("time",MTime);
 
     addFunction("set", MEventProperties);
     addFunction("setValue", MSetValue);

@@ -47,6 +47,7 @@ export var AbletonReceiver = function(inPort) {
     baconTime.push(v-firstTime);
   });
 
+  var clipNotes = oscMessageIn.filter((message) => message.address == "/abletonClipNotes").map((message) => JSON.parse(message.args[0]));
   // oscMessageIn.onValue(function(v) {
   //   console.log("osc",v);
   // });
@@ -64,7 +65,8 @@ export var AbletonReceiver = function(inPort) {
   return {
     time: timeInterpolator(baconTime),
     param:  baconParam,
-    codeChange: codeChange
+    codeChange: codeChange,
+    clipNotes:clipNotes
   }
 
 }
@@ -84,11 +86,11 @@ export var AbletonSender = function(outPort) {
   udpPort.open();
   // Send an OSC message to, say, SuperCollider
 
-  var noteOn = function(pitch,velocity,time) {
-    console.log("noteOn",pitch);
+  var noteOn = function(seqName,pitch,velocity,time) {
+  //  console.log("noteOn",pitch);
     udpPort.send({
         address: "/midiNote",
-        args: [pitch, velocity, 1,time]
+        args: [seqName, pitch, velocity, 1,time]
     }, "127.0.0.1", outPort);
     // udpPort.send({
     //   address: "/codeUpdate",
@@ -96,27 +98,35 @@ export var AbletonSender = function(outPort) {
     // },"127.0.0.1", outPort);
   }
 
-  var noteOff = function(pitch,time) {
-    console.log("noteOff",pitch);
+
+  var noteOff = function(seqName,pitch,time) {
+  //  console.log("noteOff",pitch);
 
     udpPort.send({
       address: "/midiNote",
-      args: [pitch, 0, 0,time]
+      args: [seqName,pitch, 0, 0,time]
     }, "127.0.0.1", outPort);
   }
 
-  var param=function(name,val) {
-    //console.log("automation",name,val);
+  var param=function(seqName,name,val) {
+    console.log("automation",seqName,name,val);
     udpPort.send({
-      address: "/param/"+name,
-      args:[val]
-    }, "127.0.0.1", outPort);
+      address: "/param",
+      args:[seqName,name,val]
+    },"127.0.0.1", outPort);
   }
 
+  var generatorUpdate=function(generatorList) {
+    udpPort.send({
+      address:"/generatorList",
+      args: generatorList.map((g) => g.name)
+    }, "127.0.0.1", outPort);
+  };
 
   return {
     noteOn: noteOn,
     noteOff: noteOff,
-    param:param
+    param:param,
+    generatorUpdate:generatorUpdate
   }
 }

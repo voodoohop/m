@@ -2,7 +2,7 @@
 import {wu} from "./wu";
 import {getIterator} from "./utils";
 
-export var TomFRPSequencer = wu.curryable(function(instrument,baconTime, sequence) {
+export var TomFRPSequencer = wu.curryable(function(instrument,baconTime, sequence, sequenceName) {
   //var latency=2;
   console.log("CREATED SEQ");
   var seq = {};
@@ -25,7 +25,7 @@ export var TomFRPSequencer = wu.curryable(function(instrument,baconTime, sequenc
       if (currentTime - evt.time < 100) {
         console.log("playing",evt);
         if (evt.play)
-          stopLastEvent = evt.play(baconTime, instrument);
+          stopLastEvent = evt.play(sequenceName, baconTime, instrument);
         // if (evt.type === "noteOn") {
         //   console.log("noteOn",evt.pitch,currentTime);
         //   instrument.noteOn(evt.pitch,evt.velocity, evt.time);
@@ -41,6 +41,7 @@ export var TomFRPSequencer = wu.curryable(function(instrument,baconTime, sequenc
       else {console.log("remaining time until first event",currentTime,evt.time,currentTime - evt.time);}
 
       let nextEvent = seqIterator.next().value;
+      //console.log("next event", nextEvent);
       if (nextEvent == undefined) {
         console.log("sequence ENDED");
         return;
