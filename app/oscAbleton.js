@@ -35,16 +35,12 @@ export var AbletonReceiver = function(inPort) {
 
   var oscMessageIn = oscToBaconStream(udpPort);
 
-  var firstTime = null;
-
   var codeChange = oscMessageIn.filter((message) => message.address == "/codeChange").map((oscBundle) => oscBundle.args[0]);
 
-  codeChange.onValue(function() { firstTime = null;});
 
   oscMessageIn.filter((message) => message.address == "/abletonTime").map((message) => message.args[0]).skipDuplicates().onValue(function(v){
-    if (firstTime == null)
-      firstTime = v- v % t.bars(16);
-    baconTime.push(v-firstTime);
+
+    baconTime.push(v);
   });
 
   var clipNotes = oscMessageIn.filter((message) => message.address == "/abletonClipNotes").map((message) => JSON.parse(message.args[0]));
@@ -87,7 +83,7 @@ export var AbletonSender = function(outPort) {
   // Send an OSC message to, say, SuperCollider
 
   var noteOn = function(seqName,pitch,velocity,time) {
-  //  console.log("noteOn",pitch);
+    console.log("noteOn",pitch);
     udpPort.send({
         address: "/midiNote",
         args: [seqName, pitch, velocity, 1,time]
@@ -100,7 +96,7 @@ export var AbletonSender = function(outPort) {
 
 
   var noteOff = function(seqName,pitch,time) {
-  //  console.log("noteOff",pitch);
+  console.log("noteOff",pitch);
 
     udpPort.send({
       address: "/midiNote",
@@ -108,11 +104,11 @@ export var AbletonSender = function(outPort) {
     }, "127.0.0.1", outPort);
   }
 
-  var param=function(seqName,name,val) {
+  var param=function(seqName,name,val,time) {
     console.log("automation",seqName,name,val);
     udpPort.send({
       address: "/param",
-      args:[seqName,name,val]
+      args:[seqName,name,val,time]
     },"127.0.0.1", outPort);
   }
 

@@ -1,13 +1,13 @@
 
 import {wu} from "./wu";
 import {getIterator} from "./utils";
+import {t} from "./time";
 
 export var TomFRPSequencer = wu.curryable(function(instrument,baconTime, sequence, sequenceName) {
   //var latency=2;
   console.log("CREATED SEQ");
   var seq = {};
-  var seqIterator = getIterator(sequence);
-  var evt = seqIterator.next().value;
+
 //  var me = Math.random();
   console.log("firstEvent:",evt);
   console.log("waiting for first time event");
@@ -18,6 +18,14 @@ export var TomFRPSequencer = wu.curryable(function(instrument,baconTime, sequenc
   //   }
   // },5000)}
   // );
+  var seqIterator = null;
+  var evt = null;
+  var restart = function() {
+    seqIterator = getIterator(sequence);
+    evt = seqIterator.next().value;
+  };
+  restart();
+
   var stopLastEvent = null;
   let processEvent = function(currentTime) {
 
@@ -56,12 +64,18 @@ export var TomFRPSequencer = wu.curryable(function(instrument,baconTime, sequenc
 
     }
   }
-  let baconStopper = baconTime.onValue(function(t) {
+
+  let baconStopper = baconTime.onValue(function(time) {
 //    console.log("received time",t);
 //    currentTime = t;
 //    console.log("processing", t,me);
-    setTimeout(() => processEvent(t),0);
+
+
+    setTimeout(() => processEvent(time),0);
+
   });
+
+  seq.restart = restart;
 //  baconTime.onValue(() => console.log("val"));
   seq.stop = function() {
     if (stopLastEvent)

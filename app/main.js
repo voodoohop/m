@@ -24,7 +24,7 @@ var _ = require("underscore");
 //import {OSCNotePlayer} from "./tomOSCInstrument";
 
 
-var abletonSender = AbletonSender(8893);
+var abletonSender = AbletonSender(8900);
 var abletonReceiver = AbletonReceiver(8895);
 
 
@@ -56,10 +56,28 @@ var testNotes = f(m,t,null,teoria).y;
 
 
 //import {liveCodeRun} from "./liveCodeRunner";
+var firstTime = 0;
+abletonReceiver.time.onValue((time) => {
+  if (firstTime == 0)
+    firstTime = time - time % t.bars(16);
+});
+var lastTime=0;
+abletonReceiver.time.onValue((v) => {
+  if (v-lastTime < -1000) {
+    console.log("reset",v,lastTime);
+    firstTime = 0;
+    lastTime = 0;
+  } else
+    lastTime = v;
+}
+)
+abletonReceiver.codeChange.onValue(function() { firstTime = 0;});
 
 
 
-var OSCSequencer = TomFRPSequencer(abletonSender, abletonReceiver.time);
+var timeThatAccountsForTransportJumps = abletonReceiver.time.map((t) => t-firstTime)
+
+var OSCSequencer = TomFRPSequencer(abletonSender, timeThatAccountsForTransportJumps);
 
 
 
@@ -77,87 +95,67 @@ var struct = m.evt().repeat(5).set({
 //   console.log(s);
 // }
 
-var chordProg = "E7 F#7 E7 F#7 Cmaj9 A7 D9 Gmaj9 Cmaj9 F#7 b5 B7".split(" ");
-var chordProgMap = (n) => {
-  var barNo = Math.floor(n.time / t.bars(1));
-  var currentChord = teoria.chord(chordProg[barNo % chordProg.length]);
-  var chordNotes = currentChord.notes().map( note => note.key());
-  var prevNote = n.pitch;
-  var transformedNote = chordNotes[(prevNote-64+(chordNotes.length*1000))%chordNotes.length]+12*Math.floor((prevNote-64)/chordNotes.length);
-  return {pitch:transformedNote};
-}
 
-//return;
-var evtTest3 = m.evt().loop().pitch(60).velocity([100,120,101]).duration(t.beats(1/16)).metro(t.beats(1/2))
-.set({pitch:(n) => n.time % t.bars(4) > t.bars(1) ? 63 : 60 })
-.set({velocity: (n) => n.velocity*((n.time%t.bars(16))/t.bars(32)+0.5)});
+var compileSequences(function(code) {
+  var sequences = null
+  var passedTests = false;
+  try {
+    var compiled = traceur.compile(code,{modules:"register", generators:"parse", blockBinding:"parse"});
+    var f = new Function("m","t","params", "teoria","return "+compiled);
+    sequences = f(m, t , abletonReceiver.param, teoria);
+    console.log("testing if sequence emits events");
+    for (let k of Object.keys(sequences)) {
+      console.log("first event of sequence",k,getIterator(sequences[k]).next());
+    }
+    passedTests = true;
+  } catch(e) {
+    console.log("exception in live code",e);
+  }
 
-var evtTest = m.evt().loop().pitch(64).velocity([100,120,101]).duration(t.beats(1/16)).metro(t.beats(1/6))
-.set({pitch:(n) => n.time % t.bars(4) > t.bars(1) ? 70 : 60 })
-.set({velocity: (n) => n.velocity*((n.time%t.bars(16))/t.bars(32)+0.5)})
-.set({velocity:[80,0,60,0,50]})
-//.swing(t.beats(1/4),0.05);
-.notePlay();
+  //sequences = [sequences];
+  //console.log("got new sequences",""+sequences);
 
-var seqTest = m.evt()
-.pitch(60)
-.duration(t.beats(1/8))
-.velocity(100)
-.loop().metro(t.beats(1))
-.pitch([64,65,66,67,40,42])
-.pitch((n) => n.pitch)
-.delay(0.25)
-.notePlay();
+  if (sequences == null || !passedTests)
+    return false;
+  return sequences;
+});
 
 
 
-var activeSequencers = {};
-var activeSequences = {};
+var playing = {};
 var generatorList = [];
 
 
 import webServer from "./webServer";
 
 
-webServer.liveCode.onValue(function(code) {
-  console.log("new code",code);
-  console.log("stopping activeSequencers",activeSequencers)
+var compiledSequences = webServer.liveCode.flatMap(function(code) {
+  let sequences = compileSequences(code.code);
+  if (!sequences)
+    return Bacon.never();
+  return {device: code.device, sequences: sequences};
+});
 
-    var sequences = null
-    var passedTests = false;
-    try {
-      var compiled = traceur.compile(code.code,{modules:"register", generators:"parse", blockBinding:"parse"});
-      var f = new Function("m","t","params", "teoria","return "+compiled);
-      sequences = f(m, t , abletonReceiver.param, teoria);
-      console.log("testing if sequence emits events");
-      for (let k of Object.keys(sequences)) {
-        console.log("first event of sequence",k,getIterator(sequences[k]).next());
-      }
-      passedTests = true;
-    } catch(e) {
-      console.log("exception in live code",e);
+
+var stopSequencers = function(sequencers) {
+  for (let s of sequencers)
+    if (s.sequencer && s.sequencer.stop)
+      s.sequencer.stop();
+}
+
+compiledSequences.onValue(function(newSequences) {
+
+  console.log("stopping sequencers of device", newSequences.device);
+    if (playing[code.device]) {
+
     }
 
-    //sequences = [sequences];
-    //console.log("got new sequences",""+sequences);
 
-    if (sequences == null || !passedTests)
-      return;
+    playing[code.device] = Object.keys(sequences);
 
-    console.log("stopping",code.device,activeSequencers);
-    if (activeSequences[code.device]) {
-      if (activeSequencers[code.device])
-        for (let s of activeSequencers[code.device]) {
-          console.log("stopping sequencer",s);
-          if (s.stop)
-            s.stop();
-        }
-    }
-    console.log("stopped");
-    activeSequences[code.device] = {};
     for (let k of Object.keys(sequences)) {
       console.log("storing received sequence",k,""+sequences[k]);
-      activeSequences [code.device][k] = ""+sequences[k];
+      playing[code.device][k] = ""+sequences[k];
     }
 
     ///activeSequences[code.device] = sequences;

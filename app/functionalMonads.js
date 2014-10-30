@@ -114,23 +114,22 @@ var MValue = mGenerator(function* (value) {
 var MNotePlayer = mGenerator(function*(node) {
 
   for (let me of node) {
-    let playMethod = function(seqName, baconTime, instrument) {
+    let playMethod = function(baconTime, baconInstrument) {
       var noteOnTime = me.time;
-      //console.log("noteOnTIme",me.time);
-      var timeOfNoteOn = baconTime.skipWhile((t) => t < noteOnTime).take(1)
       var noteOffTime = me.time + me.duration;
-      //console.log("registered note off listener to ",noteOffTime)
-
+      console.log("noteOnTIme",me.time);
+      var timeOfNoteOn = baconTime.skipWhile((t) => t < noteOnTime).take(1)
+      console.log("registered note off listener to ",noteOffTime)
       var timeOfNoteOff = baconTime.skipWhile((t) => t < noteOffTime).take(1);
       //console.log("me time:",me.time,"duration",me.duration)
       //console.log("waiting for noteOn");
       timeOfNoteOn.onValue(function(currentTime) {
-        //console.log("got to time of noteOn", me.time, currentTime)
+        console.log("got to time of noteOn", me.time, currentTime)
         instrument.noteOn(seqName, me.pitch, me.velocity, me.time);
       });
       //console.log("waiting for noteOff")
       timeOfNoteOff.onValue(function(currentTime) {
-        //console.log("got to time of noteOff");
+        console.log("got to time of noteOff");
         instrument.noteOff(seqName,me.pitch, currentTime);
       });
 
@@ -149,7 +148,7 @@ var MAutomatePlay = mGenerator(function*(name,node) {
     //  console.log(me.value);
       //console.log("VAAALUE",v.duration,v.duration ? t < v.time + v.duration : true);
       var stop = baconTime.skipWhile((t) => t < v.time).takeWhile((t) => v.duration ? t < v.time + v.duration : true)
-      .throttle(20).onValue((t) => instrument.param(seqName,name, v.value(t,v)))
+      .throttle(10).onValue((t) => instrument.param(seqName,name, v.value(t,v),t))
     //  throw new Exception("aaaaa");
       return stop;
     };
