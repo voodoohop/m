@@ -1,5 +1,7 @@
 "use strict";
 
+var _ = require("lodash");
+
 function factory(input) {
   if (arguments.length === 0) {
     return ImmutableObject();
@@ -13,7 +15,7 @@ function factory(input) {
   }
 }
 
-function ImmutableObject(props) {
+export var ImmutableObject = function(props) {
   if (typeof props === "undefined") {
     return empty;
   }

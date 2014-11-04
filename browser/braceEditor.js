@@ -66,7 +66,8 @@ var ReactApp = React.createClass({
 var GeneratorList = React.createClass({
   render: function() {
     var createItem = function(generator) {
-      return React.DOM.li(null, generator.name);
+      //console.log("li",generator);
+      return React.DOM.li(null, generator);
     };
     return React.DOM.ul(null, this.props.generators.map(createItem))
   }

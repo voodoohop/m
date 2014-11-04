@@ -2,8 +2,9 @@ import {t} from "./time";
 
 import timeInterpolator from "./timeInterpolator";
 
-var osc = require("osc");
+import {wu} from "./wu";
 
+var osc = require("osc");
 
 var Bacon = require("baconjs");
 
@@ -43,7 +44,9 @@ export var AbletonReceiver = function(inPort) {
     baconTime.push(v);
   });
 
-  var clipNotes = oscMessageIn.filter((message) => message.address == "/abletonClipNotes").map((message) => JSON.parse(message.args[0]));
+  var lzString = require("lz-string");
+  var clipNotes = oscMessageIn.filter((message) => message.address == "/abletonClipNotes").map((message) => JSON.parse(lzString.decompressFromBase64(message.args[0])));
+  clipNotes.log("oscClipNotes");
   // oscMessageIn.onValue(function(v) {
   //   console.log("osc",v);
   // });
@@ -56,10 +59,10 @@ export var AbletonReceiver = function(inPort) {
 
   baconParam("1").onValue((v) => console.log("baconvalue",v));
 
-
+  var timeInBeats = timeInterpolator(baconTime.map((time) => time/t.beats(1)));
 
   return {
-    time: timeInterpolator(baconTime),
+    time: timeInBeats,
     param:  baconParam,
     codeChange: codeChange,
     clipNotes:clipNotes
@@ -82,44 +85,59 @@ export var AbletonSender = function(outPort) {
   udpPort.open();
   // Send an OSC message to, say, SuperCollider
 
-  var noteOn = function(seqName,pitch,velocity,time) {
+  var noteOn = wu.curryable(function(seqName,pitch,velocity,time) {
     console.log("noteOn",pitch);
     udpPort.send({
         address: "/midiNote",
-        args: [seqName, pitch, velocity, 1,time]
+        args: [seqName, pitch, velocity > 1 ? velocity : Math.floor(velocity*127), 1,time*t.beats(1)]
     }, "127.0.0.1", outPort);
     // udpPort.send({
     //   address: "/codeUpdate",
     //   args: ["while(true) {console.log(\'hlo\');\n}"+Math.random()],
     // },"127.0.0.1", outPort);
-  }
+  });
 
 
-  var noteOff = function(seqName,pitch,time) {
+  var noteOff = wu.curryable(function(seqName,pitch,time) {
   console.log("noteOff",pitch);
 
     udpPort.send({
       address: "/midiNote",
-      args: [seqName,pitch, 0, 0,time]
+      args: [seqName,pitch, 0, 0,time*t.beats(1)]
     }, "127.0.0.1", outPort);
-  }
+  });
 
-  var param=function(seqName,name,val,time) {
+  var param=wu.curryable(function(seqName,name,val,time) {
     console.log("automation",seqName,name,val);
     udpPort.send({
       address: "/param",
-      args:[seqName,name,val,time]
+      args:[seqName,name,val,time*t.beats(1)]
     },"127.0.0.1", outPort);
-  }
+  });
+
+  var baconInstrumentBus = new Bacon.Bus();
+
+  baconInstrumentBus.onValue((v) => {
+
+  });
+
+
 
   var generatorUpdate=function(generatorList) {
     udpPort.send({
       address:"/generatorList",
-      args: generatorList.map((g) => g.name)
+      args: generatorList
     }, "127.0.0.1", outPort);
   };
 
   return {
+    instrument: function(seqName) {
+      return {
+        noteOn: noteOn(seqName),
+        noteOff: noteOff(seqName),
+        param: param(seqName)
+      }
+    },
     noteOn: noteOn,
     noteOff: noteOff,
     param:param,

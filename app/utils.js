@@ -32,6 +32,7 @@ export const getIterator = (thing) => {
   throw new TypeError("Not iterable: " + thing);
 };
 
+export const fixFloat = (n) => parseFloat(n.toPrecision(12));
 
 export const clone = function(obj) {
     if (!(obj instanceof Object)) {
@@ -44,10 +45,12 @@ export const clone = function(obj) {
         descriptors[name] = prop;
     });
     return Object.create(Object.getPrototypeOf(obj), descriptors);
-}
+};
 
-export var addObjectProp = function(eventObject,name, value) {
-  var jsPropDescriptor = { configurable: true, enumerable: true, value:value};
+
+
+export var addObjectProp = function(eventObject,name, value, enumerable=true) {
+  var jsPropDescriptor = { configurable: true, enumerable: enumerable, value:value};
   var newObject = clone(eventObject);
   Object.defineProperty(newObject, name, jsPropDescriptor);
 //  console.log("defined property ",name," of ",eventObject,"with value",value);
