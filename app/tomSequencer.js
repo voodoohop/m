@@ -13,8 +13,10 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
     var count=0;
     while (next.value.time < prevTime) {
       next = seqIterator.next();
-      if (count++ > 50)
-        return [];
+      if (count++ > 5) { // low limit for too many events may need to change for other environments!!!
+         console.log("event overflow, yielding to bacon",time.toFixed(2));
+         return [];
+      }
     }
     if (time-prevTime > 1)
       return [];
@@ -22,13 +24,14 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
     while (next.value.time <= time) {
       eventsNow.push(next.value);
       next = seqIterator.next();
-      if (count++ > 50)
+      if (count++ > 5)
         return eventsNow;
     }
     if (eventsNow.length > 10) {
       console.log("time",prevTime,time);
       console.log("eventsnow",eventsNow.length, eventsNow);
     }
+    //console.log(eventsNow.length);
     return eventsNow;
   })).flatMap((v) => Bacon.fromArray(v))
   .flatMap((evt) => evt.play(baconTime));

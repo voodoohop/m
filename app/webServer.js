@@ -96,6 +96,10 @@ var generatorUpdate = function(generators=null) {
   console.log("emitted");
 }
 
-export default {liveCode: baconStream, generatorUpdate: generatorUpdate};
+var beatFeedback = function(beatInfo) {
+  beatInfo.throttle(100).onValue((v) => io.emit("beat",v));
+}
+
+export default {liveCode: baconStream, generatorUpdate: generatorUpdate, beatFeedback:beatFeedback};
 
 console.log("exported");

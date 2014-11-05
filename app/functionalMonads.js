@@ -6,8 +6,9 @@ import {wu} from "./wu";
 
 import {prettyToString,toStringObject,addFuncProp, clone, addObjectProp, isIterable, getIterator,fixFloat, cloneableEmptyObject} from "./utils";
 
-var _ = require("underscore");
+var _ = require("lodash");
 
+var SortedMap = require("collections/sorted-map");
 
 var getIterators = (values) => values.map(getIterator);
 
@@ -270,6 +271,68 @@ var MEventProperties = mGenerator(function*(props,node) {
     }
 },"set",2);
 
+var simpleMap = mGenerator(function* (mapFunc, node) {
+  for (let n of node) {
+    yield mapFunc(n);
+  }
+},"simpleMap");
+
+var MCombine = mGenerator(function*(combineNode,node) {
+    var meMapped = simpleMap((n) => {return {time: n.time, me: n}}, node);
+    var otherMapped = simpleMap((n) =>{return {time: n.time, other: n}}, combineNode);
+    var merged = MTimeOrderedMerge(meMapped,otherMapped);
+    // for (let test of merged)
+    //   console.log("mergedSeq", test);
+    var previousOther = null;
+    var nextOther = null;
+    var meWaitingForNextOther = [];
+    for  (let m of merged) {
+      // console.log("combining",m);
+      if (m.hasOwnProperty("me"))
+        meWaitingForNextOther.push(m.me);
+      if (m.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
+        previousOther = nextOther;
+        nextOther = m.other;
+        for (let me of meWaitingForNextOther) {
+          yield {previous: previousOther, next: nextOther, me: me, mapObject: me, time: me.time};
+        }
+        meWaitingForNextOther = [];
+      }
+    }
+    for (let me of meWaitingForNextOther) {
+      yield {previous: nextOther, next: null,me: me, mapObject: me,  time: me.time};
+    }
+},"combine",2);
+
+var MCombineMap = mGenerator(function*(combineFunc,combineNode,node) {
+  // here we could add time diffs to parameters of combineFunc
+  yield* getIterator(MMapOp((combined) => combineFunc(combined, combined.me), MCombine(combineNode,node)));
+},"combineMap",3);
+
+
+// var MCombine2 = mGenerator(function*(combineFunc, combineNode,node) {
+//   var cIterator = getIterator(combineNode);
+//   var cNext = [];
+//   cNext.push(cIterator.next().value);
+//   cNext.push(cIterator.next().value);
+//   for (let n of node) {
+//     // make it do a zip in case of no time value present ( later)
+//     //if (cNext[0].time == undefined || cNext[1].time == undefined || n.time == undefined)
+//     while (n.time > cNext[1].time) {
+//       cNext.shift();
+//       cNext.push(cIterator.next().value);
+//     }
+//
+//     if (n.time <= cNext[1].time) {
+//       if (n.time < cNext[0].time)
+//         combineFunc({prev: undefined, next: cNext[0]});
+//       else
+//         if (n.time > cNext[0].time && n.time <= cNext[1].time)
+//           combineFunc({prev:cNext[0], next: cNext[1]});
+//     }
+//
+//   }
+// },"combine",3);
 
 
 var MCompose = mGenerator(function*(...nodes) {
@@ -303,19 +366,40 @@ let convertToObject = function(externalVal) {
     return externalVal;
 }
 
-var MMapOp = mGenerator(function*(mapFunc,node) {
 
+var MMapOp = mGenerator(function*(mapFunc,node) {
   //console.log("mapnode",node[wu.iteratorSymbol]());
+  var scheduled = new SortedMap();
   for (let e of node) {
 //    console.log("convertToObject",convertToObject(mapFunc(e)));
+    if (e.hasOwnProperty("time")) {
+      //console.log(scheduled.entries());
+      var scheduledNow = _.take(scheduled.entries(), (s) => s[0] < e.time);
+      for (let scheduledEvents of scheduledNow) {
+        for (let scheduledEvent of scheduledEvents[1]) {
+          //console.log("yielding",scheduledEvent[1]);
+          yield* getIterator(scheduledEvent);
+        }
+        scheduled.delete(scheduledEvents[0]);
+      }
+    }
+
     let mapped = mapFunc(e);
     if (mapped ==null)
       continue;
     if (!isIterable(mapped))
       mapped = [mapped];
 
-    for (let res of mapped)
-      yield* getIterator(MEventProperties(convertToObject(res),MEvent(e)));
+    for (let res of mapped) {
+      var mappedEvent = MEventProperties(convertToObject(res),MEvent(e.mapObject ? e.mapObject : e));
+      if (e.hasOwnProperty("time") && res.hasOwnProperty("time") && res.time > e.time) {
+        if (!scheduled.has(res.time))
+          scheduled.set(res.time, []);
+        scheduled.get(res.time).push(mappedEvent);
+      }
+      else
+        yield* getIterator(mappedEvent);
+    }
   }
 
 },"map",2);
@@ -524,13 +608,15 @@ var MTimeOrderedMerge = mGenerator(function*(mergeNode,node) {
     let nodeIterator=getIterator(node);
     let nextNode = nodeIterator.next().value;
     for (let mergeEvent of mergeNode) {
-      while (nextNode && nextNode.time < mergeEvent.time) {
+      while (nextNode != undefined && nextNode.time < mergeEvent.time) {
         yield nextNode;
         nextNode = nodeIterator.next().value;
       }
       yield mergeEvent;
     }
-    yield*nodeIterator;
+    if (nextNode != undefined)
+      yield nextNode;
+    yield* nodeIterator;
 }, "merge");
 
 
@@ -745,6 +831,9 @@ export var FunctionalMusic = function() {
     addFunction("notePlay",MNotePlayer);
     addFunction("automatePlay",MAutomatePlay);
     addFunction("log",MLog, false);
+
+    addFunction("combine",MCombine);
+    addFunction("combineMap",MCombineMap);
     //addFunction("play",MPlay,false);
 
     return lib;
@@ -754,10 +843,34 @@ export var FunctionalMusic = function() {
 let m = FunctionalMusic();
 
 
-var test1 = m.evt({pitch:12,velocity:23,time:0, duration:100}).notePlay();
-console.log("test1",test1.play);
 
-//throw ("hello");
+var test1 = m.evt({pitch:12}).loop().metro(10).delay(10).take(2);
+var test2 = m.evt({pitch:3, velocity:0.3}).loop().metro(4).take(10);
+
+for (let m of test1)
+  console.log("test1",m.time, m);
+for (let m of test2)
+  console.log("test2",m.time, m);
+
+var combined = test2.combineMap((combine,me) =>  {
+  var nextTime = null;
+  var prevTime = null;
+  if (combine.previous)
+    prevTime = combine.previous.time;
+  if (combine.next)
+    nextTime = combine.next.time;
+  //console.log(me, combine,"prevTime:",prevTime,"nextTime",nextTime);
+
+  return {pitch: nextTime == me.time ? 5: 24}
+}, test1);
+
+console.log("getting combined");
+for (let m of combined) {
+
+  console.log("combined",m);
+}
+
+throw ("hello");
 
 //var count = MTime(MCount(0,1),MLoop(MEvent({pitch:[12,13,100]})));
 //for (let c of count)

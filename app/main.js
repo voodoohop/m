@@ -40,13 +40,13 @@ var traceur = require("traceur");
 
 
 var decodedTime = abletonReceiver.time.diff(0,(a,b) => b-a).skip(1).zip(abletonReceiver.time.skip(1),(timeDiff,time) => {return {timeDiff,time}})
-  .map((time) => time.timeDiff < -2 ? _.extend({reset:true},time) : time)
+  .map((time) => time.timeDiff < -8 ? _.extend({reset:true},time) : time)
   .scan({},(prev,time) => {
     var newTime = _.clone(time);
     if (prev.firstTime > 0 && !time.reset)
       newTime.firstTime = prev.firstTime;
     else
-      newTime.firstTime = time.time-time.time % t.bars(4);
+      newTime.firstTime = time.time-time.time % t.bars(1);
     return newTime;
   });
 
@@ -98,6 +98,7 @@ var compileSequences = function(code) {
 
 import webServer from "./webServer";
 
+webServer.beatFeedback(timeThatAccountsForTransportJumps.map((t) => Math.floor(t)).skipDuplicates());
 
 var compiledSequences = webServer.liveCode.flatMap(function(code) {
   let sequences = compileSequences(code.code);

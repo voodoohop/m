@@ -18,15 +18,44 @@ var myDeviceId = get("maxDeviceId");
 
 var socket = require('socket.io-client')('http://localhost');
 
-socket.emit("getCode", {maxDeviceId: myDeviceId});
+
+socket.on("connect", function() {
+  socket.emit("getCode", {maxDeviceId: myDeviceId});
+  if (codeLoaded)
+    window.setTimeout( function() {
+      socket.emit("codeChange",{maxDeviceId: myDeviceId, code:editor.getValue()});
+    },100);
+});
 
 console.log("editor",editor);
 
+var codeLoaded = false;
 socket.on("code", function(code) {
   console.log(editor);
   editor.setValue(code);
+  codeLoaded = true;
+//  socket.emit("codeChange",{maxDeviceId: myDeviceId, code:editor.getValue()});
 });
 
+
+
+$(document).ready(function() {
+  $(".ace_text-layer").jrumble({opacity:true, rotation: 0, x:10, y:10, speed:5, opacityMin:0.6});
+
+  socket.on("beat",function (beatInfo)  {
+    $("#beatIndicator").text(""+beatInfo);
+    if (beatInfo % 4 ==0) {
+
+      if ($ == undefined)
+        return;
+      if (window.disableRumble)
+        return;
+      $(".ace_text-layer").trigger("startRumble");
+      window.setTimeout(function() {$(".ace_text-layer").trigger("stopRumble"); $(".ace_text-layer").css("position","");},100);
+      }
+  });
+
+});
 // editor.on("change",function (e) {
 //   console.log("editor",editor.getValue(),e);
 // });
