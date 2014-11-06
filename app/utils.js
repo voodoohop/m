@@ -95,6 +95,8 @@ export var prettyToString = function(name, args, destFunc) {
   //destFunc.prototype = _.clone(destFunc.prototype);
   //console.log("tosdetailedtest", args,args.map(toStringDetailed));
   destFunc.toString = () => name+"("+args.map(toStringDetailed).join(", ")+")";
+
+  destFunc.inspect = destFunc.toString;
   //destFunc.toString = destFunc.prototype.toString;
 //console.log(res.prototype.toString());
   return destFunc;

@@ -23,12 +23,44 @@ var Bacon = require("baconjs");
 
 
 
-var abletonSender = AbletonSender(8901  );
-var abletonReceiver = AbletonReceiver(8895);
-
-
 var m = FunctionalMusic();
 
+
+
+
+
+var kick=m.evt({pitch:60,duration:(1/4), velocity:100}).loop().metro((1)).notePlay();
+
+var shaker=m.evt({pitch:60,duration:(1/12)}).loop().pitch([40,41,39,41,43,39,40,39]).velocity([70,20,50,4,60,40,50,30])
+.metro((1/4))
+.swing((0.25),0.1)
+.velocity((v) => v.time % t.bars(4) > (0.3) ? v.velocity : 0)
+.velocity((v) => v.time % t.bars(8) < t.bars(7.5) ? v.velocity : 10)
+.velocity((v) => _.contains([0,1,2,4,5,7],Math.floor((v.time % (2))/(0.25))) ? v.velocity : 0)
+.delay((1/2))
+.notePlay();
+
+var shaker2=m.evt({ duration:(0.1)}).loop().metro((0.25)).bjorklund(4,3,3).pitch([37,37,38]).velocity([0.5,0.7,0.6,0.5,0.6]).swing(0.25,0.1)
+.combineMap((k,me) => {
+
+    return (k.next.time == me.time) ? {velocity: 0.3, time: (n) => n.time-0.05} : me;
+},
+kick)
+.notePlay();
+
+console.time();
+
+for (let e of shaker.take(2000));
+
+for (let e of shaker2.take(2000));
+
+console.timeEnd();
+
+return;
+
+
+var abletonSender = AbletonSender(8901  );
+var abletonReceiver = AbletonReceiver(8895);
 
 
 // var seqTest2 = m.evt({name:"baconTest",duration:10}).loop().metro(60);
@@ -143,6 +175,8 @@ var instrumentPlayer = function(seq) {
 
 
 //var withSequencers = compiledSequences.map((s) => _.extend({sequencer: Sequencer(s.sequence,s.name)},s));
+
+
 
 var clipAndCodeSequences = compiledSequences.merge(clipSequences)
 

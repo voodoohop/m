@@ -40,17 +40,62 @@ var loopValue = function*(value) {
 
 
 
+var getMemoizedGeneratorProducer = function(iterator) {
+
+  var memo = [];
+  var memorizedAll = false;
+  var memoIteratorCreator = function () {
+    var index=0;
+
+    return {
+        next: function() {
+          var wasMemoized=true;
+          if (index >= memo.length && !memorizedAll) {
+            var nextVal = iterator.next().value;
+            if (nextVal != undefined) {
+              memo.push(nextVal);
+              wasMemoized=false;
+//              console.log("new memo",(""+memo).substr(0,10));
+            }
+            else
+              memorizedAll = true;
+          }
+          var res;
+          if (index >= memo.length)
+            res = {done:true, value:undefined};
+          else {
+            // if (wasMemoized)
+            //   console.log("fund memoized... returning");
+            res = {value: memo[index], done: false};
+          }
+          index++;
+          return res;
+        }
+      }
+  }
+
+  return memoIteratorCreator;
+
+}
+
+// // TODO: work in progress
+// TODO: change to one option param
 var mGenerator = function(generatorProducer, name, curryArgCount = 0, toStringOverride=null) {
-//  let name = "unnamed";
+//  var memos = {};
   var genProducer = function(...args) {
     let res = Object.create(null);
     res.isTom = true;
     res.name = name;
+    // var hashString = name+"("+args.map((a) => a.isTom ? a.toString() : JSON.stringify(a))+")";
+    // if (!memos[hashString])
+    //   memos[hashString] = getMemoizedGeneratorProducer(generatorProducer(...args));
+    // var memoizedGeneratorProducer = memos[hashString];
     res[wu.iteratorSymbol] = () => generatorProducer(...args);
     if (toStringOverride)
       res.toString = () => toStringOverride;
     else
       prettyToString(name,args,res);
+    //console.log(res.toString());
     return res;
   };
   //console.log("constructed node",generatorProducer,name);
@@ -385,6 +430,8 @@ var MMapOp = mGenerator(function*(mapFunc,node) {
     }
 
     let mapped = mapFunc(e);
+    if (isIterable(mapped))
+      mapped = MFlatten(mapped);
     if (mapped ==null)
       continue;
     if (!isIterable(mapped))
@@ -425,7 +472,7 @@ var MCombineLast = mGenerator(function*(combineFunc, combineNode, node) {
 var MFlatten = mGenerator(function*(node) {
   for (let e of node)
     if (isIterable(e))
-      yield* MFlatten(e)
+      yield* getIterator(MFlatten(e))
     else
       yield e;
 },"flatten");
@@ -563,7 +610,11 @@ var MDuration = MProperty("duration");
 var MEventCount = MProperty("count", MCount(0,1));
 
 var MDelay = mGenerator(function*(amount,node) {
-  yield* getIterator(MProperty("time", (n) => n.time+amount, node));
+  if (!isIterable(amount))
+    amount = [amount];
+
+  for (let a of amount)
+    yield* getIterator(MProperty("time", (n) => n.time + a, node));
 },"delay");
 
 

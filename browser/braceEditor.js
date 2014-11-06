@@ -43,6 +43,7 @@ $(document).ready(function() {
   $(".ace_text-layer").jrumble({opacity:true, rotation: 0, x:5, y:5, speed:15, opacityMin:0.6});
 
   socket.on("beat",function (beatInfo)  {
+    return;
     $("#beatIndicator").text(""+beatInfo);
     if (beatInfo % 4 ==0) {
 
