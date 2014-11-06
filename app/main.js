@@ -48,16 +48,15 @@ var shaker2=m.evt({ duration:(0.1)}).loop().metro((0.25)).bjorklund(4,3,3).pitch
 kick)
 .notePlay();
 
-console.time();
-
-for (let e of shaker.take(2000));
-
-for (let e of shaker2.take(2000));
-
-console.timeEnd();
-
-return;
-
+// console.time();
+//
+// for (let e of shaker.take(2000));
+//
+// for (let e of shaker2.take(2000));
+//
+// console.timeEnd();
+//
+// return;
 
 var abletonSender = AbletonSender(8901  );
 var abletonReceiver = AbletonReceiver(8895);
@@ -145,10 +144,11 @@ var compiledSequences = webServer.liveCode.flatMap(function(code) {
 var clipSequences = abletonReceiver.clipNotes.map(function(v) {
   var notes = _.sortBy(v.notes, (n) => n.time);
   var seq=m.evt().repeat(notes.length)
-    .time(notes.map((n) => n.time))
     .pitch(notes.map((n) => n.pitch))
     .duration(notes.map((n) => n.duration))
-    .velocity(notes.map((n) => n.velocity/127)).loopLength(v.loopEnd-v.loopStart).notePlay();
+    .velocity(notes.map((n) => n.velocity/127))
+    .time(notes.map((n) => n.time))
+    .loopLength(v.loopEnd-v.loopStart).notePlay();
   //console.log("clipSeq",seq.pitch);
   //console.log("created clip seq from clipNotes",{device:"abletonClip", name: v.name, sequence: seq});
   return {device:"abletonClip", name: v.name, sequence: seq};

@@ -38,58 +38,15 @@ var loopValue = function*(value) {
 // }
 
 
-
-
-var getMemoizedGeneratorProducer = function(iterator) {
-
-  var memo = [];
-  var memorizedAll = false;
-  var memoIteratorCreator = function () {
-    var index=0;
-
-    return {
-        next: function() {
-          var wasMemoized=true;
-          if (index >= memo.length && !memorizedAll) {
-            var nextVal = iterator.next().value;
-            if (nextVal != undefined) {
-              memo.push(nextVal);
-              wasMemoized=false;
-//              console.log("new memo",(""+memo).substr(0,10));
-            }
-            else
-              memorizedAll = true;
-          }
-          var res;
-          if (index >= memo.length)
-            res = {done:true, value:undefined};
-          else {
-            // if (wasMemoized)
-            //   console.log("fund memoized... returning");
-            res = {value: memo[index], done: false};
-          }
-          index++;
-          return res;
-        }
-      }
-  }
-
-  return memoIteratorCreator;
-
-}
-
 // // TODO: work in progress
 // TODO: change to one option param
 var mGenerator = function(generatorProducer, name, curryArgCount = 0, toStringOverride=null) {
-//  var memos = {};
+
   var genProducer = function(...args) {
     let res = Object.create(null);
     res.isTom = true;
     res.name = name;
-    // var hashString = name+"("+args.map((a) => a.isTom ? a.toString() : JSON.stringify(a))+")";
-    // if (!memos[hashString])
-    //   memos[hashString] = getMemoizedGeneratorProducer(generatorProducer(...args));
-    // var memoizedGeneratorProducer = memos[hashString];
+    //var hashString = name+"("+args.map((a) => a.isTom ? a.toString() : JSON.stringify(a))+")";
     res[wu.iteratorSymbol] = () => generatorProducer(...args);
     if (toStringOverride)
       res.toString = () => toStringOverride;
@@ -131,7 +88,7 @@ var MProperty = mGenerator(function* (name,tomValue, children) {
     yield* addPropLooping(name,tomValue,children);
   } else {
     for (let e of children) {
-      //console.log(name, typeof tomValue, tomValue);
+
       if (typeof tomValue === "function" && tomValue.length <=1) {
         yield addFuncProp(e, name, () => tomValue(e));
       }

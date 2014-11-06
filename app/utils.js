@@ -33,8 +33,11 @@ export const getIterator = (thing) => {
 };
 
 export const fixFloat = (n) => parseFloat(n.toPrecision(12));
-
+var objectsCloned=0;
 export const clone = function(obj) {
+    objectsCloned++;
+    if (objectsCloned%5000==0)
+      console.log("cloned",objectsCloned);
     if (!(obj instanceof Object)) {
         return obj;
     }
@@ -54,6 +57,7 @@ export var addObjectProp = function(eventObject,name, value, enumerable=true) {
   var newObject = clone(eventObject);
   Object.defineProperty(newObject, name, jsPropDescriptor);
 //  console.log("defined property ",name," of ",eventObject,"with value",value);
+
   return Object.freeze(newObject);
 }
 
