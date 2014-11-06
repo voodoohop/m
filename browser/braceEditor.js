@@ -40,7 +40,7 @@ socket.on("code", function(code) {
 
 
 $(document).ready(function() {
-  $(".ace_text-layer").jrumble({opacity:true, rotation: 0, x:10, y:10, speed:5, opacityMin:0.6});
+  $(".ace_text-layer").jrumble({opacity:true, rotation: 0, x:5, y:5, speed:15, opacityMin:0.6});
 
   socket.on("beat",function (beatInfo)  {
     $("#beatIndicator").text(""+beatInfo);

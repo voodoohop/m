@@ -847,10 +847,10 @@ let m = FunctionalMusic();
 var test1 = m.evt({pitch:12}).loop().metro(10).delay(10).take(2);
 var test2 = m.evt({pitch:3, velocity:0.3}).loop().metro(4).take(10);
 
-for (let m of test1)
-  console.log("test1",m.time, m);
-for (let m of test2)
-  console.log("test2",m.time, m);
+// for (let m of test1)
+//   console.log("test1",m.time, m);
+// for (let m of test2)
+//   console.log("test2",m.time, m);
 
 var combined = test2.combineMap((combine,me) =>  {
   var nextTime = null;
@@ -870,7 +870,6 @@ for (let m of combined) {
   console.log("combined",m);
 }
 
-throw ("hello");
 
 //var count = MTime(MCount(0,1),MLoop(MEvent({pitch:[12,13,100]})));
 //for (let c of count)
