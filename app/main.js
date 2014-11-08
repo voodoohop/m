@@ -16,7 +16,7 @@ import {FunctionalMusic} from "./functionalMonads";
 
 import {t} from "./time";
 
-import {TomFRPSequencer, BaconSequencer} from "./tomSequencer";
+
 
 import {AbletonReceiver, AbletonSender} from "./oscAbleton";
 
@@ -107,7 +107,7 @@ var decodedTime = abletonReceiver.time.diff(0,(a,b) => b-a).skip(1).zip(abletonR
 
 
 
-
+// TODO: could move all this time stuff to sequencePlayManager or another module
 // TODO: timeThatAccountsForTransportJumps should be a stream of functions that can convert time to global ableton time automatically
 // TODO: make every stream have its own starttime
 var timeThatAccountsForTransportJumps2 = decodedTime.map((t) => {return {time: t.time-t.firstTime, offset: t.firstTime}});
@@ -131,11 +131,15 @@ resetMessages.log("RESET");
 //decodedTime.log("decodedTime");
 
 
-var Sequencer = BaconSequencer(timeThatAccountsForTransportJumps.toEventStream());
+
+
+
+import SequencePlayManager from "./sequencePlayManager";
+var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(),resetMessages);
 
 
 var seqLoader = {
-  get: (m) => _.mapValues(playingSequences, (p) => p.sequence)
+  get: (m) => _.mapValues(sequencePlayManager.playingSequences, (p) => p.sequence)
 }
 
 
@@ -198,35 +202,16 @@ var clipSequences = abletonReceiver.clipNotes.map(function(v) {
 
 
 
-var playSequencer = (sequencer,inst) => sequencer.onValue((playFunc) => playFunc(inst));
-
-var playingSequences = {};
-
-var resetNo=0;
-var instrumentPlayer = function(seq) {
-  liveCodeReset.push(resetNo++);
-  if (playingSequences[seq.name])
-    playingSequences[seq.name].stop();
-  console.log("creating instrument for",seq.name);
-  var seqInst = abletonSender.instrument(seq.name);
-
-  playingSequences[seq.name] = {stop: playSequencer(Sequencer(seq.sequence,seq.name),seqInst), sequence: seq.sequence};
-  resetMessages.onValue(() => {
-     playingSequences[seq.name].stop();
-     playingSequences[seq.name] = {stop: playSequencer(Sequencer(seq.sequence,seq.name),seqInst), sequence: seq.sequence};
-  });
-}
-
-
 //var withSequencers = compiledSequences.map((s) => _.extend({sequencer: Sequencer(s.sequence,s.name)},s));
 
 
 
 var clipAndCodeSequences = compiledSequences.merge(clipSequences)
 
-clipAndCodeSequences.onValue(instrumentPlayer);
+sequencePlayManager.newSequence.plug(clipAndCodeSequences);
 
-
+var resetNo=0;
+clipAndCodeSequences.onValue(() => liveCodeReset.push(resetNo++));
 
 var Immutable = require("immutable");
 

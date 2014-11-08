@@ -49,6 +49,11 @@ export var AbletonReceiver = function(inPort) {
   // oscMessageIn.onValue(function(v) {
   //   console.log("osc",v);
   // });
+  //oscMessageIn.log("osc");
+
+  // TODO: use scan instead of onValue
+  var sequencePlayRequests = oscMessageIn.filter((message) => message.address == "/requestSequence")
+    .map((v) => {return {sequenceName: v.args[0], port: v.args[1]}})
 
 
   var baconParam = (name) => oscMessageIn
@@ -65,7 +70,8 @@ var timeInBeats = baconTime.map((time) => time/t.beats(1));
     time: timeInBeats,
     param:  baconParam,
     codeChange: codeChange,
-    clipNotes:clipNotes
+    clipNotes:clipNotes,
+    sequencePlayRequests: sequencePlayRequests
   }
 
 }
