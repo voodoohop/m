@@ -27,7 +27,7 @@ export default function(baconTime) {
     baconTime.skip(1), timeBetweenTicks, localTime.skip(1), localTimeBetweenTicks);
 
 
-  var resolutionMs = 2;
+  var resolutionMs = 3;
 
   var latency=0;
 

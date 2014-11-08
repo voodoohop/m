@@ -63,13 +63,9 @@ var addPropLooping = function*(propName, tomValue, children) {
   //var loopedVal = loopValue(tomValue);
   var iterator = getIterator(tomValue);
   for (let e of children) {
-//    console.log("nextvallooping",iteratorNextValLooping);
-  // TODO: strange that destructuring assignment throwing error
     let res= iteratorNextValLooping(tomValue, iterator);
-//    console.log("res",res);
     iterator = res[1];
     let nextVal=res[0];
-//    console.log(res, "nextvallooping2");
     if (typeof nextVal == "object" && nextVal.type === "value")
         nextVal = nextVal.value;
     yield addObjectProp(e, propName, nextVal);
@@ -77,18 +73,12 @@ var addPropLooping = function*(propName, tomValue, children) {
 }
 
 
-var MProperty = mGenerator(function* (name,tomValue, children) {
-  //console.log("mprop", name, ""+tomValue,isIterable(tomValu);
-  if (tomValue == undefined)
-    throw new TypeError("MProperty: tomValue undefined, child:"+children+" name:"+name);
-  if (name == undefined)
-    throw new TypeError("MProperty: name undefined, child:"+children+" value:"+tomValue);
 
+var MProperty = mGenerator(function* (name,tomValue, children) {
   if (isIterable(tomValue)) {
     yield* addPropLooping(name,tomValue,children);
   } else {
     for (let e of children) {
-
       if (typeof tomValue === "function" && tomValue.length <=1) {
         yield addFuncProp(e, name, () => tomValue(e));
       }
@@ -185,16 +175,20 @@ var MNotePlayer = mGenerator(function*(node) {
         var noteOnTime = me.time;
         var noteOffTime = me.time + me.duration;
         //console.log("noteOnTIme",me.time,baconTime);
-        var baconNoteOn = baconTime.skipWhile((t) => t < noteOnTime).take(1).map(() => {
-          return function(instrument) {instrument.noteOn(me.pitch, me.velocity, noteOnTime)};
+        var baconNoteOn = baconTime.skipWhile((t) => t.time < noteOnTime).take(1).map((t) => {
+          return function(instrument) {instrument.noteOn(me.pitch, me.velocity, noteOnTime+t.offset)};
         });
-        var baconNoteOff = baconTime.skipWhile((t) => t < noteOffTime).take(1).map(() => {
-          return function(instrument) {instrument.noteOff(me.pitch, me.time)};
+        var baconNoteOff = baconTime.skipWhile((t) => t.time < noteOffTime).take(1).map((t) => {
+          return function(instrument) {instrument.noteOff(me.pitch, noteOffTime+t.offset)};
         });
         return baconNoteOn.merge(baconNoteOff);
       }
       yield addObjectProp(me, "play", playMethod, false);
     }
+},"note");
+
+var MNote = mGenerator(function*(node) {
+
 },"note");
 
 
@@ -230,11 +224,11 @@ var MAutomatePlay = mGenerator(function*(name,node) {
   for (let v of node) {
     let playMethod = function(baconTime) {
       return baconTime
-        .skipWhile((t) => t < v.time)
-        .takeWhile((t) => v.duration ? t < v.time + v.duration : true)
+        .skipWhile((t) => t < v.time+startOffset)
+        .takeWhile((t) => v.duration ? t < v.time+startOffset + v.duration : true)
         .throttle(10)
         .map((t) => {
-          return function(instrument) {instrument.param(name, v.value(t,v),t)};
+          return function(instrument) {instrument.param(name, v.value(t,v), t.time + t.offset)};
         });
     };
     yield addObjectProp(v, "play",playMethod);
@@ -248,17 +242,34 @@ var MSetValue = mGenerator(function* (value, child) {
 },"setValue", 2);
 
 
-var MEvent = mGenerator(function*(props=false) {
-  if (props)
-    yield* getIterator(MEventProperties(props,MEvent()));
-  else
-    yield Object.freeze({});
+var MEvent = mGenerator(function*(props={}) {
+  // if (props)
+  //   yield* getIterator(MEventProperties(props,MEvent()));
+  // else
+    if (isIterable(props))
+      for (let e of props)
+        yield* getIterator(MEvent(e));
+    else
+    yield convertToObject(props);//Object.freeze({});
 },"evt");
 
 
 
 // not iterating over values so we can pass in functions?
 var MEventProperties = mGenerator(function*(props,node) {
+
+    //faster but not necessarily cleaner
+    // for (let e of node) {
+    //   yield _.extend({},props,e);
+    // }
+    // return;
+    //
+
+    // for (let n of node) {
+    //
+    // }
+    //
+
     var imProps = clone(props);
     var keys = Object.keys(imProps);
     //console.log("eventprops",keys);
@@ -344,10 +355,22 @@ var MCompose = mGenerator(function*(...nodes) {
 },"compose");
 
 var MLoop = mGenerator(function*(node) {
-  while (true) {
-    //console.log(""+node);
-    yield* getIterator(node);
+  var cached = [];
+
+  for (let e of node) {
+    cached.push(e);
+  //  console.log("caching",e);
   }
+  console.log("cached",cached);
+
+  while (true) {
+    yield* getIterator(cached);
+  }
+
+  // while (true) {
+  //   //console.log(""+node);
+  //   yield* getIterator(node);
+  // }
 },"loop");
 
 
@@ -387,15 +410,23 @@ var MMapOp = mGenerator(function*(mapFunc,node) {
     }
 
     let mapped = mapFunc(e);
+//console.log("mapping1",mapped,mapFunc);
+
     if (isIterable(mapped))
       mapped = MFlatten(mapped);
+//console.log("mapping2",mapped);
+
     if (mapped ==null)
       continue;
+
     if (!isIterable(mapped))
       mapped = [mapped];
-
+//    console.log("mapping",mapped);
+    var asEvent = MEvent(e.mapObject ? e.mapObject : e);
     for (let res of mapped) {
-      var mappedEvent = MEventProperties(convertToObject(res),MEvent(e.mapObject ? e.mapObject : e));
+      // TODO: OPTIMiZE OPTIMIZE OPTIMIZE
+      var mappedEvent = MEventProperties(convertToObject(res), asEvent);
+  //    console.log(mappedEvent);
       if (e.hasOwnProperty("time") && res.hasOwnProperty("time") && res.time > e.time) {
         if (!scheduled.has(res.time))
           scheduled.set(res.time, []);
@@ -872,12 +903,12 @@ var combined = test2.combineMap((combine,me) =>  {
   return {pitch: nextTime == me.time ? 5: 24}
 }, test1);
 
-console.log("getting combined");
-for (let m of combined) {
-
-  console.log("combined",m);
-}
-
+// console.log("getting combined");
+// for (let m of combined) {
+//
+//   console.log("combined",m);
+// }
+//
 
 //var count = MTime(MCount(0,1),MLoop(MEvent({pitch:[12,13,100]})));
 //for (let c of count)

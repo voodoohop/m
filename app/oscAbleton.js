@@ -40,7 +40,6 @@ export var AbletonReceiver = function(inPort) {
 
 
   oscMessageIn.filter((message) => message.address == "/abletonTime").map((message) => message.args[0]).skipDuplicates().onValue(function(v){
-
     baconTime.push(v);
   });
 
@@ -59,7 +58,8 @@ export var AbletonReceiver = function(inPort) {
 
   baconParam("1").onValue((v) => console.log("baconvalue",v));
 
-  var timeInBeats = timeInterpolator(baconTime.map((time) => time/t.beats(1)));
+//  var timeInBeats = timeInterpolator(baconTime.map((time) => time/t.beats(1)));
+var timeInBeats = baconTime.map((time) => time/t.beats(1));
 
   return {
     time: timeInBeats,
@@ -85,8 +85,15 @@ export var AbletonSender = function(outPort) {
   udpPort.open();
   // Send an OSC message to, say, SuperCollider
 
+
+  // var play = wu.curryable(function(seqName, baconTime, evt) {
+  //   if (evt.continuousPlay) {
+  //
+  //   }
+  // });
+
   var noteOn = wu.curryable(function(seqName,pitch,velocity,time) {
-    console.log("noteOn",pitch);
+    console.log("noteOn",pitch,time*t.beats(1));
     udpPort.send({
         address: "/midiNote",
         args: [seqName, pitch, velocity > 1 ? velocity : Math.floor(velocity*127), 1,time*t.beats(1)]
@@ -99,7 +106,7 @@ export var AbletonSender = function(outPort) {
 
 
   var noteOff = wu.curryable(function(seqName,pitch,time) {
-  console.log("noteOff",pitch);
+  console.log("noteOff",pitch,time);
 
     udpPort.send({
       address: "/midiNote",
@@ -121,7 +128,7 @@ export var AbletonSender = function(outPort) {
 
   });
 
-
+  // var diffTime = null;
 
   var generatorUpdate=function(generatorList) {
     udpPort.send({
@@ -141,6 +148,10 @@ export var AbletonSender = function(outPort) {
     noteOn: noteOn,
     noteOff: noteOff,
     param:param,
-    generatorUpdate:generatorUpdate
+    generatorUpdate:generatorUpdate,
+    // usedTime: function(baconTime) {
+    //   diffTime = baconTime;
+    // }
+
   }
 }

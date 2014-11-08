@@ -20,7 +20,7 @@ var socket = require('socket.io-client')('http://localhost');
 
 
 socket.on("connect", function() {
-  socket.emit("getCode", {maxDeviceId: myDeviceId});
+  //socket.emit("getCode", {maxDeviceId: myDeviceId});
   if (codeLoaded)
     window.setTimeout( function() {
       socket.emit("codeChange",{maxDeviceId: myDeviceId, code:editor.getValue()});
@@ -32,6 +32,7 @@ console.log("editor",editor);
 var codeLoaded = false;
 socket.on("code", function(code) {
   console.log(editor);
+  console.log(edit.getValue());
   editor.setValue(code);
   codeLoaded = true;
 //  socket.emit("codeChange",{maxDeviceId: myDeviceId, code:editor.getValue()});

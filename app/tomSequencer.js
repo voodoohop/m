@@ -9,7 +9,9 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
   //console.log("sequencer",baconTime);
   var seqIterator = getIterator(sequence);
   var next = seqIterator.next();
-  return baconTime.take(1).flatMap((firstTime) => baconTime.diff(firstTime,(prevTime,time) => {
+  return baconTime.take(1).flatMap((firstTime) => baconTime.diff(firstTime,(prevDecoded,timeDecoded) => {
+    var prevTime = prevDecoded.time;
+    var time = timeDecoded.time;
     var count=0;
     while (next.value.time < prevTime) {
       next = seqIterator.next();
