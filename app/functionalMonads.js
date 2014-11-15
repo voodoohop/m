@@ -897,6 +897,9 @@ var combined = test2.combineMap((combine,me) =>  {
   return {pitch: nextTime == me.time ? 5: 24}
 }, test1);
 
+for (let c of combined)
+  console.log("combined",c);
+
 // var test1 =m.evt({pitch:20, velocity:[30,40], duration:0.5}).metro(0.25).duration([0.3,0.7])
 // .swing(0.25,0.1)
 // .map((n) => {return {velocity: n.velocity/100}})
