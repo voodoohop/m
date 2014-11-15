@@ -73,7 +73,7 @@ var MProperty = mGenerator(function* (name,tomValue, children) {
   //TODO: merge the addFuncProp into MEvent?
 
 
-  yield* getIterator(MEventProperties({[name]:tomValue},children));
+  yield* getIterator(MProperties({[name]:tomValue},children));
 },"property", 3);
 
 
@@ -216,39 +216,30 @@ var MZip = mGenerator(function*(...nodes) {
 
 
 
+var MData = mGenerator(function*(data) {
+  if (isIterable(data))
+    yield* getIterator(data);
+  yield Object(data);
+},"data");
+
 
 // TODO: if we leave out the shallow check we automatically have a flatmap (Maybe??)
-var MEvent = mGenerator(function*(props={}, shallow=false) {
+var MEvent = mGenerator(function*(data=null, shallow=false) {
   // if (props)
-  //   yield* getIterator(MEventProperties(props,MEvent()));
+  //   yield* getIterator(MProperties(props,MEvent()));
   // else
+
     var keys=null;
     if (shallow)
       yield props;
     else
-      if (isIterable(props))
+      if (isIterable(props)) {
         for (let e of props)
           yield* getIterator(MEvent(e,true));
+      }
       else {
-        if (props.type == "value")
-          yield props;
-        else  {
-        // if (!isIterable(props)) {
-        //console.log(props);
-          if (typeof props ==="object" && (keys = Object.keys(props)).length > 0) {
-              var zippedGenerator = MZip(..._.values(props));
-              for (let zippedProps of zippedGenerator) {
-                //console.log(zippedProps);
-                var resProps = {};
-                zippedProps.forEach(function(zipped,i) {
-                  resProps[keys[i]] = zipped;
-                });
-                yield addObjectProps({}, resProps);
-              }
-          }
-        }
-      // }
-    }//Object.freeze({});
+        yield* MProperties([{}], data);
+      }
 },"evt");
 
 var MLoop = mGenerator(function*(node) {
@@ -281,26 +272,33 @@ var MLoop = mGenerator(function*(node) {
 
 
 // not iterating over values so we can pass in functions?
-var MEventProperties = mGenerator(function*(props,node) {
+var MProperties = mGenerator(function*(props,node) {
 
     var keys = Object.keys(props);
 
-    console.log("eventprops",props);
+    //console.log("eventprops",props);
 
     if (keys.length == 0) {
       yield* getIterator(node);
+      return;
     }
-    else {
-    //  console.log("zipping for eventproperties");
-      for (let e of MZip(props, node)) {
-        //console.log(MEvent,addObjectProps);
-      //  console.log("zipped for eventproperties");
-        console.log("yielding", e[1],e[0],addObjectProps(e[1],e[0]));
+    props = Object(props);
+    for (let n of node) {
+      if ((keys = Object.keys(props)).length > 0) {
+          var zippedGenerator = MZip(..._.values(props));
+          for (let zippedProps of zippedGenerator) {
+            //console.log(zippedProps);
+            var resProps = {};
+            zippedProps.forEach(function(zipped,i) {
+              resProps[keys[i]] = zipped;
+            });
+            yield addObjectProps({}, resProps);
+          }
 
-        yield addObjectProps(e[1],e[0]); //getIterator(MEventProperties(imProps, MProperty(key, val, node)));
       }
     }
-},"set",2);
+
+},"set");
 
 var simpleMap = mGenerator(function* (mapFunc, node) {
   for (let n of node) {
@@ -384,12 +382,7 @@ let MLoopFixedLength = mGenerator(function*(loopLength,node) {
   }
 }, "loopFixedLength",2);
 
-let convertToObject = function(externalVal) {
-  if (typeof externalVal != "object")
-    return {valueOf: () => externalVal, type:"value", value: externalVal};
-  else
-    return externalVal;
-}
+let convertToObject = (externalVal) => Object(externalVal);
 
 
 var MSimpleMap = mGenerator(function*(mapFunc,node) {
@@ -447,7 +440,7 @@ var MMapOp2 = mGenerator(function*(mapFunc,node) {
     for (let res of mapped) {
       console.log("resmapped",convertToObject(res), asEvent);
       // TODO: OPTIMiZE OPTIMIZE OPTIMIZE
-      var mappedEvent = MEventProperties(convertToObject(res), asEvent);
+      var mappedEvent = MProperties(convertToObject(res), asEvent);
       console.log("created event properties")
   //    console.log(mappedEvent);
       if (e.hasOwnProperty("time") && res.hasOwnProperty("time") && res.time > e.time) {
@@ -502,11 +495,11 @@ var MPluck = mGenerator(function*(propertyName, node) { yield* getIterator(MMapO
 
 var MMapWithMemory = mGenerator(function*(initial, mapFunc,node) {
   let current = initial;
-  yield* getIterator(MEventProperties(convertToObject(current), MEvent(current)));
+  yield* getIterator(MProperties(convertToObject(current), MEvent(current)));
   for (let e of node) {
     current = mapFunc(current, e.value);
   //  console.log("current",current);
-    yield* getIterator(MEventProperties(convertToObject(current), MEvent(e)));
+    yield* getIterator(MProperties(convertToObject(current), MEvent(e)));
   }
 },"memoryMap",3);
 
@@ -892,7 +885,7 @@ export var FunctionalMusic = function() {
     addFunction("delay",MDelay);
     addFunction("time",MTime);
 
-    addFunction("set", MEventProperties);
+    addFunction("set", MProperties);
     addFunction("setValue", MSetValue);
 
 
