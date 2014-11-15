@@ -64,8 +64,11 @@ export var addObjectProps=function(eventObject, props, enumerable=true) {
 
     for (let key of keys) {
       var value = props[key];
-      // if (enumerable && typeof value === "function" && value.length <= 1)
-      //   value = value(eventObject);
+      if (enumerable && typeof value === "function" && value.length <= 1) {
+        var functor = value;
+        value = Object(functor(eventObject));
+        value.functor = functor; 
+      }
 
       descriptor[key] = { configurable: true, enumerable: enumerable, value:value};
     }
