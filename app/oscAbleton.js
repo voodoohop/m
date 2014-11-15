@@ -49,7 +49,7 @@ export var AbletonReceiver = function(inPort) {
   // oscMessageIn.onValue(function(v) {
   //   console.log("osc",v);
   // });
-  //oscMessageIn.log("osc");
+  oscMessageIn.log("osc");
 
   // TODO: use scan instead of onValue
   var sequencePlayRequests = oscMessageIn.filter((message) => message.address == "/requestSequence")
@@ -98,7 +98,7 @@ export var AbletonSender = function(outPort) {
   //   }
   // });
 
-  var noteOn = wu.curryable(function(seqName,pitch,velocity,time) {
+  var noteOn = wu.curryable(function(seqName,outPort,pitch,velocity,time) {
     console.log("noteOn",pitch,time*t.beats(1));
     udpPort.send({
         address: "/midiNote",
@@ -111,8 +111,8 @@ export var AbletonSender = function(outPort) {
   });
 
 
-  var noteOff = wu.curryable(function(seqName,pitch,time) {
-  console.log("noteOff",pitch,time);
+  var noteOff = wu.curryable(function(seqName,outPort,pitch,time) {
+  console.log("noteOff",pitch,time*t.beats(1));
 
     udpPort.send({
       address: "/midiNote",
@@ -120,7 +120,7 @@ export var AbletonSender = function(outPort) {
     }, "127.0.0.1", outPort);
   });
 
-  var param=wu.curryable(function(seqName,name,val,time) {
+  var param=wu.curryable(function(seqName,outPort,name,val,time) {
     console.log("automation",seqName,name,val);
     udpPort.send({
       address: "/param",
@@ -146,9 +146,16 @@ export var AbletonSender = function(outPort) {
   return {
     instrument: function(seqName) {
       return {
-        noteOn: noteOn(seqName),
-        noteOff: noteOff(seqName),
-        param: param(seqName)
+        noteOn: noteOn(seqName,outPort),
+        noteOff: noteOff(seqName,outPort),
+        param: param(seqName,outPort)
+      }
+    },
+    subscribeInstrument: function(seqName, listenerPort) {
+      return {
+        noteOn: noteOn(seqName,listenerPort),
+        noteOff: noteOff(seqName,listenerPort),
+        param: param(seqName,listenerPort)
       }
     },
     noteOn: noteOn,

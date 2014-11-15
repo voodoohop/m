@@ -26,12 +26,7 @@ var _ = require("lodash");
 
 var Bacon = require("baconjs");
 
-
-
 var m = FunctionalMusic();
-
-
-
 
 //
 // var kick=m.evt({pitch:60,duration:(1/4), velocity:100}).loop().metro((1)).notePlay();
@@ -137,9 +132,10 @@ resetMessages.log("RESET");
 import SequencePlayManager from "./sequencePlayManager";
 var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(),resetMessages);
 
+liveCodeReset.plug(sequencePlayManager.resetRequests);
 
 var seqLoader = {
-  get: (m) => _.mapValues(sequencePlayManager.playingSequences, (p) => p.sequence)
+  get: (m) => _.mapValues(sequencePlayManager.availableSequences, (p) => p.sequence)
 }
 
 

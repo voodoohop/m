@@ -50,21 +50,37 @@ export const clone = function(obj) {
     return Object.create(Object.getPrototypeOf(obj), descriptors);
 };
 
+
+
+export var addObjectProps=function(eventObject, props, enumerable=true) {
+    var keys = Object.keys(props);
+    if (keys.length==0)
+      return eventObject;
+
+    var descriptor = {};
+
+    for (let propN of Object.getOwnPropertyNames(eventObject))
+      descriptor[propN] = Object.getOwnPropertyDescriptor(eventObject, propN);
+
+    for (let key of keys) {
+      var value = props[key];
+      if (enumerable && typeof value === "function" && value.length <= 1)
+        value = value(eventObject);
+
+      descriptor[key] = { configurable: true, enumerable: enumerable, value:value};
+    }
+    return Object.freeze(Object.create({},descriptor));
+}
+
 export var addObjectProp = function(eventObject,name, value, enumerable=true) {
-  if (eventObject[name] === value) {
-    return eventObject;
-  }
-
-  var descriptor = {};
-  for (let propN of Object.getOwnPropertyNames(eventObject))
-    descriptor[propN] = Object.getOwnPropertyDescriptor(eventObject, propN);
-
-  descriptor[name] = { configurable: true, enumerable: enumerable, value:value};
   //var newObject = clone(eventObject);
 
 //  console.log("defined property ",name," of ",eventObject,"with value",value);
+  if (eventObject[name] == value) {
+    return eventObject;
+  }
 
-  return Object.freeze(Object.create({},descriptor));
+  return addObjectProps(eventObject, { [name]: value}, enumerable);
 }
 
 export var addFuncProp = function(eventObject, name, func) {
