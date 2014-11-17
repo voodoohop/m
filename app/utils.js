@@ -53,6 +53,9 @@ export const clone = function(obj) {
 
 
 export var addObjectProps=function(eventObject, props, enumerable=true) {
+    if (! props instanceof Object)
+      return props;
+
     var keys = Object.keys(props);
     if (keys.length==0)
       return eventObject;
@@ -65,21 +68,26 @@ export var addObjectProps=function(eventObject, props, enumerable=true) {
     for (let key of keys) {
       var value = props[key];
       if (enumerable && typeof value === "function" && value.length <= 1) {
-        var functor = value;
-        value = Object(functor(eventObject));
-        value.functor = functor; 
+        if (key != "toString" && key != "valueOf") {
+          var functor = value;
+          value = functor(eventObject);
+          value.functor = functor;
+        }
       }
 
       descriptor[key] = { configurable: true, enumerable: enumerable, value:value};
+      //console.log("adding prop", descriptor[key]);
     }
-    return Object.freeze(Object.create({},descriptor));
+    //descriptor["toString"] = {configurable:true, enumerable:false, value: () => "{"+Object.keys(descriptor).filter((k) => k !="toString").map((k) => ""+k+": "+descriptor[k].value).join(", ")+"}"};
+    var obj = Object.create({},descriptor);
+    return Object.freeze(obj);
 }
 
 export var addObjectProp = function(eventObject,name, value, enumerable=true) {
   //var newObject = clone(eventObject);
 
 //  console.log("defined property ",name," of ",eventObject,"with value",value);
-  if (eventObject[name] == value) {
+  if (eventObject[name] === value) {
     return eventObject;
   }
 

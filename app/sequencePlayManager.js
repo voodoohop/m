@@ -32,12 +32,22 @@ export default function(sequenceSubscribe, abletonSender, time, resetMessages) {
     var needToPlay = _.without(_.pluck(subscribedSequences,"sequenceName"),...Object.keys(playingSequences));
     console.log("availableSequences",availableSequences);
     console.log("needToPlay",needToPlay);
-    for (let seqName of needToPlay)
-      instrumentPlayer(availableSequences[seqName]);
+    for (let seqName of needToPlay) {
+      if (availableSequences[seqName])
+        instrumentPlayer(availableSequences[seqName]);
+    }
     resetRequests.push(Math.random());
   }
 
   sequenceSubscribe.onValue((sub) => {
+    if (!availableSequences[sub.sequenceName]){
+      console.warn("tried subscribing to "+sub.sequenceName+" but not available");
+      return;
+    }
+    console.log("subscribing",sub, "subscribed", subscribedSequences);
+    if (_.find(subscribedSequences, (s) => s.port == sub.port && s.sequenceName == sub.sequenceName))
+      return;
+
     _.remove(subscribedSequences, (s) => s.port == sub.port);
     subscribedSequences.push(sub);
     playOnlySubscribed();

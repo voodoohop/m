@@ -71,8 +71,15 @@ var MData = mGenerator(function*(data) {
   if (isIterable(data))
     for (let d of data)
       yield* getIterator(MData(d));
-  else
-    yield Object(data);
+  else {
+    var dataObj;
+    if (data instanceof Object)
+      dataObj = data;
+    else {
+      dataObj = {type:"value", valueOf: () => data};
+    }
+    yield dataObj;
+  }
 },"data");
 
 
@@ -84,16 +91,17 @@ for (let e of MData([{pitch:12, velocity:0.5},{bla:2}]))
 var MLoopData = mGenerator( function*(dataNode) {
   for (let data of dataNode) {
     var keys = Object.keys(data);
+
     if (keys.length == 0) {
-      yield n;
-      continue;
+      yield* getIterator(MLoop(dataNode));
+      return;
     }
 
     for (let props of MZip(..._.values(data))) {
       //console.log(zippedProps);
       var resData = {};
       props.forEach(function(val,i) {
-        val = Object(val);
+        //val = Object(val);
         resData[keys[i]] = val;
       });
       //resData._data = data;
@@ -102,25 +110,6 @@ var MLoopData = mGenerator( function*(dataNode) {
   }
 },"loopData");
 
-// iterable property stuff
-
-// var MEvalFunctors = mGenerator(function*(node) {
-//   var evalMapFunc = function(n) {
-//     var res={};
-//     for (let key of Object.keys(n)) {
-//       let value = n[key];
-//       let newValue = value;
-//       if (typeof value === "function" && value.length <= 1) {
-//         console.log("running functor ",value,"on",n);
-//          newValue = Object(value(n));
-//          newValue.functor = value;
-//       }
-//       res[key] = newValue;
-//     }
-//     return res;
-//   }
-//   yield* getIterator(MSimpleMap(evalMapFunc,node));
-// },"evalFunctors");
 
 var MMergeZipped = mGenerator(function*(node) {
   for (let n of node)
@@ -142,7 +131,13 @@ var MSet = mGenerator(function*(data, node) {
 
 // TODO: if we leave out the shallow check we automatically have a flatmap (Maybe??)
 var MEvent = mGenerator(function*(data) {
-  yield* getIterator(MLoopData(MData(data)));
+  // here if data is iterable we are not looping individual properties
+  if (isIterable(data)) {
+    for (let e of MLoop(data))
+      yield* getIterator(MData(e));
+  }
+  else
+    yield* getIterator(MLoopData(MData(data)));
 },"evt");
 
 
@@ -156,6 +151,7 @@ var MProperty = mGenerator(function* (name,tomValue, children) {
 var MGroupTime = mGenerator(function*(node) {
   var currentTime=-1;
   var grouped=[];
+  //console.log(""+node);
   for (let n of node) {
     if (n.time > currentTime) {
       if (grouped.length > 0) {
@@ -192,7 +188,8 @@ var MNotePlayer = mGenerator(function*(node) {
         });
         return baconNoteOn.merge(baconNoteOff);
       }
-      yield addObjectProp(me, "play", playMethod, false);
+      var playerObj = _.extend({},me.instrumentPlayers, {note: playMethod})
+      yield addObjectProp(me, "instrumentPlayers", playerObj);
     }
 },"note");
 
@@ -207,15 +204,21 @@ var MNote = mGenerator(function*(node) {
 var MAutomatePlay = mGenerator(function*(name,node) {
   for (let v of node) {
     let playMethod = function(baconTime) {
+      //console.log("called playMethod of automateplay");
       return baconTime
-        .skipWhile((t) => t < v.time+startOffset)
-        .takeWhile((t) => v.duration ? t < v.time+startOffset + v.duration : true)
+        .skipWhile((t) => t.time < v.time)
+        .takeWhile((t) => v.duration ? t.time < v.time + v.duration : true)
         .throttle(10)
         .map((t) => {
-          return function(instrument) {instrument.param(name, v.value(t,v), t.time + t.offset)};
+          //console.log("returning automateplay function",v[name]);
+          return function(instrument) {
+            //console.log("calling instrument", );
+            instrument.param(name, v[name](t.time,v), t.time + t.offset)
+          };
         });
     };
-    yield addObjectProp(v, "play",playMethod);
+    var playerObj = _.extend({},v.instrumentPlayers, {[name]: playMethod})
+    yield addObjectProp(v, "instrumentPlayers", playerObj);
   }
 },"automatePlay",2);
 
@@ -291,20 +294,23 @@ var MCombine = mGenerator(function*(combineNode,node) {
         previousOther = nextOther;
         nextOther = m.other;
         for (let me of meWaitingForNextOther) {
-          console.error("using combine but mmapop is not respecting the mapObject property yet");
-          yield {previous: previousOther, next: nextOther, me: me, mapObject: me, time: me.time};
+          // console.warn("using combine but mmapop is not respecting the mapObject property yet");
+          var newObj =  addObjectProps(me, {other: {previous: previousOther, next: nextOther}});
+          yield newObj;
+          //yield addObjectProp(me, {other: {previous: previousOther, next: nextOther}});
         }
         meWaitingForNextOther = [];
       }
     }
     for (let me of meWaitingForNextOther) {
-      yield {previous: nextOther, next: null,me: me, mapObject: me,  time: me.time};
+      var newObj =  addObjectProps(me, {other: {previous: previousOther, next: nextOther}});
+      yield newObj;
     }
 },"combine",2);
 
 var MCombineMap = mGenerator(function*(combineFunc,combineNode,node) {
   // here we could add time diffs to parameters of combineFunc
-  yield* getIterator(MMapOp((combined) => combineFunc(combined, combined.me), MCombine(combineNode,node)));
+  yield* getIterator(MMapOp((combined) => combineFunc(combined,combined.other), MCombine(combineNode,node)));
 },"combineMap",3);
 
 
@@ -399,22 +405,41 @@ var MFlattenAndSchedule = mGenerator(function* (node) {
 },"flattenAndSchedule");
 
 
+var MFlattenShallow = mGenerator(function*(node) {
+  for (let n of node) {
+    if (isIterable(n))
+      yield* getIterator(n);
+    else
+      yield n;
+  }
+},"flattenShallow");
 
 var MMapOp = mGenerator(function*(mapFunc,node) {
   var mapped = MSimpleMap(mapFunc,node);
 
+  var timed=false;
 
   var merged = MSimpleMap((e) => {
-    var mappedRes = isIterable(e[1]) ? e[1] : [e[1]];
+    var mappedRes = MData(e[1]);
     var orig = e[0];
     //console.log("merging",orig,"mappedRes", mappedRes);
-    return {time: orig.time, events: MSimpleMap((m) => addObjectProps(orig,m), mappedRes)};
+    var res = {events: MSimpleMap((m) => addObjectProps(orig,m), mappedRes)};
+
+    if (orig.hasOwnProperty("time")) {
+      res.time = orig.time;
+      timed = true;
+    }
+
+    return res;
   }, MZip(node, mapped));
+
 
   // for (let z of MTake(5,merged))
   //   console.log("merged",z);
-
-  yield* getIterator(MFlattenAndSchedule(merged));
+  if (timed)
+    yield* getIterator(MFlattenAndSchedule(merged));
+  else
+    yield* getIterator(MFlattenShallow(MSimpleMap((e) => e.events,merged)));
 });
 
 
@@ -496,6 +521,7 @@ var MTake = mGenerator(function*(n,node) {
     let count = n;
     //console.log("mtake",node);
     for (let e of node) {
+      // console.log("take yield",e);
       yield e;
       if (--count <= 0)
         break;
@@ -605,6 +631,19 @@ var MTimeFromDurations = mGenerator(function*(node)   {
 },"timeFromDurations");
 
 
+var MDurationsFromTime = mGenerator(function*(node) {
+  var i = getIterator(node);
+  var previous = undefined;
+  while (true) {
+      var next = i.next().value;
+      if (next === undefined)
+        return;
+      if (previous != undefined && previous.hasOwnProperty("time") && next.hasOwnProperty("time")) {
+        yield addObjectProps(previous, {duration: next.time - previous.time- 0.01});
+      }
+      previous = next;
+  }
+});
 
 // var MInsertWhen = MDirectOp(
 //   function* (nodeIterator, insertCondition, insertNode) {
@@ -787,6 +826,13 @@ function bjorklund(steps, pulses) {
 }
 
 
+function MToArray(node) {
+  var res=[];
+  for (let n of node)
+    res.push(n.valueOf());
+  return res;
+}
+
 
 var makeChainable = function (lib,name,funcToChain) {
   return function(...args) {
@@ -859,6 +905,7 @@ export var FunctionalMusic = function() {
     addFunction("toNoteOnOff", MNoteOnOffSequence);
     addFunction("metro",MMetronome);
     addFunction("timeFromDurations", MTimeFromDurations);
+    addFunction("durationsFromTime", MDurationsFromTime);
     addFunction("bjorklund",MBjorklund);
 
     addFunction("notePlay",MNotePlayer);
@@ -868,6 +915,7 @@ export var FunctionalMusic = function() {
     addFunction("combine",MCombine);
     addFunction("combineMap",MCombineMap);
     //addFunction("play",MPlay,false);
+    addFunction("toArray",MToArray, false);
 
     return lib;
 }
@@ -877,34 +925,38 @@ let m = FunctionalMusic();
 
 
 
-var test1 = m.evt({pitch:12}).loop().metro(10).delay(10).take(2);
-var test2 = m.evt({pitch:3, velocity:0.3}).loop().metro(4).take(10);
+var test1 = m.evt({pitch:12}).metro(10).delay(10);
+var test2 = m.evt({pitch:3, velocity:0.3}).metro(4);
 
 // for (let m of test1)
 //   console.log("test1",m.time, m);
 // for (let m of test2)
 //   console.log("test2",m.time, m);
 
-var combined = test2.combineMap((combine,me) =>  {
-  var nextTime = null;
-  var prevTime = null;
-  if (combine.previous)
-    prevTime = combine.previous.time;
-  if (combine.next)
-    nextTime = combine.next.time;
-  //console.log(me, combine,"prevTime:",prevTime,"nextTime",nextTime);
+// var combined = test2.combineMap((c,other) =>  {
+//   var nextTime = null;
+//   var prevTime = null;
+//   //console.log("other",other);
+//
+//   if (c.other.previous)
+//     prevTime = combine.previous.time;
+//   if (combine.next)
+//     nextTime = combine.next.time;
+//   //console.log(me, combine,"prevTime:",prevTime,"nextTime",nextTime);
+//
+//   return {pitch: nextTime == me.time ? 5: 24}
+// }, test1);
 
-  return {pitch: nextTime == me.time ? 5: 24}
-}, test1);
-
-for (let c of combined)
-  console.log("combined",c);
+// console.log(test2.combine(test1).take(5));
+// for (let c of combined.take(5))
+//   console.log("combined",c);
 
 // var test1 =m.evt({pitch:20, velocity:[30,40], duration:0.5}).metro(0.25).duration([0.3,0.7])
 // .swing(0.25,0.1)
 // .map((n) => {return {velocity: n.velocity/100}})
 // .notePlay();
 
+// throw "just terminating";
 
 var simpleMelody = m.evt({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:[0.2,0.1,0.7,0.2,0.5]}).metro(0.5)
 .duration((n) => {
@@ -918,12 +970,11 @@ var simpleMelody = m.evt({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:
 .swing(1,0.3)
 .notePlay();
 
-for (let e of simpleMelody.take(5)) {
-  console.log("event",e);
-}
+// for (let e of simpleMelody) {
+//   console.log("event",e);
+// }
 
 //
-// throw "just terminating";
 
 
 

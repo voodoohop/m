@@ -5,6 +5,19 @@ import {t} from "./time";
 
 var Bacon = require("baconjs");
 
+var eventPlayer = function(baconTime, evt) {
+  var combinedPlayers = Bacon.never();
+//  console.log("trying to play", evt);
+  if (evt.instrumentPlayers) {
+    for (let methodName of Object.keys(evt.instrumentPlayers)) {
+        // console.log("adding player", methodName);
+        combinedPlayers = combinedPlayers.merge(evt.instrumentPlayers[methodName](baconTime));
+    }
+  }
+    // console.log("checking",methodName,"for player");
+  return combinedPlayers;
+}
+
 export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
   //console.log("sequencer",baconTime);
   var seqIterator = getIterator(sequence);
@@ -36,5 +49,5 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
     //console.log(eventsNow.length);
     return eventsNow;
   })).flatMap((v) => Bacon.fromArray(v))
-  .flatMap((evt) => evt.play(baconTime));
+  .flatMap((evt) => eventPlayer(baconTime, evt));
 });

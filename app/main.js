@@ -168,7 +168,9 @@ var compileSequences = function(code) {
 
 import webServer from "./webServer";
 
-webServer.beatFeedback(timeThatAccountsForTransportJumps.map((t) => Math.floor(t)).skipDuplicates());
+
+//timeThatAccountsForTransportJumps.toEventStream().skipDuplicates().log("beat");
+webServer.beatFeedback(timeThatAccountsForTransportJumps.toEventStream().map((t) => Math.floor(t.time)).skipDuplicates());
 
 var compiledSequences = webServer.liveCode.flatMap(function(code) {
   let sequences = compileSequences(code.code);

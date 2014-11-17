@@ -1,6 +1,8 @@
 var ace = require('brace');
 require('brace/mode/javascript');
 require('brace/theme/monokai');
+var _ = require("lodash");
+window._ = _;
 
 var editor = ace.edit('javascript-editor');
 editor.getSession().setMode('ace/mode/javascript');
@@ -41,12 +43,13 @@ socket.on("code", function(code) {
 
 
 $(document).ready(function() {
-  $(".ace_text-layer").jrumble({opacity:true, rotation: 0, x:5, y:5, speed:15, opacityMin:0.6});
+  $(".ace_text-layer").jrumble({opacity:true, rotation: 0, x:0, y:0, speed:3, opacityMin:0.3});
 
   socket.on("beat",function (beatInfo)  {
     return;
+    console.log(beatInfo);
     $("#beatIndicator").text(""+beatInfo);
-    if (beatInfo % 4 ==0) {
+    if (beatInfo % 1 ==0) {
 
       if ($ == undefined)
         return;

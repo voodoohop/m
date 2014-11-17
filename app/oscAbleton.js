@@ -49,7 +49,7 @@ export var AbletonReceiver = function(inPort) {
   // oscMessageIn.onValue(function(v) {
   //   console.log("osc",v);
   // });
-  oscMessageIn.log("osc");
+  //oscMessageIn.log("osc");
 
   // TODO: use scan instead of onValue
   var sequencePlayRequests = oscMessageIn.filter((message) => message.address == "/requestSequence")
@@ -102,7 +102,7 @@ export var AbletonSender = function(outPort) {
     console.log("noteOn",pitch,time*t.beats(1));
     udpPort.send({
         address: "/midiNote",
-        args: [seqName, pitch, velocity > 1 ? velocity : Math.floor(velocity*127), 1,time*t.beats(1)]
+        args: [seqName, pitch, Math.floor(velocity*127), 1,time*t.beats(1)]
     }, "127.0.0.1", outPort);
     // udpPort.send({
     //   address: "/codeUpdate",
@@ -124,7 +124,7 @@ export var AbletonSender = function(outPort) {
     console.log("automation",seqName,name,val);
     udpPort.send({
       address: "/param",
-      args:[seqName,name,val,time*t.beats(1)]
+      args:[seqName,name, Math.floor(val*127),time*t.beats(1)]
     },"127.0.0.1", outPort);
   });
 
