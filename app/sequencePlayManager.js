@@ -4,7 +4,7 @@ import {BaconSequencer} from "./tomSequencer";
 var _ = require("lodash");
 
 
-export default function(sequenceSubscribe, abletonSender, time, resetMessages) {
+export default function(sequenceSubscribe, abletonSender, time, resetMessages, sequenceFeedback) {
   //console.log(sequenceSubscribe);
   sequenceSubscribe.log("seqSubsribe");
 
@@ -15,7 +15,11 @@ export default function(sequenceSubscribe, abletonSender, time, resetMessages) {
 
   var availableSequences = {};
 
-  var playSequencer = (sequencer,inst) => sequencer.onValue((playFunc) => playFunc(inst));
+  var playSequencer = (sequencer,inst, name) => sequencer.onValue((playFunc) => {
+    // console.log("sending seqName",name);
+    sequenceFeedback.push(_.extend({seqName: name}, playFunc.evt))  ;
+    playFunc.play(inst);
+  });
   var playingSequences = {};
 
   var Sequencer = BaconSequencer(time);
@@ -58,7 +62,7 @@ export default function(sequenceSubscribe, abletonSender, time, resetMessages) {
     var port = _.find(subscribedSequences,(s) => s.sequenceName == seq.name).port;
     console.log("creating instrument for",seq.name,port);
     var seqInst = abletonSender.subscribeInstrument(seq.name,port);
-    playingSequences[seq.name] = {stop: playSequencer(Sequencer(seq.sequence,seq.name),seqInst), sequence: seq.sequence, name:seq.name, port: port};
+    playingSequences[seq.name] = {stop: playSequencer(Sequencer(seq.sequence,seq.name),seqInst, seq.name), sequence: seq.sequence, name:seq.name, port: port};
 
   }
 
@@ -77,9 +81,6 @@ export default function(sequenceSubscribe, abletonSender, time, resetMessages) {
       playingSequences[seq.name].stop();
       instrumentPlayer(seq);
     }
-
-
-
   });
 
   return {playingSequences: playingSequences, availableSequences: availableSequences, newSequence: newSequenceBus, resetRequests:resetRequests}

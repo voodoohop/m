@@ -63,7 +63,7 @@ var m = FunctionalMusic();
 //
 // return;
 
-var abletonSender = AbletonSender(8919);
+var abletonSender = AbletonSender(8915);
 var abletonReceiver = AbletonReceiver(8895);
 
 
@@ -126,11 +126,11 @@ resetMessages.log("RESET");
 //decodedTime.log("decodedTime");
 
 
-
+import webServer from "./webServer";
 
 
 import SequencePlayManager from "./sequencePlayManager";
-var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(),resetMessages);
+var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(),resetMessages, webServer.sequenceFeedback);
 
 liveCodeReset.plug(sequencePlayManager.resetRequests);
 
@@ -139,17 +139,32 @@ var seqLoader = {
 }
 
 
+// console.log(new TWEEN.Tween({a:2}));
+// throw "hey";
+
+var Easer = require('functional-easing').Easer;
+
+
 var compileSequences = function(code) {
   var sequences = null
   var passedTests = false;
   try {
     var compiled = traceur.compile(code,{modules:"register", generators:"parse", blockBinding:"parse"});
-    var f = new Function("m","t","params", "teoria","_","System","clone","return "+compiled);
+    console.log("sequencesForLoading", seqLoader.get("bla"));
+    var f = new Function("m","t","params", "teoria","_","System","clone","easer","console", "return "+compiled);
     console.log("compiled",compiled);
-    sequences = f(m, t , abletonReceiver.param, teoria,_, seqLoader, clone);
+    var remoteLog = function(...m) {
+
+      try {
+      webServer.remoteLogger.push(""+m)
+    } catch (e) {
+      console.error("error sending log",e);
+    }
+    };
+    sequences = f(m, t , abletonReceiver.param, teoria,_, seqLoader,  clone, () => new Easer(),{log: remoteLog, warn: remoteLog, error: remoteLog});
     console.log("testing if sequence emits events");
     for (let k of Object.keys(sequences)) {
-      console.log("first event of sequence",k,getIterator(sequences[k]).next());
+      console.log("first 5 event of sequence",sequences[k].take(5).toArray());
     }
     passedTests = true;
   } catch(e) {
@@ -166,7 +181,7 @@ var compileSequences = function(code) {
 
 
 
-import webServer from "./webServer";
+
 
 
 //timeThatAccountsForTransportJumps.toEventStream().skipDuplicates().log("beat");
@@ -184,7 +199,7 @@ var compiledSequences = webServer.liveCode.flatMap(function(code) {
 
 var clipSequences = abletonReceiver.clipNotes.map(function(v) {
   var notes = _.sortBy(v.notes, (n) => n.time);
-  var seq=m.evt(notes.map((n) => {
+  var seq=m.data(notes.map((n) => {
     return {
       pitch: n.pitch,
       duration: n.duration,
@@ -192,7 +207,7 @@ var clipSequences = abletonReceiver.clipNotes.map(function(v) {
       time: n.time
     }
   }
-)).loopLength(v.loopEnd-v.loopStart).notePlay();
+)).loopLength(v.loopEnd-v.loopStart);//.notePlay();
   //console.log("clipSeq",seq.pitch);
   //console.log("created clip seq from clipNotes",{device:"abletonClip", name: v.name, sequence: seq});
   return {device:"abletonClip", name: v.name, sequence: seq};

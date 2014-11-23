@@ -5,26 +5,32 @@ import {t} from "./time";
 
 var Bacon = require("baconjs");
 
-var eventPlayer = function(baconTime, evt) {
-  var combinedPlayers = Bacon.never();
+var eventPlayer = function(evtWithOffset) {
 //  console.log("trying to play", evt);
-  if (evt.instrumentPlayers) {
-    for (let methodName of Object.keys(evt.instrumentPlayers)) {
-        // console.log("adding player", methodName);
-        combinedPlayers = combinedPlayers.merge(evt.instrumentPlayers[methodName](baconTime));
+  var evt = evtWithOffset.evt;
+  var firstTime = evtWithOffset.firstTime.offset;
+  // console.log(evtWithOffset)
+  return {evt: evt, play: function(instrument) {
+   if (evt.type=="noteOn") {
+    instrument.noteOn(evt.pitch.valueOf(), evt.velocity.valueOf(), evt.time+firstTime);
+   }
+   if (evt.type=="noteOff") {
+     instrument.noteOff(evt.pitch.valueOf(), evt.time+firstTime);
     }
-  }
-    // console.log("checking",methodName,"for player");
-  return combinedPlayers;
+    if (evt.type=="automation") {
+      instrument.param(evt.name, evt.automationVal, evt.time+firstTime);
+    }
+  }};
 }
 
 export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
   //console.log("sequencer",baconTime);
-  var seqIterator = getIterator(sequence);
+  var seqIterator = getIterator(sequence.toPlayable());
   var next = seqIterator.next();
   return baconTime.take(1).flatMap((firstTime) => baconTime.diff(firstTime,(prevDecoded,timeDecoded) => {
     var prevTime = prevDecoded.time;
     var time = timeDecoded.time;
+    // console.log("timeDecoded", timeDecoded);
     var count=0;
     while (next.value.time < prevTime) {
       next = seqIterator.next();
@@ -37,17 +43,14 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
       return [];
     var eventsNow = [];
     while (next.value.time <= time) {
-      eventsNow.push(next.value);
+      eventsNow.push({evt: next.value, firstTime:firstTime});
       next = seqIterator.next();
       if (count++ > 5)
         return eventsNow;
     }
-    if (eventsNow.length > 10) {
-      console.log("time",prevTime,time);
-      console.log("eventsnow",eventsNow.length, eventsNow);
-    }
+
     //console.log(eventsNow.length);
     return eventsNow;
   })).flatMap((v) => Bacon.fromArray(v))
-  .flatMap((evt) => eventPlayer(baconTime, evt));
+  .map(eventPlayer);
 });

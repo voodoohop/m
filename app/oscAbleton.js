@@ -17,6 +17,25 @@ var oscToBaconStream = function(udpPort) {
 
 }
 
+var noteOffTracker = function(seqName,outPort,baconReset, notePlayer) {
+  var noteOn = notePlayer.noteOn;
+  var noteOff = notePlayer.noteOff;
+  var currentOn = {};
+  baconReset.take(1).onValue( () => {for (let n of Object.keys(currentOn)) notePlayer.noteOff(seqName,outPort,n);currentOn = {};})
+  return {
+    noteOn: wu.curryable(function(pitch,velocity,time) {
+      currentOn[pitch] = true;
+      return notePlayer.noteOn(seqName,outPort,pitch,velocity,time);
+    }),
+    noteOff: wu.curryable(function(pitch,time) {
+      delete currentOn[pitch];
+      return notePlayer.noteOff(seqName,outPort,pitch,time);
+    }),
+    param: notePlayer.param
+  }
+
+};
+
 
 export var AbletonReceiver = function(inPort) {
 
@@ -71,7 +90,7 @@ var timeInBeats = baconTime.map((time) => time/t.beats(1));
     param:  baconParam,
     codeChange: codeChange,
     clipNotes:clipNotes,
-    sequencePlayRequests: sequencePlayRequests
+    sequencePlayRequests: sequencePlayRequests,
   }
 
 }
@@ -112,7 +131,7 @@ export var AbletonSender = function(outPort) {
 
 
   var noteOff = wu.curryable(function(seqName,outPort,pitch,time) {
-  console.log("noteOff",pitch,time*t.beats(1));
+  //console.log("noteOff",pitch,time*t.beats(1));
 
     udpPort.send({
       address: "/midiNote",
@@ -121,10 +140,10 @@ export var AbletonSender = function(outPort) {
   });
 
   var param=wu.curryable(function(seqName,outPort,name,val,time) {
-    console.log("automation",seqName,name,val);
+    // console.log("automation",seqName,name,val);
     udpPort.send({
       address: "/param",
-      args:[seqName,name, Math.floor(val*127),time*t.beats(1)]
+      args:[seqName,name, name== "pitchBend" ? Math.floor(val*127) :val,time*t.beats(1)]
     },"127.0.0.1", outPort);
   });
 

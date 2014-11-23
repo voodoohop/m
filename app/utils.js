@@ -61,7 +61,6 @@ export var addObjectProps=function(eventObject, props, enumerable=true) {
       return eventObject;
 
     var descriptor = {};
-
     for (let propN of Object.getOwnPropertyNames(eventObject))
       descriptor[propN] = Object.getOwnPropertyDescriptor(eventObject, propN);
 
