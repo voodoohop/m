@@ -118,7 +118,7 @@ export var AbletonSender = function(outPort) {
   // });
 
   var noteOn = wu.curryable(function(seqName,outPort,pitch,velocity,time) {
-    console.log("noteOn",pitch,time*t.beats(1));
+  //  console.log("noteOn",pitch,time*t.beats(1));
     udpPort.send({
         address: "/midiNote",
         args: [seqName, pitch, Math.floor(velocity*127), 1,time*t.beats(1)]

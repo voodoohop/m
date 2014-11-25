@@ -115,7 +115,6 @@ var AbletonSender = function(outPort) {
   console.log("starting OSC Ableton sender to port", outPort);
   udpPort.open();
   var noteOn = wu.curryable(function(seqName, outPort, pitch, velocity, time) {
-    console.log("noteOn", pitch, time * t.beats(1));
     udpPort.send({
       address: "/midiNote",
       args: [seqName, pitch, Math.floor(velocity * 127), 1, time * t.beats(1)]

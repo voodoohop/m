@@ -664,7 +664,7 @@ var MBranch = mGenerator(function*(condition, branchNode, elseNode, node) {
       //console.log("branching", condition, e);
       let branchTo = (condition(e) ? branchNode:elseNode);
 
-      console.log(e,branchTo.set);
+      //console.log(e,branchTo.set);
       yield* getIterator(branchTo.takeWhile((n) => n.time < e.duration).set({time:(n)=>n.time+e.time}));
       //yield* getIterator(branchTo
       //  .takeWhile((n) => n.time < e.duration)

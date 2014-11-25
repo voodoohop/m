@@ -22,7 +22,7 @@ var socket = require('socket.io-client')('http://localhost');
 
 
 socket.on("connect", function() {
-  //socket.emit("getCode", {maxDeviceId: myDeviceId});
+
   if (codeLoaded)
     window.setTimeout( function() {
       socket.emit("codeChange",{maxDeviceId: myDeviceId, code:editor.getValue()});
@@ -34,7 +34,7 @@ console.log("editor",editor);
 var codeLoaded = false;
 socket.on("code", function(code) {
   console.log(editor);
-  console.log(edit.getValue());
+//  console.log(edit.getValue());
   editor.setValue(code);
   codeLoaded = true;
 //  socket.emit("codeChange",{maxDeviceId:myDeviceId, code:editor.getValue()});
@@ -46,7 +46,7 @@ socket.on("consoleMessage", function(message) {
 
 $(document).ready(function() {
 //  $(".ace_text-layer").jrumble({opacity:true, rotation: 0, x:0, y:0, speed:3, opacityMin:0.3});
-
+  socket.emit("getCode", {maxDeviceId: myDeviceId});
   socket.on("beat",function (beatInfo)  {
     return;
     console.log(beatInfo);
@@ -123,6 +123,40 @@ React.renderComponent(reactApp,document.getElementById("nodeGenListContainer"));
 // },2000);
 
 
+function timeSeries(windowSize) {
+  var valueStore = {};
+  var startTime=-1;
+  var filled = false;
+  return {
+    push: function(time, val) {
+      time = Number(time).valueOf();
+      if (!valueStore[time])
+        valueStore[time] = [];
+      valueStore[time].push(val);
+      if (time>startTime+windowSize) {
+        startTime = time - windowSize;
+        for (var t of Object.keys(valueStore))
+          if (t<startTime) {
+            delete valueStore[t];
+            filled = true;
+          }
+      }
+    },
+    current: function() {
+      return _.clone(valueStore);
+    },
+    ordered: function() {
+      return _.map(_.sortBy(Object.keys(valueStore)), function(k) {return {time:Number(k).valueOf() , values: valueStore[k] }});
+    },
+    hasFilled: function() {
+      return filled;
+    },
+    startTime: function() {
+      return startTime;
+    }
+  }
+}
+
 var dgraphic = null;
 
 $(document).ready(function() {
@@ -130,11 +164,10 @@ $(document).ready(function() {
   var pitchFeedback = null;
   var automateFeedback = null;
   var automations = {};
-var pitches = {};
-
+  var pitchTimeSeriesCollection = {};
   socket.on("sequenceEvent", function(e) {
-    if (e.hasOwnProperty("automationVal"))
-      return;
+    // if (e.hasOwnProperty("automationVal"))
+    //   return;
     //console.log("seqEvent",e);
     if (e.hasOwnProperty("time")) {
       var name = e.seqName;
@@ -145,7 +178,7 @@ var pitches = {};
 
       if (e.hasOwnProperty("automationVal")) {
         var needsUpdate =  !automations[name];
-        automations[name] = e.automationVal*100;
+        automations[name] = e.automationVal;
         // console.log("automations", automations);
         var epochVals = [];
         for (var k of Object.keys(automations)) {
@@ -181,68 +214,68 @@ var pitches = {};
         }
       }
 
-
-
-
+      var noteRange = 8;
       if (e.hasOwnProperty("pitch")) {
         if (gens.length ==0)
           return;
         if (!e.velocity)
           return;
-        var pneedsUpdate =  !pitches[name];
-        pitches[name] = e.pitch;
-        // console.log("automations", automations);
-
-      //  console.log("epochvals", pepochVals);
-        if (pneedsUpdate) {
-
-          if (!pitchFeedback) {
-            var hist={};
-            hist[e.pitch] = e.velocity*100;
-            console.log("initial:", _.map(gens, function(g) {return {label:g, values: [{time:epochTime, histogram:{}}]}}));
-            pitchFeedback = $('#visgraph-notes').epoch({
-                  type: 'time.heatmap',
-                  data: _.map(gens, function(g) {return {label:g, values: [{time:epochTime, histogram:{0:0}}]}}),//[{label: name, values: [{time:epochTime, histogram:hist}]}],
-                  axes: ['left', 'bottom', 'right'],
-                  //paintZeroValues:true,
-                  buckets:64,
-                  bucketRange:[32,96],
-                  windowSize: 5,
-                  historySize:10,
-                  queueSize:1
-                //  tickFormats: { time: function(d) { return ""+d } }
-              });
-          }
-          else {
-          //   console.log("calling pitchfeedback update", _.map(Object.keys(pitches), function (name) {
-          //     var hist={};
-          //     hist[pitches[name]] = 0;
-          //     return {label: name, values:[{time: epochTime, histogram: hist}]}
-          //   } ));
-          //
-          //   pitchFeedback.update(_.map(Object.keys(pitches), function (name) {
-          //     var hist={};
-          //     hist[pitches[name]] = 0;
-          //     return {label: name, values:[{time: epochTime, histogram: hist}]}
-          //   } ));
-          }
+        if (!pitchTimeSeriesCollection.hasOwnProperty(e.seqName)) {
+          pitchTimeSeriesCollection[e.seqName] = timeSeries(noteRange);
         }
-        else{
-          var hist = {};
-          hist[e.pitch] = e.velocity*100;
-          // console.log("pushing epochVals.values",_.map(Object.keys(pitches),function(n) {
-          //   if (n != name)
-          //     return {time:epochTime, histogram: {}};
-          //   return {time: epochTime, histogram: hist};
-          // }));
+        var pitchTimeSeries = pitchTimeSeriesCollection[e.seqName];
+        pitchTimeSeries.push(e.time, {pitch:e.pitch, velocity:e.velocity})
+        console.log("pitches",pitchTimeSeriesCollection);
+        console.log("pitches",pitchTimeSeriesCollection[e.seqName].ordered());
+        console.log("filled", pitchTimeSeries.hasFilled());
+        //return;
+        if (!pitchTimeSeries.hasFilled())
+          return;
+        // var hist=pitchTimeSeries.ordered().map(function(notes) {
+        //   return {
+        //     time: Math.floor(10*notes.time),
+        //     values: _.object(_.map(notes.values, function(note) { return [note.pitch, note.velocity*100]}))
+        //   }
+        // } );
 
+        function getHist(tSeries) {
+          return _.flatten(tSeries.ordered().map(function(notes) {
+            return notes.values.map(function (note) {return {x: notes.time/*-tSeries.startTime()*/, y: note.pitch, r: note.velocity*10}});
+          } ));
+        }
+        var allHists = Object.keys(pitchTimeSeriesCollection).map(function(k) {
+        //  console.log("label",k);
+          return {
+            label: k,
+            values: getHist(pitchTimeSeriesCollection[k])
+          }
+        });
 
-          pitchFeedback.push(_.map(gens,function(n) {
-            console.log(n,name);
-            if (n != name)
-              return {time:epochTime, histogram: {}};
-            return {time: epochTime, histogram: hist};
-          }));
+        var minTime = _.min(_.map(_.values(pitchTimeSeriesCollection), function (tSeries) { return tSeries.startTime() }));
+        console.log("got histograms",minTime);
+
+        //return;
+        if (!pitchFeedback) {
+
+          //console.log("initial:", _.map(gens, function(g) {return {label:g, values: [{time:epochTime, histogram:{}}]}}));
+          pitchFeedback = $('#visgraph-notes').epoch({
+                type: 'scatter',
+                data: allHists,//[{label: name, values: [{time:epochTime, histogram:hist}]}],
+                axes: ['left', 'bottom', 'right'],
+                domain: [minTime+2, minTime+noteRange-2]
+                //paintZeroValues:true,
+                // buckets:64,
+                // bucketRange:[32,96],
+                // windowSize: 5,
+                // historySize:10,
+                // queueSize:1
+              //  tickFormats: { time: function(d) { return ""+d } }
+            });
+          window.pitchFeedback = pitchFeedback;
+        }
+        else {
+          pitchFeedback.options.domain = [minTime+2, minTime+noteRange-2];
+          pitchFeedback.update(allHists);
         }
       }
 

@@ -70,7 +70,6 @@ remoteLogger.onValue((function(v) {
 }));
 var sequenceFeedback = new Bacon.Bus();
 sequenceFeedback.onValue((function(v) {
-  console.log(v);
   io.emit("sequenceEvent", {
     pitch: v.pitch,
     time: v.time,
