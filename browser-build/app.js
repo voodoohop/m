@@ -123,39 +123,6 @@ React.renderComponent(reactApp,document.getElementById("nodeGenListContainer"));
 // },2000);
 
 
-function timeSeries(windowSize) {
-  var valueStore = {};
-  var startTime=-1;
-  var filled = false;
-  return {
-    push: function(time, val) {
-      time = Number(time).valueOf();
-      if (!valueStore[time])
-        valueStore[time] = [];
-      valueStore[time].push(val);
-      if (time>startTime+windowSize) {
-        startTime = time - windowSize;
-        for (var t of Object.keys(valueStore))
-          if (t<startTime) {
-            delete valueStore[t];
-            filled = true;
-          }
-      }
-    },
-    current: function() {
-      return _.clone(valueStore);
-    },
-    ordered: function() {
-      return _.map(_.sortBy(Object.keys(valueStore)), function(k) {return {time:Number(k).valueOf() , values: valueStore[k] }});
-    },
-    hasFilled: function() {
-      return filled;
-    },
-    startTime: function() {
-      return startTime;
-    }
-  }
-}
 
 var dgraphic = null;
 
@@ -165,10 +132,14 @@ $(document).ready(function() {
   var automateFeedback = null;
   var automations = {};
   var pitchTimeSeriesCollection = {};
+
+  var mVis = musicVis("pixiMusicVis", $("#pixiMusicVis").width(), $("#pixiMusicVis").height());
   socket.on("sequenceEvent", function(e) {
-    // if (e.hasOwnProperty("automationVal"))
-    //   return;
-    //console.log("seqEvent",e);
+    // // if (e.hasOwnProperty("automationVal"))
+    // //   return;
+    // //console.log("seqEvent",e);
+    // mVis.update(e);
+    // return;
     if (e.hasOwnProperty("time")) {
       var name = e.seqName;
       if (e.name)
@@ -216,10 +187,9 @@ $(document).ready(function() {
 
       var noteRange = 8;
       if (e.hasOwnProperty("pitch")) {
-        if (gens.length ==0)
-          return;
         if (!e.velocity)
           return;
+
         if (!pitchTimeSeriesCollection.hasOwnProperty(e.seqName)) {
           pitchTimeSeriesCollection[e.seqName] = timeSeries(noteRange);
         }
@@ -262,7 +232,7 @@ $(document).ready(function() {
                 type: 'scatter',
                 data: allHists,//[{label: name, values: [{time:epochTime, histogram:hist}]}],
                 axes: ['left', 'bottom', 'right'],
-                domain: [minTime+2, minTime+noteRange-2]
+                domain: [minTime, minTime+noteRange]
                 //paintZeroValues:true,
                 // buckets:64,
                 // bucketRange:[32,96],
@@ -274,7 +244,7 @@ $(document).ready(function() {
           window.pitchFeedback = pitchFeedback;
         }
         else {
-          pitchFeedback.options.domain = [minTime+2, minTime+noteRange-2];
+          pitchFeedback.options.domain = [minTime, minTime+noteRange];
           pitchFeedback.update(allHists);
         }
       }
