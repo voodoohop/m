@@ -75,10 +75,13 @@ export var addObjectProps=function(eventObject, props, enumerable=true) {
       }
 
       descriptor[key] = { configurable: true, enumerable: enumerable, value:value};
-      //console.log("adding prop", descriptor[key]);
     }
+    // console.log("adding prop", descriptor);
+    // var stack = new Error().stack
+    // console.log( stack );
+
     //descriptor["toString"] = {configurable:true, enumerable:false, value: () => "{"+Object.keys(descriptor).filter((k) => k !="toString").map((k) => ""+k+": "+descriptor[k].value).join(", ")+"}"};
-    var obj = Object.create({},descriptor);
+    var obj = Object.create(Object.getPrototypeOf(eventObject),descriptor);
     return Object.freeze(obj);
 }
 
@@ -112,11 +115,15 @@ export var addFuncProp = function(eventObject, name, func) {
 // stringifying needs to be optimized
 export var toStringDetailed = function(v) {
 //  console.log(v);
-  if (typeof v == "object") {
-      if (!isIterable(v) && !v.isTom) {
-        return JSON.stringify(v);
+  //  if (v instanceof Object) {
+      if (!v.isTom) {
+        // console.log("stringify");
+        var stringified = JSON.stringify(v);
+        // console.log("stringified");
+        return stringified;
       }
-  }
+  // }
+
   return ""+v;
 }
 

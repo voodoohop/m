@@ -137,7 +137,9 @@ var AbletonSender = function(outPort) {
   var generatorUpdate = function(generatorList) {
     udpPort.send({
       address: "/generatorList",
-      args: generatorList
+      args: generatorList.map((function(g) {
+        return g.name;
+      }))
     }, "127.0.0.1", outPort);
   };
   return {

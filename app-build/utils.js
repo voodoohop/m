@@ -114,7 +114,7 @@ var addObjectProps = function(eventObject, props) {
       };
     }
   }
-  var obj = Object.create({}, descriptor);
+  var obj = Object.create(Object.getPrototypeOf(eventObject), descriptor);
   return Object.freeze(obj);
 };
 var addObjectProp = function(eventObject, name, value) {
@@ -141,10 +141,9 @@ var addFuncProp = function(eventObject, name, func) {
   return newObject;
 };
 var toStringDetailed = function(v) {
-  if (typeof v == "object") {
-    if (!isIterable(v) && !v.isTom) {
-      return JSON.stringify(v);
-    }
+  if (!v.isTom) {
+    var stringified = JSON.stringify(v);
+    return stringified;
   }
   return "" + v;
 };

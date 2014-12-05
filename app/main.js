@@ -126,7 +126,8 @@ resetMessages.log("RESET");
 //decodedTime.log("decodedTime");
 
 
-import webServer from "./webServer";
+
+import webServer from "./webConnection";
 
 
 import SequencePlayManager from "./sequencePlayManager";
@@ -207,9 +208,9 @@ var clipSequences = abletonReceiver.clipNotes.map(function(v) {
       time: n.time
     }
   }
-)).loopLength(v.loopEnd-v.loopStart);//.notePlay();
+)).loopLength(v.loopEnd-v.loopStart).notePlay();
   //console.log("clipSeq",seq.pitch);
-  //console.log("created clip seq from clipNotes",{device:"abletonClip", name: v.name, sequence: seq});
+  console.log("created clip seq from clipNotes",{device:"abletonClip", name: v.name, sequence: seq});
   return {device:"abletonClip", name: v.name, sequence: seq};
 });
 
@@ -228,9 +229,20 @@ clipAndCodeSequences.onValue(() => liveCodeReset.push(resetNo++));
 
 var Immutable = require("immutable");
 
-var generatorList = clipAndCodeSequences.scan(new Immutable.Set(),(prev,next) =>  prev.add(next.name)).debounce(300);
+var generatorList = clipAndCodeSequences
+  .scan({},(prev,next) => {
+    console.log("generating first 500 samples of sequence",next);
+    prev[next.name] = {name: next.name, eventSample: next.sequence.toPlayable().take(500).takeWhile((n) => n.time < 16).toArray()
+    };
+    console.log("generated");
+    return prev;
+  })
+  .map(_.values)
+
+
+  .debounce(300);
 
 generatorList.onValue((v) => {
-  webServer.generatorUpdate(v.toArray());
-  abletonSender.generatorUpdate(v.toArray());
+  webServer.generatorUpdate(v);
+  abletonSender.generatorUpdate(v);
 });

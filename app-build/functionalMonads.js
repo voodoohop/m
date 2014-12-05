@@ -11,6 +11,7 @@ var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ ||
 var $__1 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
     prettyToString = $__1.prettyToString,
     toStringObject = $__1.toStringObject,
+    toStringDetailed = $__1.toStringDetailed,
     addFuncProp = $__1.addFuncProp,
     clone = $__1.clone,
     addObjectProp = $__1.addObjectProp,
@@ -20,6 +21,7 @@ var $__1 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule
     fixFloat = $__1.fixFloat,
     cloneableEmptyObject = $__1.cloneableEmptyObject;
 var _ = require("lodash");
+var memoize = require('memoizee');
 var SortedMap = require("collections/sorted-map");
 var getIterators = (function(values) {
   return values.map(getIterator);
@@ -67,17 +69,24 @@ var mGenerator = function(generatorProducer, name) {
   return curryArgCount > 0 ? wu.curryable(genProducer, curryArgCount) : genProducer;
 };
 var MData = mGenerator(function*(data) {
-  if (isIterable(data))
+  if (isIterable(data)) {
     for (var $__3 = data[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__4; !($__4 = $__3.next()).done; ) {
       let d = $__4.value;
-      yield* getIterator(MData(d));
+      {
+        yield* getIterator(MData(d));
+      }
     }
-  else {
+  } else {
     var dataObj;
-    if (data instanceof Object)
+    if (data instanceof Object) {
       dataObj = data;
-    else {
+      if (isIterable(data))
+        throw "Errrrroorr data shouldn't be iterable";
+      dataObj.toString = (function() {
+        return toStringDetailed(data);
+      });
+    } else {
       dataObj = {
         type: "value",
         valueOf: (function() {
@@ -172,11 +181,7 @@ var MWithNext = mGenerator(function*(node) {
         me = n;
         continue;
       }
-      yield {
-        me: me,
-        next: n,
-        time: me.time
-      };
+      yield addObjectProps(me, {next: n});
       me = n;
     }
   }
@@ -215,29 +220,24 @@ var MDuplicateRemover = mGenerator(function*(node) {
     }
   }
 }, "duplicateRemover");
-var x = "test";
-function addFive(a) {
-  return a + 5;
-}
-console.log(addFive(x));
 var MNoteAutomate = mGenerator(function*(node) {
   var notes = MFilter((function(n) {
     return n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time");
   }), node);
   yield* getIterator(MMapOp((function(n) {
     var $__2;
-    var automation = m.data([m.data({
+    var automation = m.data([{
       type: "noteOn",
       velocity: n.velocity,
       pitch: n.pitch,
       time: 0,
       evt: n
-    }), m.data({
+    }, {
       type: "noteOff",
       pitch: n.pitch,
       time: n.duration,
       evt: n
-    })]);
+    }]);
     automation.automation = true;
     return ($__2 = {}, Object.defineProperty($__2, "automation_note", {
       value: automation,
@@ -268,7 +268,7 @@ var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
   }), node));
 }, "automateOp");
 var MProcessAutomations = mGenerator(function*(node) {
-  yield* getIterator(MFlattenAndSchedule(MSimpleMap((function(n) {
+  yield* getIterator(MCache(MFlattenAndSchedule(MSimpleMap((function(n) {
     let merged = m.data([]);
     for (var $__5 = _.filter(_.values(n), (function(nVal) {
       return Object(nVal).automation === true;
@@ -283,8 +283,30 @@ var MProcessAutomations = mGenerator(function*(node) {
       time: n.time,
       events: merged.delay(n.time)
     };
-  }), node)));
+  }), MNoteAutomate(node)))));
 }, "processAutomations");
+var MCache = function(node) {
+  var cached = [];
+  var cacheLimit = 100000;
+  var iterator = getIterator(node);
+  var gen = mGenerator(function*(node) {
+    var count = 0;
+    while (true) {
+      if (cached.length <= count || count > cacheLimit) {
+        var n = iterator.next();
+        if (n.done)
+          break;
+        if (count > cacheLimit) {
+          yield n.value;
+          continue;
+        }
+        cached.push(n.value);
+      }
+      yield cached[count++];
+    }
+  }, "cache");
+  return gen(node);
+};
 var MSetValue = mGenerator(function*(value, child) {
   yield* MProperty("value", value, child);
 }, "setValue", 2);
@@ -770,12 +792,18 @@ var MNoteOnOffSequence = mGenerator(function*(node) {
   }
 }, "noteOnOff");
 var MSwing = mGenerator(function*(timeGrid, amount, node) {
-  yield* getIterator(MMapOp((function(e) {
+  yield* getIterator(MTime((function(e) {
     let diff = (e.time % (timeGrid * 2)) / timeGrid - 1;
     let dist = diff * diff;
-    return {time: fixFloat(e.time + amount * (1 - dist) * timeGrid)};
+    return fixFloat(e.time + amount * (1 - dist) * timeGrid);
   }), node));
 }, "swing", 3);
+var MQuantize = mGenerator(function*(timeGrid, amount, node) {
+  yield* getIterator(MTime((function(e) {
+    let diff = (e.time % (timeGrid * 2)) / timeGrid - 1;
+    return fixFloat(e.time - amount * diff);
+  }), node));
+}, "quantize", 3);
 var MLog = mGenerator(function*(name, node) {
   for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__6; !($__6 = $__5.next()).done; ) {
@@ -915,6 +943,7 @@ var FunctionalMusic = function() {
   addFunction("removeDuplicateNotes", MDuplicateRemover);
   addFunction("pluck", MPluck);
   addFunction("swing", MSwing);
+  addFunction("quantize", MQuantize);
   addFunction("toNoteOnOff", MNoteOnOffSequence);
   addFunction("metro", MMetronome);
   addFunction("timeFromDurations", MTimeFromDurations);
@@ -929,6 +958,7 @@ var FunctionalMusic = function() {
   addFunction("combineMap", MCombineMap);
   addFunction("toArray", MToArray, false);
   addFunction("withNext", MWithNext);
+  addFunction("cache", MCache);
   return lib;
 };
 let m = FunctionalMusic();
@@ -945,7 +975,8 @@ var simpleMelody = m.evt({
   return n.duration;
 })).swing(1, 0.3).automate("pitchBend", (function(n) {
   return 1.5;
-})).notePlay();
+}));
+console.log(JSON.stringify(simpleMelody));
 for (var $__5 = simpleMelody.skip(10).toPlayable().take(5)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__6; !($__6 = $__5.next()).done; ) {
   let e = $__6.value;

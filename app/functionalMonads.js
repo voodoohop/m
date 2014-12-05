@@ -4,9 +4,11 @@
 
 import {wu} from "./wu";
 
-import {prettyToString,toStringObject,addFuncProp, clone, addObjectProp, addObjectProps, isIterable, getIterator,fixFloat, cloneableEmptyObject} from "./utils";
+import {prettyToString,toStringObject,toStringDetailed,addFuncProp, clone, addObjectProp, addObjectProps, isIterable, getIterator,fixFloat, cloneableEmptyObject} from "./utils";
 
 var _ = require("lodash");
+
+var memoize = require('memoizee');
 
 var SortedMap = require("collections/sorted-map");
 
@@ -66,15 +68,31 @@ var mGenerator = function(generatorProducer, name, curryArgCount = 0, toStringOv
 
 
 
-
 var MData = mGenerator(function*(data) {
-  if (isIterable(data))
-    for (let d of data)
+
+
+  if (isIterable(data)) {
+    for (let d of data) {
+      // console.log("data:",d);
       yield* getIterator(MData(d));
-  else {
+    }
+  } else {
     var dataObj;
-    if (data instanceof Object)
+    if (data instanceof Object) {
       dataObj = data;
+
+      // if (!dataObj.prototype)
+      //   dataObj.prototype = {
+      //     toString: () => toStringDetailed(data)
+      //   };
+      // else
+      if (isIterable(data))
+        throw "Errrrroorr data shouldn't be iterable";
+      dataObj.toString = () => toStringDetailed(data);
+      // if (dataObj.prototype)
+      //   dataObj.prototype.toString = data.toString;
+      // dataObj = data;
+    }
     else {
       dataObj = {type:"value", valueOf: () => data};
     }
@@ -156,7 +174,7 @@ var MWithNext = mGenerator(function* (node) {
       continue;
     }
     // console.log({me:me,next:n, time:me.time });
-    yield {me:me,next:n, time:me.time };
+    yield addObjectProps(me, {next:n});
     me=n;
   }
 },"withNext")
@@ -186,63 +204,16 @@ var MDuplicateRemover = mGenerator(function*(node) {
   }
 },"duplicateRemover");
 
-// // TODO: temporarily disabled teoria.... make another function something like static property/func??
-// var MNotePlayer = mGenerator(function*(node) {
-//     for (let me of MDuplicateRemover(node)) {
-//       let playMethod = function(baconTime) {
-//         var noteOnTime = me.time.valueOf();
-//         var noteOffTime = me.time.valueOf() + me.duration;
-//         //console.log("noteOnTIme",me.time,baconTime);
-//         var baconNoteOn = baconTime.skipWhile((t) => t.time < noteOnTime).take(1).map((t) => {
-//           return function(instrument) {instrument.noteOn(me.pitch.valueOf(), me.velocity.valueOf(), noteOnTime+t.offset)};
-//         });
-//         var baconNoteOff = baconTime.skipWhile((t) => t.time < noteOffTime).take(1).map((t) => {
-//           return function(instrument) {instrument.noteOff(me.pitch.valueOf(), noteOffTime+t.offset)};
-//         });
-//         return baconNoteOn.merge(baconNoteOff);
-//       }
-//       var playerObj = _.extend({},me.instrumentPlayers, {note: playMethod})
-//       yield addObjectProp(me, "instrumentPlayers", playerObj);
-//     }
-// },"note");
 
 
-// TODO: temporarily disabled teoria.... make another function something like static property/func??
-// var MNoteAutomation = mGenerator(function*(node) {
-//
-//     for (let me of ) {
-//       let playMethod = function(baconTime) {
-//         var noteOnTime = me.time.valueOf();
-//         var noteOffTime = me.time.valueOf() + me.duration;
-//         //console.log("noteOnTIme",me.time,baconTime);
-//         var baconNoteOn = baconTime.skipWhile((t) => t.time < noteOnTime).take(1).map((t) => {
-//      offse
-//         });
-//         var baconNoteOff = baconTime.skipWhile((t) => t.time < noteOffTime).take(1).map((t) => {
-//           return function(instrument) {instrument.noteOff(me.pitch.valueOf(), noteOffTime+t.offset)};
-//         });
-//         return baconNoteOn.merge(baconNoteOff);
-//       }
-//       var playerObj = _.extend({},me.instrumentPlayers, {note: playMethod})
-//       yield addObjectProp(me, "instrumentPlayers", playerObj);
-//     }
-// },"note");
 
-
-var x="test";
-
-function addFive(a) {
-  return a+5;
-}
-
-console.log(addFive(x));
 
 var MNoteAutomate = mGenerator(function*(node) {
   var notes = MFilter((n) => n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time"), node);
   //console.log("notes", m.data(notes).take(5).toArray());
   yield* getIterator(MMapOp((n) => {
     // var automationHolder = n.hasOwnProperty("children") ? n.children : Object.create(null);
-    var automation = m.data([m.data({type:"noteOn", velocity:n.velocity, pitch: n.pitch, time: 0, evt:n}), m.data({type: "noteOff", pitch: n.pitch, time: n.duration, evt: n})]);
+    var automation = m.data([{type:"noteOn", velocity:n.velocity, pitch: n.pitch, time: 0, evt:n}, {type: "noteOff", pitch: n.pitch, time: n.duration, evt: n}]);
     automation.automation = true;
     // console.log("returing automation",{["automation_note"]: automation});
     return {["automation_note"]: automation};
@@ -269,7 +240,7 @@ var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
 
 
 var MProcessAutomations = mGenerator(function*(node) {
-  yield* getIterator(MFlattenAndSchedule(MSimpleMap( (n) => {
+  yield* getIterator(MCache(MFlattenAndSchedule(MSimpleMap( (n) => {
     let merged = m.data([]);
     for (let automation of _.filter(_.values(n), (nVal) => Object(nVal).automation === true)) {
       // console.log("processing automation",automation.toArray());
@@ -279,9 +250,35 @@ var MProcessAutomations = mGenerator(function*(node) {
     // console.log("mapping",n);
     // console.log("returning for flatten and schedule", {time:n.time, events: merged.delay(n.time).toArray()});
     return {time:n.time, events: merged.delay(n.time)};
-  }, node)));
+  }, MNoteAutomate(node)))));
 
 },"processAutomations");
+
+
+var MCache = function(node) {
+  var cached=[];
+  var cacheLimit = 100000;
+  var iterator = getIterator(node);
+  var gen = mGenerator(function*(node) {
+    var count = 0;
+    while (true) {
+      if (cached.length<=count || count > cacheLimit) {
+        var n = iterator.next();
+        if (n.done)
+          break;
+        if (count > cacheLimit) {
+          yield n.value;
+          continue;
+        }
+        cached.push(n.value);
+      }
+      yield cached[count++];
+    }
+
+  }, "cache");
+  return gen(node);
+}
+
 
 // var MAutomatePlay = mGenerator(function*(propName,node) {
 //   for (let v of node) {
@@ -360,6 +357,8 @@ var simpleMap = mGenerator(function* (mapFunc, node) {
     yield mapFunc(n);
   }
 },"simpleMap");
+
+
 
 var MCombine = mGenerator(function*(combineNode,node) {
     var meMapped = simpleMap((n) => {return {time: n.time, me: n}}, node);
@@ -610,7 +609,7 @@ var MTake = mGenerator(function*(n,node) {
     let count = n;
     //console.log("mtake",node);
     for (let e of node) {
-      // console.log("take yield",e);
+      //console.log("take yield",e,node);
       yield e;
       if (--count <= 0)
         break;
@@ -797,15 +796,27 @@ var MNoteOnOffSequence = mGenerator(function*(node) {
 },"noteOnOff");
 
 var MSwing = mGenerator(function*(timeGrid, amount, node)  {
-  yield* getIterator(MMapOp((e) => {
+  yield* getIterator(MTime((e) => {
     // console.log("swing, mapping,",e);
     let diff = (e.time % (timeGrid*2))/timeGrid-1;
 
     let dist = diff*diff;
     // console.log("swing", {time: fixFloat(e.time + amount * (1-dist) * timeGrid)});
-    return {time: fixFloat(e.time + amount * (1-dist) * timeGrid)};
+    return fixFloat(e.time + amount * (1-dist) * timeGrid);
   }
 ,node))},"swing",3);
+
+var MQuantize = mGenerator(function*(timeGrid, amount, node)  {
+  yield* getIterator(MTime((e) => {
+    // console.log("swing, mapping,",e);
+    let diff = (e.time % (timeGrid*2))/timeGrid-1;
+
+
+    // console.log("swing", {time: fixFloat(e.time + amount * (1-dist) * timeGrid)});
+    return fixFloat(e.time - amount * diff);
+  }
+,node))},"quantize",3);
+
 
 var MLog = mGenerator(function*(name, node){
   for (let e of node) {
@@ -995,6 +1006,7 @@ export var FunctionalMusic = function() {
     addFunction("pluck",MPluck);
 
     addFunction("swing",MSwing);
+    addFunction("quantize",MQuantize);
     addFunction("toNoteOnOff", MNoteOnOffSequence);
     addFunction("metro",MMetronome);
     addFunction("timeFromDurations", MTimeFromDurations);
@@ -1013,7 +1025,7 @@ export var FunctionalMusic = function() {
     addFunction("toArray",MToArray, false);
 
     addFunction("withNext", MWithNext);
-
+    addFunction("cache", MCache);
     return lib;
 }
 
@@ -1065,12 +1077,15 @@ var simpleMelody = m.evt({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:
   return n.duration;
 })
 .swing(1,0.3)
-.automate("pitchBend",(n) => 1.5)
-.notePlay();
+.automate("pitchBend",(n) => 1.5);
 
+
+console.log(JSON.stringify(simpleMelody));
 for (let e of simpleMelody.skip(10).toPlayable().take(5)) {
   console.log("eventNoteOnOffYeeee",e);
 }
+
+
 
 // throw "Byebye";
 //

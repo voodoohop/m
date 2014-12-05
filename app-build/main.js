@@ -3,7 +3,7 @@ var $__functionalMonads__,
     $__time__,
     $__oscAbleton__,
     $__utils__,
-    $__webServer__,
+    $__webConnection__,
     $__sequencePlayManager__;
 var teoria = require("teoria");
 var FunctionalMusic = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).FunctionalMusic;
@@ -60,7 +60,7 @@ var resetMessages = decodedTime.map((function(t) {
 })).debounce(50);
 timeThatAccountsForTransportJumps.throttle(1000).log("timeWithOffset");
 resetMessages.log("RESET");
-var webServer = ($__webServer__ = require("./webServer"), $__webServer__ && $__webServer__.__esModule && $__webServer__ || {default: $__webServer__}).default;
+var webServer = ($__webConnection__ = require("./webConnection"), $__webConnection__ && $__webConnection__.__esModule && $__webConnection__ || {default: $__webConnection__}).default;
 var SequencePlayManager = ($__sequencePlayManager__ = require("./sequencePlayManager"), $__sequencePlayManager__ && $__sequencePlayManager__.__esModule && $__sequencePlayManager__ || {default: $__sequencePlayManager__}).default;
 var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
 liveCodeReset.plug(sequencePlayManager.resetRequests);
@@ -142,7 +142,12 @@ var clipSequences = abletonReceiver.clipNotes.map(function(v) {
       velocity: n.velocity / 127,
       time: n.time
     };
-  }))).loopLength(v.loopEnd - v.loopStart);
+  }))).loopLength(v.loopEnd - v.loopStart).notePlay();
+  console.log("created clip seq from clipNotes", {
+    device: "abletonClip",
+    name: v.name,
+    sequence: seq
+  });
   return {
     device: "abletonClip",
     name: v.name,
@@ -156,10 +161,18 @@ clipAndCodeSequences.onValue((function() {
   return liveCodeReset.push(resetNo++);
 }));
 var Immutable = require("immutable");
-var generatorList = clipAndCodeSequences.scan(new Immutable.Set(), (function(prev, next) {
-  return prev.add(next.name);
-})).debounce(300);
+var generatorList = clipAndCodeSequences.scan({}, (function(prev, next) {
+  console.log("generating first 500 samples of sequence", next);
+  prev[next.name] = {
+    name: next.name,
+    eventSample: next.sequence.toPlayable().take(500).takeWhile((function(n) {
+      return n.time < 16;
+    })).toArray()
+  };
+  console.log("generated");
+  return prev;
+})).map(_.values).debounce(300);
 generatorList.onValue((function(v) {
-  webServer.generatorUpdate(v.toArray());
-  abletonSender.generatorUpdate(v.toArray());
+  webServer.generatorUpdate(v);
+  abletonSender.generatorUpdate(v);
 }));

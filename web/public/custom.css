@@ -1,0 +1,29 @@
+.ace_editor {
+  background:none;
+  background-color: rgba(0,0,0,0.5) !important;
+}
+
+.noteView rect {
+    transition: fill 0.5s ease;
+    transition: stroke 0.7s ease;
+    stroke: black;
+    stroke-width: 0.001px;
+  }
+
+
+
+.noteView:hover rect {
+  fill: white !important;
+  stroke: white;
+  stroke-width: 0.002px;
+}
+
+
+.dropShadow {
+  -webkit-filter: drop-shadow( -5px -5px 5px #000 );
+  filter: drop-shadow( -5px -5px 5px #000 ); /* Same syntax as box-shadow */
+}
+
+.noteView {
+  background-color:rgba(0,0,0,0.8);
+}
