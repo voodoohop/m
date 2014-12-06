@@ -8,7 +8,9 @@ function get(name){
     return decodeURIComponent(name[1]);
   }
 
-  var myDeviceId = get("maxDeviceId");
+  var myDeviceId = get("device");
+
+console.log("device id",myDeviceId);
 
    var io = require('webpack-dev-server/client/web_modules/socket.io');
    var socket = io.connect("/");
@@ -46,7 +48,7 @@ function get(name){
 
 $(document).ready(function() {
   //  $(".ace_text-layer").jrumble({opacity:true, rotation: 0, x:0, y:0, speed:3, opacityMin:0.3});
-  socket.emit("getCode", {maxDeviceId: myDeviceId});
+  socket.emit("getCode", {device: myDeviceId});
 });
 
 
@@ -61,7 +63,7 @@ var codePlay = new Bacon.Bus();
 codePlay.log("codePlay");
 
 codePlay.onValue(function(code) {
-  socket.emit("codeChange",{maxDeviceId:myDeviceId, code:code});
+  socket.emit("codeChange",{device:myDeviceId, code:code});
 });
 
 

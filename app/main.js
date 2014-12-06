@@ -135,8 +135,27 @@ var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayReques
 
 liveCodeReset.plug(sequencePlayManager.resetRequests);
 
+
+import {baconStore,codeStore, onCodeLoaded} from "./codeStore";
+
+// HACCKKKYYY better to save different scheme
+var clipSequences;
+// var storedCode="";
+onCodeLoaded(function() {
+  codeStore.get("abletonClip", function (err,doc) {
+    clipSequences = compileSequences(doc);
+    console.log("loaded previous clip sequences", clipSequences);
+  });
+});
+
+
 var seqLoader = {
-  get: (m) => _.mapValues(sequencePlayManager.availableSequences, (p) => p.sequence)
+  get: (m) => {
+    console.log("requestes sequences from",m);
+    var importableSequences = _.defaults({}, clipSequences,_.mapValues(sequencePlayManager.availableSequences, (p) => p.sequence));
+    console.log("importableSequences",importableSequences);
+    return importableSequences;
+  }
 }
 
 
@@ -198,6 +217,7 @@ var compiledSequences = webServer.liveCode.flatMap(function(code) {
 });
 
 
+
 var clipSequences = abletonReceiver.clipNotes.map(function(v) {
   var notes = _.sortBy(v.notes, (n) => n.time);
   var seq=m.data(notes.map((n) => {
@@ -208,12 +228,14 @@ var clipSequences = abletonReceiver.clipNotes.map(function(v) {
       time: n.time
     }
   }
-)).loopLength(v.loopEnd-v.loopStart).notePlay();
+)).loopLength(v.loopEnd-v.loopStart);
   //console.log("clipSeq",seq.pitch);
   console.log("created clip seq from clipNotes",{device:"abletonClip", name: v.name, sequence: seq});
   return {device:"abletonClip", name: v.name, sequence: seq};
 });
 
+
+baconStore.plug(clipSequences);
 
 
 //var withSequencers = compiledSequences.map((s) => _.extend({sequencer: Sequencer(s.sequence,s.name)},s));
@@ -232,7 +254,7 @@ var Immutable = require("immutable");
 var generatorList = clipAndCodeSequences
   .scan({},(prev,next) => {
     console.log("generating first 500 samples of sequence",next);
-    prev[next.name] = {name: next.name, eventSample: next.sequence.toPlayable().take(500).takeWhile((n) => n.time < 16).toArray()
+    prev[next.name] = {name: next.name, sequenceAsString: next.sequence.toString(), eventSample: next.sequence.toPlayable().take(500).takeWhile((n) => n.time < 16).toArray()
     };
     console.log("generated");
     return prev;

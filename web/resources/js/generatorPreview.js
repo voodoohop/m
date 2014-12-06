@@ -20,8 +20,12 @@ var noteRect = component("noteRect", function(note) {
     return noteRect(note.evt);
   var timeScale=1/16;
   var col = note.color || "rgba(255,255,255,1)";
-  var opacity=note.velocity/1.25+0.25;
-  return <rect  opacity={opacity} fill={col} x={note.time * timeScale} y={1-note.pitch/127} width={note.duration * timeScale} height={1/16}/>
+  var opacity=note.velocity/1.7+0.1;
+  if (note.duration < 0) {
+    // note.duration =0;
+    console.log("Negative Duration Error"+JSON.stringify(note));
+  }
+  return <rect  opacity={opacity} fill={col} x={note.time * timeScale} y={1-Math.min(Math.max(note.pitch-20,0)/87,1)} width={note.duration * timeScale} height={1/16}/>
 });
 //
 var noteLine = component("noteAutomation", function(props) {
@@ -55,7 +59,7 @@ var gridLine = component("gridLines", function(props) {
 
 
 module.exports = component("generatorPreview", function(gens) {
-  // console.log("genPreview",gens);
+  console.log("genPreview",gens);
   var evts = gens.eventSample;
   var style={display:"inline-block", width:"100%", height:"80px", border: "1px solid white"};
   var SIZE = 1;
@@ -81,5 +85,11 @@ module.exports = component("generatorPreview", function(gens) {
         return {note:note, index:index, notes:notes, name: note.name};
     }).map(noteLine)
   });
-  return <div style={style}><svg className="noteView" {...svgAttrs}>{notes.map(noteRect)}{noteLines}{gridLine()}</svg></div>;
+  // var code = gens
+  console.log("gens",gens);
+  return <div style={style}>
+  <svg className="noteView" {...svgAttrs}>{notes.map(noteRect)}{noteLines}{gridLine()}
+  </svg>
+  {gens.sequenceAsString}
+  </div>;
 });

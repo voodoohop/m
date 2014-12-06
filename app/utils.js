@@ -1,5 +1,7 @@
 import {wu} from "./wu";
 
+var _ = require("lodash");
+
 // turn function into a function that can be applied to a sequence of values
 // only works for functions with one parameter
 export var generatorize = function(fn) {
@@ -137,7 +139,32 @@ export var toStringObject = function(o) {
 export var prettyToString = function(name, args, destFunc) {
   //destFunc.prototype = _.clone(destFunc.prototype);
   //console.log("tosdetailedtest", args,args.map(toStringDetailed));
-  destFunc.toString = () => name+"("+args.map(toStringDetailed).join(", ")+")";
+  var args = _.clone(args);
+  var parentNode = args.pop();
+  // if (parentNode != undefined)
+  //   parentNode = parentNode.toString();
+  //console.log("PRNT",parentNode, ""+parentNode, args, destFunc);
+
+  // console.log(pa)
+
+  if (parentNode == undefined) {
+    args=[];
+    parentNode = "";
+  } else
+  if (!parentNode.isTom) {
+    args=[parentNode];
+    parentNode = "m";
+  }
+
+  if (parentNode == "[object Object]")
+    parentNode = JSON.stringify(parentNode);
+
+
+  // if (!args || args.length==0)
+
+  var stringReperesentation =   ""+parentNode+"."+ name+"("+args.map(toStringDetailed).join(", ")+")";
+
+  destFunc.toString = () => stringReperesentation;
 
   destFunc.inspect = destFunc.toString;
   //destFunc.toString = destFunc.prototype.toString;

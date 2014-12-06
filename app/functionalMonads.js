@@ -61,6 +61,7 @@ var mGenerator = function(generatorProducer, name, curryArgCount = 0, toStringOv
 
     return res;
   };
+  genProducer.producerName = name;
   //console.log("constructed node",generatorProducer,name);
   return curryArgCount > 0 ? wu.curryable(genProducer, curryArgCount) : genProducer;
 }
@@ -163,7 +164,7 @@ var MEvent = mGenerator(function*(data) {
 
 var MProperty = mGenerator(function* (name,tomValue, children) {
   yield* getIterator(MSet({[name]:tomValue},children));
-},"property", 3);
+},"prop", 3);
 
 
 var MWithNext = mGenerator(function* (node) {
@@ -193,7 +194,7 @@ var MGroupTime = mGenerator(function*(node) {
     }
     grouped.push(n);
   }
-},"groupTime");
+},"groupByTime");
 
 var MDuplicateRemover = mGenerator(function*(node) {
   for (let timeGrouped of MGroupTime(node)) {
@@ -202,7 +203,7 @@ var MDuplicateRemover = mGenerator(function*(node) {
       yield n[n.length-1]; // last one... could be first too
 
   }
-},"duplicateRemover");
+},"removeDuplicateNotes");
 
 
 
@@ -219,7 +220,7 @@ var MNoteAutomate = mGenerator(function*(node) {
     return {["automation_note"]: automation};
   },
   MDuplicateRemover(notes)));
-},"noteOnOff");
+},"notePlay");
 
 
 //TODO: figure out how to deal with automations of notes that overlap in duration. at the moment automations are overlapping
@@ -235,7 +236,7 @@ var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
     automation.automation = true;
     return {[paramName]: automation};
   },node));
-},"automateOp");
+},"automate");
 
 
 
@@ -361,6 +362,7 @@ var simpleMap = mGenerator(function* (mapFunc, node) {
 
 
 var MCombine = mGenerator(function*(combineNode,node) {
+    var combineFunc = (me, previousOther,nextOther) => addObjectProps(me, {other: {previous: previousOther, next: nextOther}});
     var meMapped = simpleMap((n) => {return {time: n.time, me: n}}, node);
     var otherMapped = simpleMap((n) =>{return {time: n.time, other: n}}, combineNode);
     var merged = MTimeOrderedMerge(meMapped,otherMapped);
@@ -377,19 +379,15 @@ var MCombine = mGenerator(function*(combineNode,node) {
         previousOther = nextOther;
         nextOther = m.other;
         for (let me of meWaitingForNextOther) {
-          // console.warn("using combine but mmapop is not respecting the mapObject property yet");
-          var newObj =  addObjectProps(me, {other: {previous: previousOther, next: nextOther}});
-          yield newObj;
-          //yield addObjectProp(me, {other: {previous: previousOther, next: nextOther}});
+          yield combineFunc(me, previousOther, nextOther);
         }
         meWaitingForNextOther = [];
       }
     }
     for (let me of meWaitingForNextOther) {
-      var newObj =  addObjectProps(me, {other: {previous: previousOther, next: nextOther}});
-      yield newObj;
+      yield combineFunc(me, previousOther, nextOther);;
     }
-},"combine",2);
+},"combine");
 
 var MCombineMap = mGenerator(function*(combineFunc,combineNode,node) {
   // here we could add time diffs to parameters of combineFunc
@@ -439,7 +437,7 @@ let MLoopFixedLength = mGenerator(function*(loopLength,node) {
     }
     time+=loopLength;
   }
-}, "loopFixedLength",2);
+}, "loopLength",2);
 
 let convertToObject = (externalVal) => Object(externalVal);
 
@@ -712,7 +710,7 @@ var MExternalProperty = mGenerator(function*(propName, baconProp, initialVal, no
 },"externalProperty",3,"externalProp");
 
 
-var MMetronome = mGenerator(function*(tickDuration,node) { yield* getIterator(MTime( MCount(0, tickDuration), MCompose(node,MSequenceEndMarker())));},"metronome");
+var MMetronome = mGenerator(function*(tickDuration,node) { yield* getIterator(MTime( MCount(0, tickDuration), MCompose(node,MSequenceEndMarker())));},"metro");
 
 var MTimeFromDurations = mGenerator(function*(node)   {
   let durationSumIterator = MMapWithMemory(0, (current, x) => x + current, MPluck("duration", node));
@@ -1067,7 +1065,7 @@ var test2 = m.evt({pitch:3, velocity:0.3}).metro(4);
 
 // throw "just terminating";
 
-var simpleMelody = m.evt({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:1.5}).metro(2)
+var simpleMelody = m.evt().set({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:1.5}).metro(2)
 // .duration((n) => {
 // //  console.log("durationmap",n);
 //   return n.duration*200
@@ -1080,16 +1078,16 @@ var simpleMelody = m.evt({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:
 .automate("pitchBend",(n) => 1.5);
 
 
-console.log(JSON.stringify(simpleMelody));
-for (let e of simpleMelody.skip(10).toPlayable().take(5)) {
-  console.log("eventNoteOnOffYeeee",e);
-}
+console.log(simpleMelody);
 
 
 
 // throw "Byebye";
 //
 
+for (let e of simpleMelody.skip(10).toPlayable().take(5)) {
+  console.log("eventNoteOnOffYeeee",e);
+}
 
 
 // console.log("getting combined");

@@ -5,12 +5,12 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
+var $__codeStore__;
 var srv = require("../web/server");
 console.log('listening on port 8000');
 var io = srv.io;
 console.log(io);
-var nStore = require("nstore");
-var codeStore = nStore.new("code.db");
+var codeStore = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}).codeStore;
 var generatorStore = null;
 var Bacon = require("baconjs");
 var baconStream = Bacon.fromBinder(function(sink) {
@@ -21,7 +21,6 @@ var baconStream = Bacon.fromBinder(function(sink) {
       var generators = arguments[0] !== (void 0) ? arguments[0] : null;
       if (generators != null)
         generatorStore = generators;
-      console.log("emitting generators", generatorStore);
       socket.emit("generators", generatorStore);
     };
     setInterval(function() {
@@ -32,15 +31,18 @@ var baconStream = Bacon.fromBinder(function(sink) {
       generatorUpdate();
     });
     socket.on('getCode', function(msg) {
-      deviceId = msg.maxDeviceId;
+      console.log('getCode message: ', msg);
+      deviceId = msg.device;
       codeStore.get(deviceId, function(err, res) {
+        console.log("sending code", res);
         socket.emit("code", res);
       });
     });
     socket.on('codeChange', function(msg) {
-      codeStore.save(msg.maxDeviceId, msg.code, function(err) {
+      console.log('message: ', msg);
+      codeStore.save(msg.device + (msg.name ? "/" + msg.name : ""), msg.code, function(err) {
         sink({
-          device: msg.maxDeviceId,
+          device: msg.device,
           code: msg.code
         });
         if (err) {
@@ -55,7 +57,6 @@ var generatorUpdate = function() {
   var generators = arguments[0] !== (void 0) ? arguments[0] : null;
   if (generators != null)
     generatorStore = generators;
-  console.log("emitting generators", generatorStore);
   console.log(io.emit);
   io.sockets.emit("generators", generatorStore);
   console.log("emitted");

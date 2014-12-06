@@ -66,6 +66,7 @@ var mGenerator = function(generatorProducer, name) {
       prettyToString(name, args, res);
     return res;
   };
+  genProducer.producerName = name;
   return curryArgCount > 0 ? wu.curryable(genProducer, curryArgCount) : genProducer;
 };
 var MData = mGenerator(function*(data) {
@@ -170,7 +171,7 @@ var MProperty = mGenerator(function*(name, tomValue, children) {
     enumerable: true,
     writable: true
   }), $__2), children));
-}, "property", 3);
+}, "prop", 3);
 var MWithNext = mGenerator(function*(node) {
   var me = null;
   for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
@@ -206,7 +207,7 @@ var MGroupTime = mGenerator(function*(node) {
       grouped.push(n);
     }
   }
-}, "groupTime");
+}, "groupByTime");
 var MDuplicateRemover = mGenerator(function*(node) {
   for (var $__7 = MGroupTime(node)[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__8; !($__8 = $__7.next()).done; ) {
@@ -219,7 +220,7 @@ var MDuplicateRemover = mGenerator(function*(node) {
       }
     }
   }
-}, "duplicateRemover");
+}, "removeDuplicateNotes");
 var MNoteAutomate = mGenerator(function*(node) {
   var notes = MFilter((function(n) {
     return n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time");
@@ -246,7 +247,7 @@ var MNoteAutomate = mGenerator(function*(node) {
       writable: true
     }), $__2);
   }), MDuplicateRemover(notes)));
-}, "noteOnOff");
+}, "notePlay");
 var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
   yield* getIterator(MMapOp((function(n) {
     var $__2;
@@ -266,7 +267,7 @@ var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
       writable: true
     }), $__2);
   }), node));
-}, "automateOp");
+}, "automate");
 var MProcessAutomations = mGenerator(function*(node) {
   yield* getIterator(MCache(MFlattenAndSchedule(MSimpleMap((function(n) {
     let merged = m.data([]);
@@ -343,6 +344,12 @@ var simpleMap = mGenerator(function*(mapFunc, node) {
   }
 }, "simpleMap");
 var MCombine = mGenerator(function*(combineNode, node) {
+  var combineFunc = (function(me, previousOther, nextOther) {
+    return addObjectProps(me, {other: {
+        previous: previousOther,
+        next: nextOther
+      }});
+  });
   var meMapped = simpleMap((function(n) {
     return {
       time: n.time,
@@ -372,11 +379,7 @@ var MCombine = mGenerator(function*(combineNode, node) {
             $__6; !($__6 = $__5.next()).done; ) {
           let me = $__6.value;
           {
-            var newObj = addObjectProps(me, {other: {
-                previous: previousOther,
-                next: nextOther
-              }});
-            yield newObj;
+            yield combineFunc(me, previousOther, nextOther);
           }
         }
         meWaitingForNextOther = [];
@@ -387,14 +390,11 @@ var MCombine = mGenerator(function*(combineNode, node) {
       $__10; !($__10 = $__9.next()).done; ) {
     let me = $__10.value;
     {
-      var newObj = addObjectProps(me, {other: {
-          previous: previousOther,
-          next: nextOther
-        }});
-      yield newObj;
+      yield combineFunc(me, previousOther, nextOther);
+      ;
     }
   }
-}, "combine", 2);
+}, "combine");
 var MCombineMap = mGenerator(function*(combineFunc, combineNode, node) {
   yield* getIterator(MMapOp((function(combined) {
     return combineFunc(combined, combined.other);
@@ -424,7 +424,7 @@ let MLoopFixedLength = mGenerator(function*(loopLength, node) {
     }
     time += loopLength;
   }
-}, "loopFixedLength", 2);
+}, "loopLength", 2);
 let convertToObject = (function(externalVal) {
   return Object(externalVal);
 });
@@ -967,7 +967,7 @@ var test2 = m.evt({
   pitch: 3,
   velocity: 0.3
 }).metro(4);
-var simpleMelody = m.evt({
+var simpleMelody = m.evt().set({
   pitch: [62, 65, 70, 75],
   velocity: [0.8, 0.6, 0.5],
   duration: 1.5
@@ -976,7 +976,7 @@ var simpleMelody = m.evt({
 })).swing(1, 0.3).automate("pitchBend", (function(n) {
   return 1.5;
 }));
-console.log(JSON.stringify(simpleMelody));
+console.log(simpleMelody);
 for (var $__5 = simpleMelody.skip(10).toPlayable().take(5)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__6; !($__6 = $__5.next()).done; ) {
   let e = $__6.value;

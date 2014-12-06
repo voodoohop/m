@@ -34,9 +34,7 @@ var io = srv.io;
 
 console.log(io);
 
-var nStore = require("nstore");
-
-var codeStore = nStore.new("code.db");
+import {codeStore} from "./codeStore";
 
 var generatorStore = null;
 
@@ -50,7 +48,7 @@ var baconStream = Bacon.fromBinder(function(sink) {
     var generatorUpdate = function(generators=null) {
       if (generators != null)
         generatorStore = generators;
-      console.log("emitting generators", generatorStore);
+      // console.log("emitting generators", generatorStore);
       socket.emit("generators", generatorStore);
     };
     setInterval(function() {
@@ -62,20 +60,20 @@ var baconStream = Bacon.fromBinder(function(sink) {
     });
 
     socket.on('getCode', function(msg){
-  //    console.log('message: ', msg);
-      deviceId = msg.maxDeviceId;
+      console.log('getCode message: ', msg);
+      deviceId = msg.device;
       codeStore.get(deviceId, function(err, res) {
-        // console.log("sending code")
+        console.log("sending code",res);
         socket.emit("code",res);
       });
     });
 
     //socket.emit("code", "something is going on\n is going on!!");
     socket.on('codeChange', function(msg){
-    //  console.log('message: ', msg);
-      codeStore.save(msg.maxDeviceId, msg.code, function (err) {
+      console.log('message: ', msg);
+      codeStore.save(msg.device+(msg.name ? "/"+msg.name : ""), msg.code, function (err) {
 
-      sink({device:msg.maxDeviceId, code:msg.code});
+      sink({device:msg.device, code:msg.code});
       if (err) { throw err; }
       // The save is finished and written to disk safely
       });
@@ -94,7 +92,7 @@ console.log("exporting",baconStream);
 var generatorUpdate = function(generators=null) {
   if (generators != null)
     generatorStore = generators;
-  console.log("emitting generators", generatorStore);
+  // console.log("emitting generators", generatorStore);
   console.log(io.emit);
   io.sockets.emit("generators", generatorStore);
   console.log("emitted");

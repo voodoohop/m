@@ -4,7 +4,8 @@ var $__functionalMonads__,
     $__oscAbleton__,
     $__utils__,
     $__webConnection__,
-    $__sequencePlayManager__;
+    $__sequencePlayManager__,
+    $__codeStore__;
 var teoria = require("teoria");
 var FunctionalMusic = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).FunctionalMusic;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
@@ -64,10 +65,24 @@ var webServer = ($__webConnection__ = require("./webConnection"), $__webConnecti
 var SequencePlayManager = ($__sequencePlayManager__ = require("./sequencePlayManager"), $__sequencePlayManager__ && $__sequencePlayManager__.__esModule && $__sequencePlayManager__ || {default: $__sequencePlayManager__}).default;
 var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
 liveCodeReset.plug(sequencePlayManager.resetRequests);
+var $__6 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
+    baconStore = $__6.baconStore,
+    codeStore = $__6.codeStore,
+    onCodeLoaded = $__6.onCodeLoaded;
+var clipSequences;
+onCodeLoaded(function() {
+  codeStore.get("abletonClip", function(err, doc) {
+    clipSequences = compileSequences(doc);
+    console.log("loaded previous clip sequences", clipSequences);
+  });
+});
 var seqLoader = {get: (function(m) {
-    return _.mapValues(sequencePlayManager.availableSequences, (function(p) {
+    console.log("requestes sequences from", m);
+    var importableSequences = _.defaults({}, clipSequences, _.mapValues(sequencePlayManager.availableSequences, (function(p) {
       return p.sequence;
-    }));
+    })));
+    console.log("importableSequences", importableSequences);
+    return importableSequences;
   })};
 var Easer = require('functional-easing').Easer;
 var compileSequences = function(code) {
@@ -84,8 +99,8 @@ var compileSequences = function(code) {
     console.log("compiled", compiled);
     var remoteLog = function() {
       for (var m = [],
-          $__8 = 0; $__8 < arguments.length; $__8++)
-        m[$__8] = arguments[$__8];
+          $__9 = 0; $__9 < arguments.length; $__9++)
+        m[$__9] = arguments[$__9];
       try {
         webServer.remoteLogger.push("" + m);
       } catch (e) {
@@ -100,9 +115,9 @@ var compileSequences = function(code) {
       error: remoteLog
     });
     console.log("testing if sequence emits events");
-    for (var $__6 = Object.keys(sequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__7; !($__7 = $__6.next()).done; ) {
-      let k = $__7.value;
+    for (var $__7 = Object.keys(sequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__8; !($__8 = $__7.next()).done; ) {
+      let k = $__8.value;
       {
         console.log("first 5 event of sequence", sequences[k].take(5).toArray());
       }
@@ -142,7 +157,7 @@ var clipSequences = abletonReceiver.clipNotes.map(function(v) {
       velocity: n.velocity / 127,
       time: n.time
     };
-  }))).loopLength(v.loopEnd - v.loopStart).notePlay();
+  }))).loopLength(v.loopEnd - v.loopStart);
   console.log("created clip seq from clipNotes", {
     device: "abletonClip",
     name: v.name,
@@ -154,6 +169,7 @@ var clipSequences = abletonReceiver.clipNotes.map(function(v) {
     sequence: seq
   };
 });
+baconStore.plug(clipSequences);
 var clipAndCodeSequences = compiledSequences.merge(clipSequences);
 sequencePlayManager.newSequence.plug(clipAndCodeSequences);
 var resetNo = 0;
@@ -165,6 +181,7 @@ var generatorList = clipAndCodeSequences.scan({}, (function(prev, next) {
   console.log("generating first 500 samples of sequence", next);
   prev[next.name] = {
     name: next.name,
+    sequenceAsString: next.sequence.toString(),
     eventSample: next.sequence.toPlayable().take(500).takeWhile((function(n) {
       return n.time < 16;
     })).toArray()

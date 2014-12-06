@@ -37,6 +37,7 @@ Object.defineProperties(exports, {
 });
 var $__wu__;
 var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
+var _ = require("lodash");
 var generatorize = function(fn) {
   return function() {
     for (var params = [],
@@ -156,8 +157,20 @@ var toStringObject = function(o) {
   return o;
 };
 var prettyToString = function(name, args, destFunc) {
+  var args = _.clone(args);
+  var parentNode = args.pop();
+  if (parentNode == undefined) {
+    args = [];
+    parentNode = "";
+  } else if (!parentNode.isTom) {
+    args = [parentNode];
+    parentNode = "m";
+  }
+  if (parentNode == "[object Object]")
+    parentNode = JSON.stringify(parentNode);
+  var stringReperesentation = "" + parentNode + "." + name + "(" + args.map(toStringDetailed).join(", ") + ")";
   destFunc.toString = (function() {
-    return name + "(" + args.map(toStringDetailed).join(", ") + ")";
+    return stringReperesentation;
   });
   destFunc.inspect = destFunc.toString;
   return destFunc;
