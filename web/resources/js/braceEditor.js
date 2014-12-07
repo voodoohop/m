@@ -12,6 +12,7 @@ window._ = _;
 
 
 var React = require('react');
+Draggable = require('react-draggable');
 
 module.exports = React.createClass({
 
@@ -43,7 +44,6 @@ module.exports = React.createClass({
   componentWillUnmount: function () {
     this.editor.destroy();
   },
-
   render: function () {
     var style={width:"100%",height:"100%"};
     return (
