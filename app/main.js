@@ -16,6 +16,7 @@ import {FunctionalMusic} from "./functionalMonads";
 
 import {t} from "./time";
 
+import {wu} from "./wu";
 
 
 import {AbletonReceiver, AbletonSender} from "./oscAbleton";
@@ -23,6 +24,8 @@ import {AbletonReceiver, AbletonSender} from "./oscAbleton";
 import {isIterable,getIterator,clone} from "./utils";
 
 var _ = require("lodash");
+
+
 
 var Bacon = require("baconjs");
 
@@ -171,17 +174,18 @@ var compileSequences = function(code) {
   try {
     var compiled = traceur.compile(code,{modules:"register", generators:"parse", blockBinding:"parse"});
     console.log("sequencesForLoading", seqLoader.get("bla"));
-    var f = new Function("m","t","params", "teoria","_","System","clone","easer","console", "return "+compiled);
+    var f = new Function("m","t","params", "wu", "teoria","_","System","clone","easer","console", "return "+compiled);
     console.log("compiled",compiled);
     var remoteLog = function(...m) {
-
+      console.log("logging",m);
       try {
+
       webServer.remoteLogger.push(""+m)
     } catch (e) {
       console.error("error sending log",e);
     }
     };
-    sequences = f(m, t , abletonReceiver.param, teoria,_, seqLoader,  clone, () => new Easer(),{log: remoteLog, warn: remoteLog, error: remoteLog});
+    sequences = f(m, t , abletonReceiver.param, wu, teoria,_, seqLoader,  clone, () => new Easer(),{log: remoteLog, warn: remoteLog, error: remoteLog});
     console.log("testing if sequence emits events");
     for (let k of Object.keys(sequences)) {
       console.log("first 5 event of sequence",sequences[k].take(5).toArray());

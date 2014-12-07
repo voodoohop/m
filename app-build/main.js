@@ -1,6 +1,7 @@
 "use strict";
 var $__functionalMonads__,
     $__time__,
+    $__wu__,
     $__oscAbleton__,
     $__utils__,
     $__webConnection__,
@@ -9,13 +10,14 @@ var $__functionalMonads__,
 var teoria = require("teoria");
 var FunctionalMusic = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).FunctionalMusic;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
-var $__2 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
-    AbletonReceiver = $__2.AbletonReceiver,
-    AbletonSender = $__2.AbletonSender;
-var $__3 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
-    isIterable = $__3.isIterable,
-    getIterator = $__3.getIterator,
-    clone = $__3.clone;
+var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
+var $__3 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
+    AbletonReceiver = $__3.AbletonReceiver,
+    AbletonSender = $__3.AbletonSender;
+var $__4 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
+    isIterable = $__4.isIterable,
+    getIterator = $__4.getIterator,
+    clone = $__4.clone;
 var _ = require("lodash");
 var Bacon = require("baconjs");
 var m = FunctionalMusic();
@@ -65,10 +67,10 @@ var webServer = ($__webConnection__ = require("./webConnection"), $__webConnecti
 var SequencePlayManager = ($__sequencePlayManager__ = require("./sequencePlayManager"), $__sequencePlayManager__ && $__sequencePlayManager__.__esModule && $__sequencePlayManager__ || {default: $__sequencePlayManager__}).default;
 var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
 liveCodeReset.plug(sequencePlayManager.resetRequests);
-var $__6 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
-    baconStore = $__6.baconStore,
-    codeStore = $__6.codeStore,
-    onCodeLoaded = $__6.onCodeLoaded;
+var $__7 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
+    baconStore = $__7.baconStore,
+    codeStore = $__7.codeStore,
+    onCodeLoaded = $__7.onCodeLoaded;
 var clipSequences;
 onCodeLoaded(function() {
   codeStore.get("abletonClip", function(err, doc) {
@@ -95,19 +97,20 @@ var compileSequences = function(code) {
       blockBinding: "parse"
     });
     console.log("sequencesForLoading", seqLoader.get("bla"));
-    var f = new Function("m", "t", "params", "teoria", "_", "System", "clone", "easer", "console", "return " + compiled);
+    var f = new Function("m", "t", "params", "wu", "teoria", "_", "System", "clone", "easer", "console", "return " + compiled);
     console.log("compiled", compiled);
     var remoteLog = function() {
       for (var m = [],
-          $__9 = 0; $__9 < arguments.length; $__9++)
-        m[$__9] = arguments[$__9];
+          $__10 = 0; $__10 < arguments.length; $__10++)
+        m[$__10] = arguments[$__10];
+      console.log("logging", m);
       try {
         webServer.remoteLogger.push("" + m);
       } catch (e) {
         console.error("error sending log", e);
       }
     };
-    sequences = f(m, t, abletonReceiver.param, teoria, _, seqLoader, clone, (function() {
+    sequences = f(m, t, abletonReceiver.param, wu, teoria, _, seqLoader, clone, (function() {
       return new Easer();
     }), {
       log: remoteLog,
@@ -115,9 +118,9 @@ var compileSequences = function(code) {
       error: remoteLog
     });
     console.log("testing if sequence emits events");
-    for (var $__7 = Object.keys(sequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__8; !($__8 = $__7.next()).done; ) {
-      let k = $__8.value;
+    for (var $__8 = Object.keys(sequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__9; !($__9 = $__8.next()).done; ) {
+      let k = $__9.value;
       {
         console.log("first 5 event of sequence", sequences[k].take(5).toArray());
       }

@@ -90,6 +90,7 @@ module.exports = component("generatorPreview", function(gens) {
   return <div style={style}>
   <svg className="noteView" {...svgAttrs}>{notes.map(noteRect)}{noteLines}{gridLine()}
   </svg>
-  {gens.sequenceAsString}
   </div>;
+  // {gens.sequenceAsString}
+  
 });

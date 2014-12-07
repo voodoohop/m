@@ -93,12 +93,9 @@ genData.on('swap', render);
 
 function render (data) {
   console.log("render called",genCursor.toArray(),data);
-  // React.render(
-  //   <Clicks clicks={data.cursor('clicks')}/>,
-  //   document.getElementById("clicksId"));
   React.render(
-    <BraceEdit codePlay={codePlay} setCode={codeReceived}/>,
-    document.getElementById("javascript-editor"));
+    <BraceEdit style="width:100%; height:100%" codePlay={codePlay} setCode={codeReceived}/>
+  ,document.getElementById("javascript-editor"));
 
   React.render(GeneratorList(genData.cursor("generators")),
     document.getElementById("nodeGenListContainer"));

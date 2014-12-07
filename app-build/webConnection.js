@@ -68,11 +68,11 @@ var beatFeedback = function(beatInfo) {
 };
 var remoteLogger = new Bacon.Bus();
 remoteLogger.onValue((function(v) {
-  io.emit("consoleMessage", v);
+  io.sockets.emit("consoleMessage", v);
 }));
 var sequenceFeedback = new Bacon.Bus();
 sequenceFeedback.onValue((function(v) {
-  io.emit("sequenceEvent", {
+  io.sockets.emit("sequenceEvent", {
     pitch: v.pitch,
     time: v.time,
     name: v.name,

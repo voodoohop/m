@@ -80,7 +80,7 @@ var MData = mGenerator(function*(data) {
   } else {
     var dataObj;
     if (data instanceof Object) {
-      dataObj = data;
+      dataObj = _.clone(data);
 
       // if (!dataObj.prototype)
       //   dataObj.prototype = {
@@ -89,7 +89,8 @@ var MData = mGenerator(function*(data) {
       // else
       if (isIterable(data))
         throw "Errrrroorr data shouldn't be iterable";
-      dataObj.toString = () => toStringDetailed(data);
+      //delete dataObj.toString;
+      Object.defineProperty(dataObj,"toString", {enumerable:false,value:() => toStringDetailed(data)});
       // if (dataObj.prototype)
       //   dataObj.prototype.toString = data.toString;
       // dataObj = data;
@@ -141,6 +142,7 @@ var MMerge = mGenerator(function*(node1,node2) {
       var next = iterators.map((i) => i.next().value);
       if (next[0] == undefined || next[1] == undefined)
         return;
+      // console.log("addobprops",next[0], next[1]);
       yield addObjectProps(next[0], next[1]);
     }
 },"mergeObjects");

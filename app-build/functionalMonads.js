@@ -81,11 +81,14 @@ var MData = mGenerator(function*(data) {
   } else {
     var dataObj;
     if (data instanceof Object) {
-      dataObj = data;
+      dataObj = _.clone(data);
       if (isIterable(data))
         throw "Errrrroorr data shouldn't be iterable";
-      dataObj.toString = (function() {
-        return toStringDetailed(data);
+      Object.defineProperty(dataObj, "toString", {
+        enumerable: false,
+        value: (function() {
+          return toStringDetailed(data);
+        })
       });
     } else {
       dataObj = {
@@ -723,7 +726,7 @@ var MExternalProperty = mGenerator(function*(propName, baconProp, initialVal, no
 }, "externalProperty", 3, "externalProp");
 var MMetronome = mGenerator(function*(tickDuration, node) {
   yield* getIterator(MTime(MCount(0, tickDuration), MCompose(node, MSequenceEndMarker())));
-}, "metronome");
+}, "metro");
 var MTimeFromDurations = mGenerator(function*(node) {
   let durationSumIterator = MMapWithMemory(0, (function(current, x) {
     return x + current;
