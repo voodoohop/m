@@ -140,7 +140,7 @@ var AbletonSender = function(outPort) {
   });
 
   var param=wu.curryable(function(seqName,outPort,name,val,time) {
-    // console.log("automation",seqName,name,val);
+  //  console.log("automation",seqName,name,val);
     udpPort.send({
       address: "/param",
       args:[seqName,name, name== "pitchBend" ? Math.floor(val*127) :val,time*t.beats(1)]

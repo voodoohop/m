@@ -4,6 +4,7 @@ require('brace/theme/monokai');
 require('brace/ext/searchbox');
 // require('brace/ext/linking');
 require('brace/ext/split');
+ var Range =ace.acequire('ace/range').Range;
 // var TokenIterator = require("ace/token_iterator").TokenIterator;
 var _ = require("lodash");
 
@@ -16,7 +17,17 @@ window._ = _;
 
 
 var React = require('react');
+
+
 // var Draggable = require('react-draggable');
+
+var exportFinder = require("./exportLineLocator");
+
+var findExports = function(code) {
+  var foundExports = exportFinder(code);
+  console.log("foundExports",foundExports);
+  return foundExports;
+}
 
 module.exports = React.createClass({
 
@@ -31,8 +42,28 @@ module.exports = React.createClass({
     this.editor.focus();
     this.props.setCode.onValue(function(v) {
       this.editor.setValue(v);
+      this.setState({exportedSequences: findExports(v)});
     }.bind(this));
 
+    this.props.sequenceFeedback.onValue(function(v) {
+        if (!v.velocity)
+          return;
+        var exported = this.state.exportedSequences;
+        // console.log(exported);
+        var exportMatch = _.find(exported,function(e) {
+          return e.name == v.seqName;
+        });
+      //  console.log(exportMatch);
+        if (exportMatch) {
+
+          var range = new Range(exportMatch.loc.start.line-1, exportMatch.loc.start.column, exportMatch.loc.end.line-1, exportMatch.loc.end.column);
+          console.log(range);
+          var marker = this.editor.getSession().addMarker(range,"sequenceFeedbackMarker","text");
+          setTimeout(function() {
+            this.editor.getSession().removeMarker(marker);
+          }.bind(this),100);
+        }
+    }.bind(this));
 
   //  this.editor.setValue(this.props.initialValue, -1);
   this.editor.commands.addCommand({
@@ -41,7 +72,7 @@ module.exports = React.createClass({
     exec: function(editor) {
       // socket.emit("codeChange",{maxDeviceId: myDeviceId, code:editor.getValue()});
       this.props.codePlay.push(this.editor.getValue());
-
+      this.setState({exportedSequences: findExports(this.editor.getValue())});
     }.bind(this),
     readOnly: true // false if this command should not apply in readOnly mode
   });

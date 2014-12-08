@@ -65,7 +65,6 @@ var baconStream = Bacon.fromBinder(function(sink) {
       var res=codeStore.get(deviceId);
       console.log("sending code",res);
       socket.emit("code",res);
-
     });
 
     // socket.on('getDevices', function(msg){

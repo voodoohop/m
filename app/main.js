@@ -90,8 +90,8 @@ var decodedTime = abletonReceiver.time.diff(0,(a,b) => b-a).skip(1).zip(abletonR
   .map((time) => time.timeDiff < -8 ? _.extend({reset:true},time) : time)
   .combine(liveCodeReset.debounceImmediate(500).toProperty(),
     function(time, codeReset) {
-      //console.log(time,codeReset);
       if (lastCodeResetNo != codeReset) {
+        console.log("RESET",time,codeReset);
         lastCodeResetNo = codeReset;
         return _.extend({reset:true},time);
       }
@@ -114,8 +114,6 @@ var decodedTime = abletonReceiver.time.diff(0,(a,b) => b-a).skip(1).zip(abletonR
 // TODO: timeThatAccountsForTransportJumps should be a stream of functions that can convert time to global ableton time automatically
 // TODO: make every stream have its own starttime
 var timeThatAccountsForTransportJumps2 = decodedTime.map((t) => {return {time: t.time-t.firstTime, offset: t.firstTime}});
-
-
 
 
 var timeThatAccountsForTransportJumps = timeThatAccountsForTransportJumps2;

@@ -27,3 +27,11 @@
 .noteView {
   background-color:rgba(0,0,0,0.8);
 }
+
+.sequenceFeedbackMarker {
+  position: absolute;
+  background-color: white;
+  padding: 5px;
+  border: 2px solid gray;
+  opacity:0.6;
+}

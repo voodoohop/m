@@ -38,6 +38,7 @@ var decodedTime = abletonReceiver.time.diff(0, (function(a, b) {
   return time.timeDiff < -8 ? _.extend({reset: true}, time) : time;
 })).combine(liveCodeReset.debounceImmediate(500).toProperty(), function(time, codeReset) {
   if (lastCodeResetNo != codeReset) {
+    console.log("RESET", time, codeReset);
     lastCodeResetNo = codeReset;
     return _.extend({reset: true}, time);
   }

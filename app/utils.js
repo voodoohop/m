@@ -71,8 +71,12 @@ export var addObjectProps=function(eventObject, props, enumerable=true) {
       if (enumerable && typeof value === "function" && value.length <= 1) {
         if (key != "toString" && key != "valueOf") {
           var functor = value;
-          value = functor(eventObject);
-          value.functor = functor;
+          try {
+            value = functor(eventObject);
+            value.functor = functor;
+          } catch (e) {
+            console.error("functor evaluating error",e);
+          }
         }
       }
 

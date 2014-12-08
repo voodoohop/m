@@ -24,6 +24,10 @@ console.log("device id",myDeviceId);
 
   Bacon.fromEventTarget(socket, "consoleMessage").log("console");
 
+  var sequenceFeedback = Bacon.fromEventTarget(socket, "sequenceEvent");
+  // sequenceFeedback.log("seqEvent");
+
+
   var codeReceived = Bacon.fromEventTarget(socket, "code");
 
   codeReceived.onValue(function(code) {
@@ -101,7 +105,7 @@ function render (data) {
     <div className="panel panel-default" style={style}>
     <div className="panel-heading" style={style2} >Panel heading without title</div>
     <div className="panel-body" style={style}>
-    <BraceEdit style="width:100%; height:100%" codePlay={codePlay} setCode={codeReceived}/>
+    <BraceEdit style="width:100%; height:100%" codePlay={codePlay} setCode={codeReceived} sequenceFeedback={sequenceFeedback}/>
     </div>
     </div>);
   }
