@@ -5,12 +5,16 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__tomSequencer__;
+var $__tomSequencer__,
+    $__oscAbleton__;
 var Bacon = require("baconjs");
 var BaconSequencer = ($__tomSequencer__ = require("./tomSequencer"), $__tomSequencer__ && $__tomSequencer__.__esModule && $__tomSequencer__ || {default: $__tomSequencer__}).BaconSequencer;
 var _ = require("lodash");
-var $__default = function(sequenceSubscribe, abletonSender, time, resetMessages, sequenceFeedback) {
-  sequenceSubscribe.log("seqSubsribe");
+var $__1 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
+    abletonReceiver = $__1.abletonReceiver,
+    abletonSender = $__1.abletonSender;
+var sequenceSubscribe = abletonReceiver.sequencePlayRequests;
+var $__default = function(time, resetMessages, sequenceFeedback) {
   var newSequenceBus = new Bacon.Bus();
   var resetRequests = new Bacon.Bus();
   var availableSequences = {};
@@ -24,24 +28,24 @@ var $__default = function(sequenceSubscribe, abletonSender, time, resetMessages,
   var Sequencer = BaconSequencer(time);
   var subscribedSequences = [];
   function playOnlySubscribed() {
-    var $__5,
-        $__6;
+    var $__6,
+        $__7;
     console.log("subscribedSequences", subscribedSequences);
-    var needToBeStopped = ($__5 = _).without.apply($__5, $traceurRuntime.spread([Object.keys(playingSequences)], _.pluck(subscribedSequences, "sequenceName")));
-    for (var $__1 = needToBeStopped[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__2; !($__2 = $__1.next()).done; ) {
-      let seqName = $__2.value;
+    var needToBeStopped = ($__6 = _).without.apply($__6, $traceurRuntime.spread([Object.keys(playingSequences)], _.pluck(subscribedSequences, "sequenceName")));
+    for (var $__2 = needToBeStopped[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__3; !($__3 = $__2.next()).done; ) {
+      let seqName = $__3.value;
       {
         playingSequences[seqName].stop();
         delete playingSequences[seqName];
       }
     }
-    var needToPlay = ($__6 = _).without.apply($__6, $traceurRuntime.spread([_.pluck(subscribedSequences, "sequenceName")], Object.keys(playingSequences)));
+    var needToPlay = ($__7 = _).without.apply($__7, $traceurRuntime.spread([_.pluck(subscribedSequences, "sequenceName")], Object.keys(playingSequences)));
     console.log("availableSequences", availableSequences);
     console.log("needToPlay", needToPlay);
-    for (var $__3 = needToPlay[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__4; !($__4 = $__3.next()).done; ) {
-      let seqName = $__4.value;
+    for (var $__4 = needToPlay[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__5; !($__5 = $__4.next()).done; ) {
+      let seqName = $__5.value;
       {
         if (availableSequences[seqName])
           instrumentPlayer(availableSequences[seqName]);
@@ -51,7 +55,6 @@ var $__default = function(sequenceSubscribe, abletonSender, time, resetMessages,
   }
   sequenceSubscribe.onValue((function(sub) {
     if (!availableSequences[sub.sequenceName]) {
-      console.warn("tried subscribing to " + sub.sequenceName + " but not available");
       return;
     }
     console.log("subscribing", sub, "subscribed", subscribedSequences);
@@ -79,9 +82,9 @@ var $__default = function(sequenceSubscribe, abletonSender, time, resetMessages,
     };
   };
   resetMessages.onValue((function() {
-    for (var $__1 = Object.keys(playingSequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__2; !($__2 = $__1.next()).done; ) {
-      let seqName = $__2.value;
+    for (var $__2 = Object.keys(playingSequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__3; !($__3 = $__2.next()).done; ) {
+      let seqName = $__3.value;
       {
         playingSequences[seqName].stop();
         console.log("after reset recreating instrumentPlayer for ", seqName, playingSequences[seqName]);

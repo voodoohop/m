@@ -32,7 +32,7 @@ console.log('listening on port 8000');
 
 var io = srv.io;
 
-console.log(io);
+// console.log(io);
 
 import {codeStore} from "./codeStore";
 
@@ -62,25 +62,26 @@ var baconStream = Bacon.fromBinder(function(sink) {
     socket.on('getCode', function(msg){
       console.log('getCode message: ', msg);
       deviceId = msg.device;
-      codeStore.get(deviceId, function(err, res) {
-        console.log("sending code",res);
-        socket.emit("code",res);
-      });
+      var res=codeStore.get(deviceId);
+      console.log("sending code",res);
+      socket.emit("code",res);
+
     });
+
+    // socket.on('getDevices', function(msg){
+    //   console.log('getDevices message: ', msg);
+    //   var res=codeStore.get(deviceId);
+    //   console.log("sending code",res);
+    //   socket.emit("code",res);
+    //
+    // });
 
     //socket.emit("code", "something is going on\n is going on!!");
     socket.on('codeChange', function(msg){
       console.log('message: ', msg);
-      codeStore.save(msg.device+(msg.name ? "/"+msg.name : ""), msg.code, function (err) {
-
       sink({device:msg.device, code:msg.code});
-      if (err) { throw err; }
-      // The save is finished and written to disk safely
-      });
     });
   });
-
-
 });
 
 console.log("exporting",baconStream);

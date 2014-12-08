@@ -3,10 +3,11 @@ var Bacon = require("baconjs");
 import {BaconSequencer} from "./tomSequencer";
 var _ = require("lodash");
 
-
-export default function(sequenceSubscribe, abletonSender, time, resetMessages, sequenceFeedback) {
+import {abletonReceiver, abletonSender} from "./oscAbleton";
+var sequenceSubscribe = abletonReceiver.sequencePlayRequests;
+export default function(time, resetMessages, sequenceFeedback) {
   //console.log(sequenceSubscribe);
-  sequenceSubscribe.log("seqSubsribe");
+  // sequenceSubscribe.log("seqSubsribe");
 
   var newSequenceBus = new Bacon.Bus();
 
@@ -45,7 +46,7 @@ export default function(sequenceSubscribe, abletonSender, time, resetMessages, s
 
   sequenceSubscribe.onValue((sub) => {
     if (!availableSequences[sub.sequenceName]){
-      console.warn("tried subscribing to "+sub.sequenceName+" but not available");
+      // console.warn("tried subscribing to "+sub.sequenceName+" but not available");
       return;
     }
     console.log("subscribing",sub, "subscribed", subscribedSequences);

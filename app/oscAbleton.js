@@ -37,7 +37,7 @@ var noteOffTracker = function(seqName,outPort,baconReset, notePlayer) {
 };
 
 
-export var AbletonReceiver = function(inPort) {
+var AbletonReceiver = function(inPort) {
 
   var baconTime = new Bacon.Bus();
 
@@ -96,7 +96,7 @@ var timeInBeats = baconTime.map((time) => time/t.beats(1));
 }
 
 
-export var AbletonSender = function(outPort) {
+var AbletonSender = function(outPort) {
   var udpPort = new osc.UDPPort({
       localAddress: "0.0.0.0",
       localPort: 55555
@@ -187,3 +187,7 @@ export var AbletonSender = function(outPort) {
 
   }
 }
+
+
+export var abletonSender = AbletonSender(8915);
+export var abletonReceiver = AbletonReceiver(8895);

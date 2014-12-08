@@ -970,20 +970,3 @@ var test2 = m.evt({
   pitch: 3,
   velocity: 0.3
 }).metro(4);
-var simpleMelody = m.evt().set({
-  pitch: [62, 65, 70, 75],
-  velocity: [0.8, 0.6, 0.5],
-  duration: 1.5
-}).metro(2).duration((function(n) {
-  return n.duration;
-})).swing(1, 0.3).automate("pitchBend", (function(n) {
-  return 1.5;
-}));
-console.log(simpleMelody);
-for (var $__5 = simpleMelody.skip(10).toPlayable().take(5)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__6; !($__6 = $__5.next()).done; ) {
-  var e = $__6.value;
-  {
-    console.log("eventNoteOnOffYeeee", e);
-  }
-}

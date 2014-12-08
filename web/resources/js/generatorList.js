@@ -47,7 +47,7 @@ module.exports = component('GeneratorList', function (props) {
     console.log("li",generator);
     var style={padding:"10px", position: "relative"};
     var floatRight = {position:"absolute", left:"15px"};
-    return <div style={style}><span style={floatRight}>{generator.name}</span>{GenPreview(generator)}</div>;
+    return <div style={style}><span style={floatRight}><small>{generator.device}</small>/<b>{generator.name}</b></span>{GenPreview(generator)}</div>;
   };
   console.log("GenListProps",props.cursor.toArray());
   return <div><h4>Generators</h4>{props.cursor.toArray().map(createItem)}</div>;

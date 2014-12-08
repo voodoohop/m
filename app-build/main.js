@@ -4,25 +4,26 @@ var $__functionalMonads__,
     $__wu__,
     $__oscAbleton__,
     $__utils__,
+    $__generatorModuleManager__,
     $__webConnection__,
     $__sequencePlayManager__,
     $__codeStore__;
+console.log(System);
 var teoria = require("teoria");
 var FunctionalMusic = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).FunctionalMusic;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
 var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
 var $__3 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
-    AbletonReceiver = $__3.AbletonReceiver,
-    AbletonSender = $__3.AbletonSender;
+    abletonReceiver = $__3.abletonReceiver,
+    abletonSender = $__3.abletonSender;
 var $__4 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
     isIterable = $__4.isIterable,
     getIterator = $__4.getIterator,
     clone = $__4.clone;
+var moduleManager = ($__generatorModuleManager__ = require("./generatorModuleManager"), $__generatorModuleManager__ && $__generatorModuleManager__.__esModule && $__generatorModuleManager__ || {default: $__generatorModuleManager__});
 var _ = require("lodash");
 var Bacon = require("baconjs");
 var m = FunctionalMusic();
-var abletonSender = AbletonSender(8915);
-var abletonReceiver = AbletonReceiver(8895);
 var traceur = require("traceur");
 var liveCodeReset = new Bacon.Bus();
 var lastCodeResetNo = -1;
@@ -65,91 +66,17 @@ timeThatAccountsForTransportJumps.throttle(1000).log("timeWithOffset");
 resetMessages.log("RESET");
 var webServer = ($__webConnection__ = require("./webConnection"), $__webConnection__ && $__webConnection__.__esModule && $__webConnection__ || {default: $__webConnection__}).default;
 var SequencePlayManager = ($__sequencePlayManager__ = require("./sequencePlayManager"), $__sequencePlayManager__ && $__sequencePlayManager__.__esModule && $__sequencePlayManager__ || {default: $__sequencePlayManager__}).default;
-var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
+var sequencePlayManager = SequencePlayManager(timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
 liveCodeReset.plug(sequencePlayManager.resetRequests);
 var $__7 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
-    baconStore = $__7.baconStore,
-    codeStore = $__7.codeStore,
-    onCodeLoaded = $__7.onCodeLoaded;
-var clipSequences;
-onCodeLoaded(function() {
-  codeStore.get("abletonClip", function(err, doc) {
-    clipSequences = compileSequences(doc);
-    console.log("loaded previous clip sequences", clipSequences);
-  });
-});
-var seqLoader = {get: (function(m) {
-    console.log("requestes sequences from", m);
-    var importableSequences = _.defaults({}, clipSequences, _.mapValues(sequencePlayManager.availableSequences, (function(p) {
-      return p.sequence;
-    })));
-    console.log("importableSequences", importableSequences);
-    return importableSequences;
-  })};
+    baconStorer = $__7.baconStorer,
+    onCodeLoaded = $__7.onCodeLoaded,
+    storedSequences = $__7.storedSequences;
 var Easer = require('functional-easing').Easer;
-var compileSequences = function(code) {
-  var sequences = null;
-  var passedTests = false;
-  try {
-    var compiled = traceur.compile(code, {
-      modules: "register",
-      generators: "parse",
-      blockBinding: "parse"
-    });
-    console.log("sequencesForLoading", seqLoader.get("bla"));
-    var f = new Function("m", "t", "params", "wu", "teoria", "_", "System", "clone", "easer", "console", "return " + compiled);
-    console.log("compiled", compiled);
-    var remoteLog = function() {
-      for (var m = [],
-          $__10 = 0; $__10 < arguments.length; $__10++)
-        m[$__10] = arguments[$__10];
-      console.log("logging", m);
-      try {
-        webServer.remoteLogger.push("" + m);
-      } catch (e) {
-        console.error("error sending log", e);
-      }
-    };
-    sequences = f(m, t, abletonReceiver.param, wu, teoria, _, seqLoader, clone, (function() {
-      return new Easer();
-    }), {
-      log: remoteLog,
-      warn: remoteLog,
-      error: remoteLog
-    });
-    console.log("testing if sequence emits events");
-    for (var $__8 = Object.keys(sequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__9; !($__9 = $__8.next()).done; ) {
-      let k = $__9.value;
-      {
-        console.log("first 5 event of sequence", sequences[k].take(5).toArray());
-      }
-    }
-    passedTests = true;
-  } catch (e) {
-    console.log("exception in live code", e.stack);
-  }
-  if (sequences == null || !passedTests)
-    return false;
-  return sequences;
-};
 webServer.beatFeedback(timeThatAccountsForTransportJumps.toEventStream().map((function(t) {
   return Math.floor(t.time);
 })).skipDuplicates());
-var compiledSequences = webServer.liveCode.flatMap(function(code) {
-  let sequences = compileSequences(code.code);
-  if (!sequences)
-    return Bacon.never();
-  var sequencesArray = _.pairs(sequences).map((function(s) {
-    return {
-      device: code.device,
-      name: s[0],
-      sequence: s[1]
-    };
-  }));
-  return Bacon.fromArray(sequencesArray);
-});
-var clipSequences = abletonReceiver.clipNotes.map(function(v) {
+var newClipSequences = abletonReceiver.clipNotes.map(function(v) {
   var notes = _.sortBy(v.notes, (function(n) {
     return n.time;
   }));
@@ -158,32 +85,44 @@ var clipSequences = abletonReceiver.clipNotes.map(function(v) {
       pitch: n.pitch,
       duration: n.duration,
       velocity: n.velocity / 127,
-      time: n.time
+      time: n.time,
+      color: "yellow"
     };
   }))).loopLength(v.loopEnd - v.loopStart);
   console.log("created clip seq from clipNotes", {
     device: "abletonClip",
-    name: v.name,
-    sequence: seq
+    name: v.name
   });
+  var code = "export var " + v.name + " = " + seq.toString() + ";";
   return {
-    device: "abletonClip",
-    name: v.name,
-    sequence: seq
+    device: "abletonClip_" + v.name,
+    code: code
   };
 });
-baconStore.plug(clipSequences);
-var clipAndCodeSequences = compiledSequences.merge(clipSequences);
-sequencePlayManager.newSequence.plug(clipAndCodeSequences);
-var resetNo = 0;
-clipAndCodeSequences.onValue((function() {
-  return liveCodeReset.push(resetNo++);
-}));
+moduleManager.newSequenceCode.plug(newClipSequences);
+moduleManager.newSequenceCode.plug(webServer.liveCode);
+setTimeout(function() {
+  console.log("CODE LOADED", storedSequences);
+  for (var $__8 = storedSequences[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__9; !($__9 = $__8.next()).done; ) {
+    var seq = $__9.value;
+    {
+      moduleManager.newSequenceCode.push({
+        device: seq.device,
+        code: seq.code
+      });
+    }
+  }
+  console.log("after load:", moduleManager.loadedSequences.toJS());
+}, 1000);
+sequencePlayManager.newSequence.plug(moduleManager.processedSequences);
 var Immutable = require("immutable");
-var generatorList = clipAndCodeSequences.scan({}, (function(prev, next) {
+var generatorList = moduleManager.processedSequences.scan({}, (function(prev, next) {
   console.log("generating first 500 samples of sequence", next);
   prev[next.name] = {
+    device: next.device,
     name: next.name,
+    sourceCode: next.code,
     sequenceAsString: next.sequence.toString(),
     eventSample: next.sequence.toPlayable().take(500).takeWhile((function(n) {
       return n.time < 16;
@@ -192,6 +131,7 @@ var generatorList = clipAndCodeSequences.scan({}, (function(prev, next) {
   console.log("generated");
   return prev;
 })).map(_.values).debounce(300);
+baconStorer.plug(moduleManager.processedSequences);
 generatorList.onValue((function(v) {
   webServer.generatorUpdate(v);
   abletonSender.generatorUpdate(v);

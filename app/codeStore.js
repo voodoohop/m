@@ -1,36 +1,40 @@
 
 var Bacon = require("baconjs");
 
-var nStore = require("nstore");
-nStore = nStore.extend(require('nstore/query')());
+// var nStore = require("nstore");
+// nStore = nStore.extend(require('nstore/query')());
 
-var storeLoaded = false;
+var liveCodeDir = "./liveCode";
 
-var storeLoadedListeners = [];
+var fs =require("fs");
 
-export var codeStore = nStore.new("code.db", () => {storeLoaded = true; storeLoadedListeners.forEach((l) => l())});
-
-export var onCodeLoaded = function(listener) {
-  if (storeLoaded)
-    listener();
-  storeLoadedListeners.push(listener);
+export var codeStore = {
+  get: function(deviceName) {
+    try {
+      return fs.readFileSync(liveCodeDir+"/"+deviceName+".js",'utf8');
+    }
+    catch (e){};
+    return null;
+  }
 }
 
-export var baconStore = new Bacon.Bus();
+export var storedSequences = fs.readdirSync(liveCodeDir)
+  .map(fileName => ({code:fs.readFileSync(liveCodeDir+"/"+fileName,'utf8'), device: fileName.replace(".js","")}));
 
-baconStore.onValue((s) => {
-  if (s.sequence) {
+console.log(fs.readdirSync(liveCodeDir),storedSequences);
+// throw "heeey";
 
-    codeStore.get(s.device, function(err,prevCode) {
-      if (prevCode ==undefined)
-        prevCode="";
-      var prevCode = prevCode.replace("export var "+s.name+" = ","var "+s.name+Math.floor(Math.random()*100000)+" = ");
-      var newCode = ""+prevCode+ ";\n export var "+s.name+" = "+s.sequence.toString()+";";
-      console.log("saving new code for ",s.device,newCode);
-      codeStore.save(s.device, newCode , function(err) {console.log("stored code", s);})
-    });
-  }
-  else
-    codeStore.save(s.device, s.code, function(err) {console.log("stored code", s);})
+export var baconStorer = new Bacon.Bus();
+
+
+// export var baconStoreChanged = new Bacon.Bus();
+
+baconStorer.onValue((s) => {
+//  return;
+  console.log("storing",s);
+  var path = liveCodeDir+"/"+s.device+".js";
+  fs.writeFileSync(path, s.code,'utf8');
+
+  // codeStore.save(s.device, s.code, function(err) {console.log("stored code", s);})
 
 });

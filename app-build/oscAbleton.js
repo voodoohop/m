@@ -1,10 +1,10 @@
 "use strict";
 Object.defineProperties(exports, {
-  AbletonReceiver: {get: function() {
-      return AbletonReceiver;
+  abletonSender: {get: function() {
+      return abletonSender;
     }},
-  AbletonSender: {get: function() {
-      return AbletonSender;
+  abletonReceiver: {get: function() {
+      return abletonReceiver;
     }},
   __esModule: {value: true}
 });
@@ -163,3 +163,5 @@ var AbletonSender = function(outPort) {
     generatorUpdate: generatorUpdate
   };
 };
+var abletonSender = AbletonSender(8915);
+var abletonReceiver = AbletonReceiver(8895);

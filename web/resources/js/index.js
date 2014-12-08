@@ -30,7 +30,7 @@ console.log("device id",myDeviceId);
     codeLoaded = code;
   });
 
-  codeReceived.log("new code received");
+  // codeReceived.log("new code received");
 
   var connected = Bacon.fromEventTarget(socket, "connect");
 
@@ -87,15 +87,26 @@ availableGenerators.onValue(function(genList) {
 var BraceEdit = require('./braceEditor');
 var GeneratorList = require('./generatorList');
 
-
+socket.emit("requestGenerators","yes");
 
 genData.on('swap', render);
 
 function render (data) {
   console.log("render called",genCursor.toArray(),data);
-  React.render(
+  var style={width:"100%",height:"100%", padding:"0px",background:"none"};
+  var style2={padding:"2px",background:"none"};
+
+  var createEditor = function() {
+    return (
+    <div className="panel panel-default" style={style}>
+    <div className="panel-heading" style={style2} >Panel heading without title</div>
+    <div className="panel-body" style={style}>
     <BraceEdit style="width:100%; height:100%" codePlay={codePlay} setCode={codeReceived}/>
-  ,document.getElementById("javascript-editor"));
+    </div>
+    </div>);
+  }
+
+  React.render(createEditor(),document.getElementById("javascript-editor"));
 
   React.render(GeneratorList(genData.cursor("generators")),
     document.getElementById("nodeGenListContainer"));

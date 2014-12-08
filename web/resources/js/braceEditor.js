@@ -1,6 +1,10 @@
 var ace = require('brace');
 require('brace/mode/javascript');
 require('brace/theme/monokai');
+require('brace/ext/searchbox');
+// require('brace/ext/linking');
+require('brace/ext/split');
+// var TokenIterator = require("ace/token_iterator").TokenIterator;
 var _ = require("lodash");
 
 window._ = _;
@@ -12,7 +16,7 @@ window._ = _;
 
 
 var React = require('react');
-Draggable = require('react-draggable');
+// var Draggable = require('react-draggable');
 
 module.exports = React.createClass({
 
@@ -22,7 +26,8 @@ module.exports = React.createClass({
 
     this.editor.getSession().setMode('ace/mode/javascript');
     this.editor.setTheme('ace/theme/monokai');
-
+    // this.editor.setOption("enableLinking",true);
+    window.aceEditor = this.editor;
     this.editor.focus();
     this.props.setCode.onValue(function(v) {
       this.editor.setValue(v);
@@ -36,6 +41,7 @@ module.exports = React.createClass({
     exec: function(editor) {
       // socket.emit("codeChange",{maxDeviceId: myDeviceId, code:editor.getValue()});
       this.props.codePlay.push(this.editor.getValue());
+
     }.bind(this),
     readOnly: true // false if this command should not apply in readOnly mode
   });
@@ -46,8 +52,10 @@ module.exports = React.createClass({
   },
   render: function () {
     var style={width:"100%",height:"100%"};
-    return (
+    var res= (
       <div style={style} className="ace-editor-wrapper"></div>
     );
+    console.log("draggable res",res);
+    return res;
   }
 });

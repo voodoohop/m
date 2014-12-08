@@ -9,7 +9,6 @@ var $__codeStore__;
 var srv = require("../web/server");
 console.log('listening on port 8000');
 var io = srv.io;
-console.log(io);
 var codeStore = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}).codeStore;
 var generatorStore = null;
 var Bacon = require("baconjs");
@@ -33,21 +32,15 @@ var baconStream = Bacon.fromBinder(function(sink) {
     socket.on('getCode', function(msg) {
       console.log('getCode message: ', msg);
       deviceId = msg.device;
-      codeStore.get(deviceId, function(err, res) {
-        console.log("sending code", res);
-        socket.emit("code", res);
-      });
+      var res = codeStore.get(deviceId);
+      console.log("sending code", res);
+      socket.emit("code", res);
     });
     socket.on('codeChange', function(msg) {
       console.log('message: ', msg);
-      codeStore.save(msg.device + (msg.name ? "/" + msg.name : ""), msg.code, function(err) {
-        sink({
-          device: msg.device,
-          code: msg.code
-        });
-        if (err) {
-          throw err;
-        }
+      sink({
+        device: msg.device,
+        code: msg.code
       });
     });
   });

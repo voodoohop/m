@@ -3,45 +3,34 @@ Object.defineProperties(exports, {
   codeStore: {get: function() {
       return codeStore;
     }},
-  onCodeLoaded: {get: function() {
-      return onCodeLoaded;
+  storedSequences: {get: function() {
+      return storedSequences;
     }},
-  baconStore: {get: function() {
-      return baconStore;
+  baconStorer: {get: function() {
+      return baconStorer;
     }},
   __esModule: {value: true}
 });
 var Bacon = require("baconjs");
-var nStore = require("nstore");
-nStore = nStore.extend(require('nstore/query')());
-var storeLoaded = false;
-var storeLoadedListeners = [];
-var codeStore = nStore.new("code.db", (function() {
-  storeLoaded = true;
-  storeLoadedListeners.forEach((function(l) {
-    return l();
-  }));
+var liveCodeDir = "./liveCode";
+var fs = require("fs");
+var codeStore = {get: function(deviceName) {
+    try {
+      return fs.readFileSync(liveCodeDir + "/" + deviceName + ".js", 'utf8');
+    } catch (e) {}
+    ;
+    return null;
+  }};
+var storedSequences = fs.readdirSync(liveCodeDir).map((function(fileName) {
+  return ({
+    code: fs.readFileSync(liveCodeDir + "/" + fileName, 'utf8'),
+    device: fileName.replace(".js", "")
+  });
 }));
-var onCodeLoaded = function(listener) {
-  if (storeLoaded)
-    listener();
-  storeLoadedListeners.push(listener);
-};
-var baconStore = new Bacon.Bus();
-baconStore.onValue((function(s) {
-  if (s.sequence) {
-    codeStore.get(s.device, function(err, prevCode) {
-      if (prevCode == undefined)
-        prevCode = "";
-      var prevCode = prevCode.replace("export var " + s.name + " = ", "var " + s.name + Math.floor(Math.random() * 100000) + " = ");
-      var newCode = "" + prevCode + ";\n export var " + s.name + " = " + s.sequence.toString() + ";";
-      console.log("saving new code for ", s.device, newCode);
-      codeStore.save(s.device, newCode, function(err) {
-        console.log("stored code", s);
-      });
-    });
-  } else
-    codeStore.save(s.device, s.code, function(err) {
-      console.log("stored code", s);
-    });
+console.log(fs.readdirSync(liveCodeDir), storedSequences);
+var baconStorer = new Bacon.Bus();
+baconStorer.onValue((function(s) {
+  console.log("storing", s);
+  var path = liveCodeDir + "/" + s.device + ".js";
+  fs.writeFileSync(path, s.code, 'utf8');
 }));

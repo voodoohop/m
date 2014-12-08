@@ -1066,30 +1066,30 @@ var test2 = m.evt({pitch:3, velocity:0.3}).metro(4);
 // .notePlay();
 
 // throw "just terminating";
-
-var simpleMelody = m.evt().set({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:1.5}).metro(2)
+// 
+// var simpleMelody = m.evt().set({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:1.5}).metro(2)
+// // .duration((n) => {
+// // //  console.log("durationmap",n);
+// //   return n.duration*200
+// // })
 // .duration((n) => {
 // //  console.log("durationmap",n);
-//   return n.duration*200
+//   return n.duration;
 // })
-.duration((n) => {
-//  console.log("durationmap",n);
-  return n.duration;
-})
-.swing(1,0.3)
-.automate("pitchBend",(n) => 1.5);
+// .swing(1,0.3)
+// .automate("pitchBend",(n) => 1.5);
 
 
-console.log(simpleMelody);
+// console.log(simpleMelody);
 
 
 
 // throw "Byebye";
 //
-
-for (var e of simpleMelody.skip(10).toPlayable().take(5)) {
-  console.log("eventNoteOnOffYeeee",e);
-}
+//
+// for (var e of simpleMelody.skip(10).toPlayable().take(5)) {
+//   console.log("eventNoteOnOffYeeee",e);
+// }
 
 
 // console.log("getting combined");

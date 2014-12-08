@@ -10,6 +10,10 @@
 //     appName: 'GenMusic'
 //   });
 
+console.log(System);
+
+// throw "bye";
+
 var teoria = require("teoria");
 
 import {FunctionalMusic} from "./functionalMonads";
@@ -19,9 +23,11 @@ import {t} from "./time";
 import {wu} from "./wu";
 
 
-import {AbletonReceiver, AbletonSender} from "./oscAbleton";
+import {abletonReceiver, abletonSender} from "./oscAbleton";
 
 import {isIterable,getIterator,clone} from "./utils";
+
+import * as moduleManager from "./generatorModuleManager";
 
 var _ = require("lodash");
 
@@ -66,8 +72,7 @@ var m = FunctionalMusic();
 //
 // return;
 
-var abletonSender = AbletonSender(8915);
-var abletonReceiver = AbletonReceiver(8895);
+
 
 
 // var seqTest2 = m.evt({name:"baconTest",duration:10}).loop().metro(60);
@@ -134,32 +139,15 @@ import webServer from "./webConnection";
 
 
 import SequencePlayManager from "./sequencePlayManager";
-var sequencePlayManager = SequencePlayManager(abletonReceiver.sequencePlayRequests, abletonSender, timeThatAccountsForTransportJumps.toEventStream(),resetMessages, webServer.sequenceFeedback);
+
+var sequencePlayManager = SequencePlayManager(timeThatAccountsForTransportJumps.toEventStream(),resetMessages, webServer.sequenceFeedback);
 
 liveCodeReset.plug(sequencePlayManager.resetRequests);
 
 
-import {baconStore,codeStore, onCodeLoaded} from "./codeStore";
-
-// HACCKKKYYY better to save different scheme
-var clipSequences;
-// var storedCode="";
-onCodeLoaded(function() {
-  codeStore.get("abletonClip", function (err,doc) {
-    clipSequences = compileSequences(doc);
-    console.log("loaded previous clip sequences", clipSequences);
-  });
-});
+import {baconStorer, onCodeLoaded, storedSequences} from "./codeStore";
 
 
-var seqLoader = {
-  get: (m) => {
-    console.log("requestes sequences from",m);
-    var importableSequences = _.defaults({}, clipSequences,_.mapValues(sequencePlayManager.availableSequences, (p) => p.sequence));
-    console.log("importableSequences",importableSequences);
-    return importableSequences;
-  }
-}
 
 
 // console.log(new TWEEN.Tween({a:2}));
@@ -168,40 +156,7 @@ var seqLoader = {
 var Easer = require('functional-easing').Easer;
 
 
-var compileSequences = function(code) {
-  var sequences = null
-  var passedTests = false;
-  try {
-    var compiled = traceur.compile(code,{modules:"register", generators:"parse", blockBinding:"parse"});
-    console.log("sequencesForLoading", seqLoader.get("bla"));
-    var f = new Function("m","t","params", "wu", "teoria","_","System","clone","easer","console", "return "+compiled);
-    console.log("compiled",compiled);
-    var remoteLog = function(...m) {
-      console.log("logging",m);
-      try {
 
-      webServer.remoteLogger.push(""+m)
-    } catch (e) {
-      console.error("error sending log",e);
-    }
-    };
-    sequences = f(m, t , abletonReceiver.param, wu, teoria,_, seqLoader,  clone, () => new Easer(),{log: remoteLog, warn: remoteLog, error: remoteLog});
-    console.log("testing if sequence emits events");
-    for (let k of Object.keys(sequences)) {
-      console.log("first 5 event of sequence",sequences[k].take(5).toArray());
-    }
-    passedTests = true;
-  } catch(e) {
-    console.log("exception in live code",e.stack);
-  }
-
-  //sequences = [sequences];
-  //console.log("got new sequences",""+sequences);
-
-  if (sequences == null || !passedTests)
-    return false;
-  return sequences;
-};
 
 
 
@@ -211,62 +166,66 @@ var compileSequences = function(code) {
 //timeThatAccountsForTransportJumps.toEventStream().skipDuplicates().log("beat");
 webServer.beatFeedback(timeThatAccountsForTransportJumps.toEventStream().map((t) => Math.floor(t.time)).skipDuplicates());
 
-var compiledSequences = webServer.liveCode.flatMap(function(code) {
-  let sequences = compileSequences(code.code);
-  if (!sequences)
-    return Bacon.never();
-  var sequencesArray = _.pairs(sequences).map((s) => {return {device:code.device, name:s[0], sequence:s[1]}});
-  //console.log("seqArray",sequencesArray);
-  return Bacon.fromArray(sequencesArray);
-});
 
 
-
-var clipSequences = abletonReceiver.clipNotes.map(function(v) {
+var newClipSequences = abletonReceiver.clipNotes.map(function(v) {
   var notes = _.sortBy(v.notes, (n) => n.time);
   var seq=m.data(notes.map((n) => {
     return {
       pitch: n.pitch,
       duration: n.duration,
       velocity:n.velocity/127,
-      time: n.time
+      time: n.time,
+      color: "yellow"
     }
   }
 )).loopLength(v.loopEnd-v.loopStart);
   //console.log("clipSeq",seq.pitch);
-  console.log("created clip seq from clipNotes",{device:"abletonClip", name: v.name, sequence: seq});
-  return {device:"abletonClip", name: v.name, sequence: seq};
+  console.log("created clip seq from clipNotes",{device:"abletonClip", name: v.name});
+
+  var code = "export var "+v.name+" = "+seq.toString()+";"
+  return {device:"abletonClip_"+v.name, code: code};
 });
 
+moduleManager.newSequenceCode.plug(newClipSequences);
 
-baconStore.plug(clipSequences);
+moduleManager.newSequenceCode.plug(webServer.liveCode);
+
+setTimeout(function() {
+  console.log("CODE LOADED",storedSequences);
+  for (var seq of storedSequences) {
+    moduleManager.newSequenceCode.push({device: seq.device, code: seq.code});
+  }
+  console.log("after load:",moduleManager.loadedSequences.toJS());
+}, 1000);
+
+// var clipAndCodeSequences = new Bacon.Bus();
+
+// clipAndCodeSequences.plug(compiledSequencesFromWeb);
+// clipAndCodeSequences.plug(newClipSequences);
 
 
-//var withSequencers = compiledSequences.map((s) => _.extend({sequencer: Sequencer(s.sequence,s.name)},s));
 
 
+sequencePlayManager.newSequence.plug(moduleManager.processedSequences);
 
-var clipAndCodeSequences = compiledSequences.merge(clipSequences)
-
-sequencePlayManager.newSequence.plug(clipAndCodeSequences);
-
-var resetNo=0;
-clipAndCodeSequences.onValue(() => liveCodeReset.push(resetNo++));
+// var resetNo=0;
+// clipAndCodeSequences.onValue(() => liveCodeReset.push(resetNo++));
 
 var Immutable = require("immutable");
 
-var generatorList = clipAndCodeSequences
+var generatorList = moduleManager.processedSequences
   .scan({},(prev,next) => {
     console.log("generating first 500 samples of sequence",next);
-    prev[next.name] = {name: next.name, sequenceAsString: next.sequence.toString(), eventSample: next.sequence.toPlayable().take(500).takeWhile((n) => n.time < 16).toArray()
+    prev[next.name] = {device:next.device, name: next.name, sourceCode: next.code,sequenceAsString: next.sequence.toString(), eventSample: next.sequence.toPlayable().take(500).takeWhile((n) => n.time < 16).toArray()
     };
     console.log("generated");
     return prev;
   })
   .map(_.values)
-
-
   .debounce(300);
+
+baconStorer.plug(moduleManager.processedSequences);
 
 generatorList.onValue((v) => {
   webServer.generatorUpdate(v);
