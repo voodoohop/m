@@ -57,7 +57,7 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     if (!availableSequences[sub.sequenceName]) {
       return;
     }
-    console.log("subscribing", sub, "subscribed", subscribedSequences);
+    console.log("subscribing", sub.sequenceName);
     if (_.find(subscribedSequences, (function(s) {
       return s.port == sub.port && s.sequenceName == sub.sequenceName;
     })))

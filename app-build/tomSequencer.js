@@ -31,12 +31,18 @@ var eventPlayer = function(evtWithOffset) {
   };
 };
 var BaconSequencer = wu.curryable(function(baconTime, sequence) {
-  var seqIterator = getIterator(sequence.toPlayable());
-  var next = seqIterator.next();
+  var seqIterator = null;
+  var next = null;
   return baconTime.take(1).flatMap((function(firstTime) {
     return baconTime.diff(firstTime, (function(prevDecoded, timeDecoded) {
       var prevTime = prevDecoded.time;
       var time = timeDecoded.time;
+      if (seqIterator == null) {
+        seqIterator = getIterator(sequence.skipWhile((function(n) {
+          return n.time < prevTime;
+        })).toPlayable());
+        next = seqIterator.next();
+      }
       var count = 0;
       while (next.value.time < prevTime) {
         next = seqIterator.next();

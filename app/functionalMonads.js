@@ -336,10 +336,14 @@ var MLoop = mGenerator(function*(node) {
   // while (true) {
   //   yield* getIterator(cached);
   // }
+  var cached = null;
   while (true) {
     //console.log(""+node);
-    if (isIterable(node))
-      yield* getIterator(node);
+    if (isIterable(node)) {
+      if (cached==null)
+        cached = MCache(node);
+      yield* getIterator(cached);
+    }
     else  {
       // this is an optimization
       //console.warn("using mloop on non-iterable");
@@ -950,7 +954,7 @@ var makeChainable = function (lib,name,funcToChain) {
 }
 
 export var FunctionalMusic = function() {
-    var lib = {isMusicFunction:true};
+    var lib = {};
 
     var addFunction = function(name,func, chaining=true) {
       func.prototype = _.clone(func.prototype);
@@ -1030,12 +1034,15 @@ export var FunctionalMusic = function() {
 }
 
 
-var m = FunctionalMusic();
+export var m = FunctionalMusic();
 
 
 
-var test1 = m.evt({pitch:12}).metro(10).delay(10);
-var test2 = m.evt({pitch:3, velocity:0.3}).metro(4);
+// var test1 = m.evt({pitch:12}).metro(10).automate("param1",(n) => 0.5).delay(10);
+// var test2 = m.evt({pitch:3, velocity:0.3}).metro(4);
+// console.log(test1);
+// throw "bye";
+
 
 // for (var m of test1)
 //   console.log("test1",m.time, m);
@@ -1066,7 +1073,7 @@ var test2 = m.evt({pitch:3, velocity:0.3}).metro(4);
 // .notePlay();
 
 // throw "just terminating";
-// 
+//
 // var simpleMelody = m.evt().set({pitch:[62,65,70,75], velocity:[0.8,0.6,0.5], duration:1.5}).metro(2)
 // // .duration((n) => {
 // // //  console.log("durationmap",n);

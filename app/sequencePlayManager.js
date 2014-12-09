@@ -49,7 +49,7 @@ export default function(time, resetMessages, sequenceFeedback) {
       // console.warn("tried subscribing to "+sub.sequenceName+" but not available");
       return;
     }
-    console.log("subscribing",sub, "subscribed", subscribedSequences);
+    console.log("subscribing",sub.sequenceName);//, "subscribed", subscribedSequences);
     if (_.find(subscribedSequences, (s) => s.port == sub.port && s.sequenceName == sub.sequenceName))
       return;
 
@@ -64,7 +64,6 @@ export default function(time, resetMessages, sequenceFeedback) {
     console.log("creating instrument for",seq.name,port);
     var seqInst = abletonSender.subscribeInstrument(seq.name,port);
     playingSequences[seq.name] = {stop: playSequencer(Sequencer(seq.sequence,seq.name),seqInst, seq.name), sequence: seq.sequence, name:seq.name, port: port};
-
   }
 
   resetMessages.onValue(() => {

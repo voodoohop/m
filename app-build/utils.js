@@ -147,7 +147,16 @@ var addFuncProp = function(eventObject, name, func) {
 };
 var toStringDetailed = function(v) {
   if (!v.isTom) {
-    var stringified = JSON.stringify(v);
+    var stringified = JSON.stringify(v, function(key, val) {
+      if (val.isTom)
+        return toStringDetailed(val);
+      if (key == "toString" || key == "inspect")
+        return val;
+      if (typeof val === 'function') {
+        return val.toString();
+      }
+      return val;
+    }, "  ");
     return stringified;
   }
   return "" + v;
@@ -173,9 +182,17 @@ var prettyToString = function(name, args, destFunc) {
   if (parentNode == "[object Object]")
     parentNode = JSON.stringify(parentNode);
   var stringReperesentation = "" + parentNode + "." + name + "(" + args.map(toStringDetailed).join(", ") + ")";
-  destFunc.toString = (function() {
-    return stringReperesentation;
+  Object.defineProperty(destFunc, "toString", {
+    enumerable: false,
+    value: (function() {
+      return stringReperesentation;
+    })
   });
-  destFunc.inspect = destFunc.toString;
+  Object.defineProperty(destFunc, "inspect", {
+    enumerable: false,
+    value: (function() {
+      return stringReperesentation;
+    })
+  });
   return destFunc;
 };

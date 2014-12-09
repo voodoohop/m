@@ -113,8 +113,9 @@ remoteLogger.onValue((v) => {
 })
 
 var sequenceFeedback = new Bacon.Bus();
-sequenceFeedback.onValue((v) => {
+sequenceFeedback.filter((v) => !v.automationVal).onValue((v) => {
   //console.log(v);
+
   io.sockets.emit("sequenceEvent",{pitch:v.pitch, time:v.time, name:v.name,seqName:v.seqName, velocity:v.velocity, automationVal: v.automationVal});
 })
 

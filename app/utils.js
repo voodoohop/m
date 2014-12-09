@@ -117,15 +117,22 @@ export var addFuncProp = function(eventObject, name, func) {
   return newObject;
 }
 
-
 // stringifying needs to be optimized
 export var toStringDetailed = function(v) {
 //  console.log(v);
   //  if (v instanceof Object) {
       if (!v.isTom) {
         // console.log("stringify");
-        var stringified = JSON.stringify(v);
-        // console.log("stringified");
+        var stringified = JSON.stringify(v, function(key, val) {
+          if (val.isTom)
+            return toStringDetailed(val);
+          if (key=="toString" || key=="inspect")
+            return val;
+          if (typeof val === 'function') {
+            return val.toString();
+          }
+          return val;
+        },"  ");
         return stringified;
       }
   // }
@@ -142,7 +149,8 @@ export var toStringObject = function(o) {
 
 export var prettyToString = function(name, args, destFunc) {
   //destFunc.prototype = _.clone(destFunc.prototype);
-  //console.log("tosdetailedtest", args,args.map(toStringDetailed));
+  // console.log("tosdetailedtest", args,args.map(toStringDetailed));
+
   var args = _.clone(args);
   var parentNode = args.pop();
   // if (parentNode != undefined)
@@ -168,9 +176,9 @@ export var prettyToString = function(name, args, destFunc) {
 
   var stringReperesentation =   ""+parentNode+"."+ name+"("+args.map(toStringDetailed).join(", ")+")";
 
-  destFunc.toString = () => stringReperesentation;
+  Object.defineProperty(destFunc,"toString", {enumerable:false,value: () => stringReperesentation});
 
-  destFunc.inspect = destFunc.toString;
+  Object.defineProperty(destFunc,"inspect", {enumerable:false,value: () => stringReperesentation});
   //destFunc.toString = destFunc.prototype.toString;
 //console.log(res.prototype.toString());
   return destFunc;

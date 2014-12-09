@@ -29,6 +29,7 @@ var findExports = function(code) {
   return foundExports;
 }
 
+
 module.exports = React.createClass({
 
   componentDidMount: function () {
@@ -82,6 +83,7 @@ module.exports = React.createClass({
     this.editor.destroy();
   },
   render: function () {
+
     var style={width:"100%",height:"100%"};
     var res= (
       <div style={style} className="ace-editor-wrapper"></div>

@@ -10,10 +10,9 @@ var $__time__,
     $__oscAbletonCommunication__;
 var hotload = require("hotload");
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
-var FunctionalMusic = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).FunctionalMusic;
+var m = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).m;
 var baconParam = ($__oscAbletonCommunication__ = require("./oscAbletonCommunication"), $__oscAbletonCommunication__ && $__oscAbletonCommunication__.__esModule && $__oscAbletonCommunication__ || {default: $__oscAbletonCommunication__}).baconParam;
 var teoria = require("teoria");
-var m = FunctionalMusic();
 var activeSequencers = [];
 function liveCodeRun(path, sequencer) {
   console.log("livecoderun");

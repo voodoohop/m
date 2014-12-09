@@ -10,13 +10,16 @@
 //     appName: 'GenMusic'
 //   });
 
-console.log(System);
+// var console = require('better-console');
+
 
 // throw "bye";
 
+
+
 var teoria = require("teoria");
 
-import {FunctionalMusic} from "./functionalMonads";
+import {m} from "./functionalMonads";
 
 import {t} from "./time";
 
@@ -35,8 +38,19 @@ var _ = require("lodash");
 
 var Bacon = require("baconjs");
 
-var m = FunctionalMusic();
+var colors = require('colors');
 
+console.log('hello'.green);
+var util = require('util');
+
+var oldLog= console.log;
+
+var newLog = function(...args) {
+  var mapped = args.map(a => typeof a =="string" ? a : (util.inspect(a,{colors:true}))).map(s => s.length>800 ? (s.substring(0,800)+"...").blue : s);
+  oldLog(...mapped);
+}
+
+console.log = newLog;
 //
 // var kick=m.evt({pitch:60,duration:(1/4), velocity:100}).loop().metro((1)).notePlay();
 //
@@ -215,7 +229,7 @@ var Immutable = require("immutable");
 var generatorList = moduleManager.processedSequences
   .scan({},(prev,next) => {
     console.log("generating first 500 samples of sequence",next);
-    prev[next.name] = {device:next.device, name: next.name, sourceCode: next.code,sequenceAsString: next.sequence.toString(), eventSample: next.sequence.toPlayable().take(500).takeWhile((n) => n.time < 16).toArray()
+    prev[next.name] = {device:next.device, name: next.name, sourceCode: next.code,sequenceAsString: next.sequence.toString(), eventSample: next.sequence.toPlayable().take(1000).takeWhile((n) => n.time < 8).toArray()
     };
     console.log("generated");
     return prev;

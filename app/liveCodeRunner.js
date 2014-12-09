@@ -4,12 +4,10 @@ var hotload = require("hotload");
 
 
 import {t} from "./time";
-import {FunctionalMusic} from "./functionalMonads";
+import {m} from "./functionalMonads";
 import {baconParam} from "./oscAbletonCommunication";
 
 var teoria = require("teoria");
-
-var m = FunctionalMusic();
 
 var activeSequencers = [];
 

@@ -1,0 +1,1 @@
+export var kick = m.evt({pitch:60,velocity:0.9, duration:0.1}).metro(1);

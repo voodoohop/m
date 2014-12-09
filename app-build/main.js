@@ -8,9 +8,8 @@ var $__functionalMonads__,
     $__webConnection__,
     $__sequencePlayManager__,
     $__codeStore__;
-console.log(System);
 var teoria = require("teoria");
-var FunctionalMusic = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).FunctionalMusic;
+var m = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).m;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
 var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
 var $__3 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
@@ -23,7 +22,22 @@ var $__4 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule
 var moduleManager = ($__generatorModuleManager__ = require("./generatorModuleManager"), $__generatorModuleManager__ && $__generatorModuleManager__.__esModule && $__generatorModuleManager__ || {default: $__generatorModuleManager__});
 var _ = require("lodash");
 var Bacon = require("baconjs");
-var m = FunctionalMusic();
+var colors = require('colors');
+console.log('hello'.green);
+var util = require('util');
+var oldLog = console.log;
+var newLog = function() {
+  for (var args = [],
+      $__10 = 0; $__10 < arguments.length; $__10++)
+    args[$__10] = arguments[$__10];
+  var mapped = args.map((function(a) {
+    return typeof a == "string" ? a : (util.inspect(a, {colors: true}));
+  })).map((function(s) {
+    return s.length > 800 ? (s.substring(0, 800) + "...").blue : s;
+  }));
+  oldLog.apply(null, $traceurRuntime.spread(mapped));
+};
+console.log = newLog;
 var traceur = require("traceur");
 var liveCodeReset = new Bacon.Bus();
 var lastCodeResetNo = -1;
@@ -125,8 +139,8 @@ var generatorList = moduleManager.processedSequences.scan({}, (function(prev, ne
     name: next.name,
     sourceCode: next.code,
     sequenceAsString: next.sequence.toString(),
-    eventSample: next.sequence.toPlayable().take(500).takeWhile((function(n) {
-      return n.time < 16;
+    eventSample: next.sequence.toPlayable().take(1000).takeWhile((function(n) {
+      return n.time < 8;
     })).toArray()
   };
   console.log("generated");

@@ -3,6 +3,9 @@ Object.defineProperties(exports, {
   FunctionalMusic: {get: function() {
       return FunctionalMusic;
     }},
+  m: {get: function() {
+      return m;
+    }},
   __esModule: {value: true}
 });
 var $__wu__,
@@ -329,10 +332,13 @@ var MZip = mGenerator(function*() {
   }
 }, "zip");
 var MLoop = mGenerator(function*(node) {
+  var cached = null;
   while (true) {
-    if (isIterable(node))
-      yield* getIterator(node);
-    else {
+    if (isIterable(node)) {
+      if (cached == null)
+        cached = MCache(node);
+      yield* getIterator(cached);
+    } else {
       yield node;
     }
   }
@@ -902,7 +908,7 @@ var makeChainable = function(lib, name, funcToChain) {
   };
 };
 var FunctionalMusic = function() {
-  var lib = {isMusicFunction: true};
+  var lib = {};
   var addFunction = function(name, func) {
     var chaining = arguments[2] !== (void 0) ? arguments[2] : true;
     func.prototype = _.clone(func.prototype);
@@ -965,8 +971,3 @@ var FunctionalMusic = function() {
   return lib;
 };
 var m = FunctionalMusic();
-var test1 = m.evt({pitch: 12}).metro(10).delay(10);
-var test2 = m.evt({
-  pitch: 3,
-  velocity: 0.3
-}).metro(4);

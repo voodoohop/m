@@ -25,11 +25,21 @@ var eventPlayer = function(evtWithOffset) {
 
 export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
   //console.log("sequencer",baconTime);
-  var seqIterator = getIterator(sequence.toPlayable());
-  var next = seqIterator.next();
+  var seqIterator = null;
+  var next=null;
   return baconTime.take(1).flatMap((firstTime) => baconTime.diff(firstTime,(prevDecoded,timeDecoded) => {
+
+    // TODO: do backwards time jump here
     var prevTime = prevDecoded.time;
     var time = timeDecoded.time;
+
+    if (seqIterator == null) {
+      seqIterator = getIterator(sequence
+        .skipWhile((n) => n.time < prevTime)
+        .toPlayable());
+      next = seqIterator.next();
+    }
+
     // console.log("timeDecoded", timeDecoded);
     var count=0;
     while (next.value.time < prevTime) {
