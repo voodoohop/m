@@ -57,7 +57,7 @@ module.exports = React.createClass({
         if (exportMatch) {
 
           var range = new Range(exportMatch.loc.start.line-1, exportMatch.loc.start.column, exportMatch.loc.end.line-1, exportMatch.loc.end.column);
-          console.log(range);
+          // console.log(range);
           var marker = this.editor.getSession().addMarker(range,"sequenceFeedbackMarker","text");
           setTimeout(function() {
             this.editor.getSession().removeMarker(marker);

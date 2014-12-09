@@ -18,7 +18,7 @@ var _ = require("lodash");
 var noteRect = component("noteRect", function(note) {
   if (note.evt)
     return noteRect(note.evt);
-  var timeScale=1/16;
+  var timeScale=1/8;
   var col = note.color || "rgba(255,255,255,1)";
   var opacity=note.velocity/1.7+0.1;
   if (note.duration < 0) {
@@ -33,7 +33,7 @@ var noteLine = component("noteAutomation", function(props) {
     return null;
   // console.log("props",props);
   var prevNote=props.notes[props.index-1];
-  var timeScale=1/16;
+  var timeScale=1/8;
   var col = stringToColour(props.name);//props.note.color || "rgba(255,255,255,1)";
 ;
   var coords = {
@@ -85,12 +85,29 @@ module.exports = component("generatorPreview", function(gens) {
         return {note:note, index:index, notes:notes, name: note.name};
     }).map(noteLine)
   });
+
+  // var onZoom = function(e,f) {
+  //   //console.log(gens);
+  //   if (gens.mouseDown) {
+  //     console.log("move",e);
+  //     console.log(e.screenX);
+  //   }
+  // }
+  //
+  // var onUp = function(e) {
+  //   gens.mouseDown = false;
+  // }
+  // var onDown = function(e) {
+  //   console.log("down",e);
+  //   gens.mouseDown = [e.pageX, e.pageY];
+  // }
+  //onMouseDown={onDown} onMouseUp={onUp} onMouseMove={onZoom}
   // var code = gens
   console.log("gens",gens);
   return <div style={style}>
-  <svg className="noteView" {...svgAttrs}>{notes.map(noteRect)}{noteLines}{gridLine()}
+  <svg className="noteView" {...svgAttrs} >{notes.map(noteRect)}{noteLines}{gridLine()}
   </svg>
   </div>;
   // {gens.sequenceAsString}
-  
+
 });
