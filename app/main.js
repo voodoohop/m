@@ -51,6 +51,8 @@ var newLog = function(...args) {
 }
 
 console.log = newLog;
+console.warn = newLog;
+
 //
 // var kick=m.evt({pitch:60,duration:(1/4), velocity:100}).loop().metro((1)).notePlay();
 //
@@ -229,9 +231,15 @@ var Immutable = require("immutable");
 var generatorList = moduleManager.processedSequences
   .scan({},(prev,next) => {
     console.log("generating first 500 samples of sequence",next);
-    prev[next.name] = {device:next.device, name: next.name, sourceCode: next.code,sequenceAsString: next.sequence.toString(), eventSample: next.sequence.toPlayable().take(1000).takeWhile((n) => n.time < 8).toArray()
+    prev[next.name] = {
+      device:next.device,
+      name: next.name,
+      sourceCode:
+      next.code,
+      sequenceAsString: next.sequence.toString(),
+      eventSample: next.sequence.toPlayable().take(1000).takeWhile((n) => n.time < 8).toArray()
     };
-    console.log("generated");
+    console.log("generated", prev);
     return prev;
   })
   .map(_.values)

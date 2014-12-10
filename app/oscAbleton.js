@@ -118,7 +118,7 @@ var AbletonSender = function(outPort) {
   // });
 
   var noteOn = wu.curryable(function(seqName,outPort,pitch,velocity,time) {
-  //  console.log("noteOn",pitch,time*t.beats(1));
+    // console.log("noteOn",pitch,time*t.beats(1));
     udpPort.send({
         address: "/midiNote",
         args: [seqName, pitch, Math.floor(velocity*127), 1,time*t.beats(1)]
@@ -140,7 +140,7 @@ var AbletonSender = function(outPort) {
   });
 
   var param=wu.curryable(function(seqName,outPort,name,val,time) {
-  //  console.log("automation",seqName,name,val);
+    // console.log("automation",seqName,name,val,outPort);
     udpPort.send({
       address: "/param",
       args:[seqName,name, name== "pitchBend" ? Math.floor(val*127) :val,time*t.beats(1)]
@@ -156,6 +156,7 @@ var AbletonSender = function(outPort) {
   // var diffTime = null;
 
   var generatorUpdate=function(generatorList) {
+    console.log("sending generatorUpdate to Ableton".bold, (""+generatorList.map(g => g.name)).yellow);
     udpPort.send({
       address:"/generatorList",
       args: generatorList.map(g => g.name)
@@ -189,5 +190,5 @@ var AbletonSender = function(outPort) {
 }
 
 
-export var abletonSender = AbletonSender(8915);
+export var abletonSender = AbletonSender(8916);
 export var abletonReceiver = AbletonReceiver(8895);

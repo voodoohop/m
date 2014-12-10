@@ -34,16 +34,19 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
     var time = timeDecoded.time;
 
     if (seqIterator == null) {
+      console.log("skipping to",prevTime,"for sequence",sequence);
       seqIterator = getIterator(sequence
         .skipWhile((n) => n.time < prevTime)
         .toPlayable());
       next = seqIterator.next();
+      console.log("done skipping");
     }
 
     // console.log("timeDecoded", timeDecoded);
     var count=0;
     while (next.value.time < prevTime) {
       next = seqIterator.next();
+      console.warn("time lag:",prevTime-next.value.time+"".bgRed, next.value);
       if (count++ > 5) { // low limit for too many events may need to change for other environments!!!
          console.log("event overflow, yielding to bacon",time.toFixed(2));
          return [];
