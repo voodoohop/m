@@ -114,7 +114,7 @@ setTimeout(function() {
       });
     }
   }
-}, 1000);
+}, 100);
 sequencePlayManager.newSequence.plug(moduleManager.processedSequences);
 var Immutable = require("immutable");
 var generatorList = moduleManager.processedSequences.scan({}, (function(prev, next) {
@@ -133,11 +133,13 @@ var generatorList = moduleManager.processedSequences.scan({}, (function(prev, ne
 })).map(_.values).debounce(50);
 baconStorer.plug(moduleManager.processedSequences);
 generatorList.onValue((function(v) {
-  console.log("sending genList to ableton, web", v.map((function(v) {
+  console.log("sending genList to ableton", v.map((function(v) {
     return v.device + "/" + v.name;
   })));
-  webServer.generatorUpdate(v);
   abletonSender.generatorUpdate(v);
+}));
+moduleManager.evaluated.onValue((function(v) {
+  return webServer.individualGeneratorUpdate(v);
 }));
 
 //# sourceMappingURL=main.map

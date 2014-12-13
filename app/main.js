@@ -202,7 +202,7 @@ setTimeout(function() {
     moduleManager.newSequenceCode.push({device: seq.device, code: seq.code});
   }
   // moduleManager.loadedSequences.onValue(v =>console.log("after load:",v.toJS()));
-}, 1000);
+}, 100);
 
 // var clipAndCodeSequences = new Bacon.Bus();
 
@@ -241,7 +241,10 @@ var generatorList = moduleManager.processedSequences
 baconStorer.plug(moduleManager.processedSequences);
 
 generatorList.onValue((v) => {
-  console.log("sending genList to ableton, web",v.map(v => v.device+"/"+v.name));
-  webServer.generatorUpdate(v);
+  console.log("sending genList to ableton",v.map(v => v.device+"/"+v.name));
+  // webServer.generatorUpdate(v);
   abletonSender.generatorUpdate(v);
 });
+
+
+moduleManager.evaluated.onValue(v => webServer.individualGeneratorUpdate(v));

@@ -19,6 +19,7 @@
 
 var srv = require("../web/server");
 
+var _ = require("lodash");
 
 console.log('listening on port 8000');
 
@@ -36,7 +37,7 @@ var io = srv.io;
 
 import {codeStore} from "./codeStore";
 
-var generatorStore = null;
+var generatorStore = {};
 
 var Bacon = require("baconjs");
 
@@ -45,18 +46,19 @@ var baconStream = Bacon.fromBinder(function(sink) {
   io.on('connection', function(socket){
     var deviceId = null;
     console.log('a device connected');
-    var generatorUpdate = function(generators=null) {
-      if (generators != null)
-        generatorStore = generators;
-      // console.log("emitting generators", generatorStore);
-      socket.emit("generators", generatorStore);
-    };
     setInterval(function() {
       socket.emit("ping","ping");
     }, 30000)
     socket.on("requestGenerators", function() {
-      console.log("requestGenerators", generatorStore);
-      generatorUpdate();
+      console.log("requestGenerators");
+
+      // console.log("requestGenerators", generatorStore);
+      if (generatorStore) {
+        Object.keys(generatorStore).forEach(function(devName) {
+          console.log("emitting ",devName);
+          io.sockets.emit("generatorUpdate",generatorStore[devName]);
+        });
+      }
     });
 
     socket.on('getCode', function(msg){
@@ -90,13 +92,20 @@ console.log("exporting",baconStream);
 // });
 
 var generatorUpdate = function(generators=null) {
-  if (generators != null)
-    generatorStore = generators;
+  // if (generators != null)
+  //   generatorStore = generators;
   // console.log("emitting generators", generatorStore);
-  console.log(io.emit);
-  io.sockets.emit("generators", generatorStore);
-  console.log("emitted");
+  // console.log(io.emit);
+  // io.sockets.emit("generators", generatorStore);
+  // console.log("emitted");
 }
+
+
+var individualGenUpdate = function(genData) {
+  generatorStore[genData.get("device")] = genData.toJS();
+  io.sockets.emit("generatorUpdate",genData.toJS());
+}
+
 
 var beatFeedback = function(beatInfo) {
 
@@ -119,6 +128,6 @@ sequenceFeedback.filter((v) => !v.automationVal).onValue((v) => {
   io.sockets.emit("sequenceEvent",{pitch:v.pitch, time:v.time, name:v.name,seqName:v.seqName, velocity:v.velocity, automationVal: v.automationVal});
 })
 
-export default {liveCode: baconStream, generatorUpdate: generatorUpdate, beatFeedback:beatFeedback, remoteLogger, sequenceFeedback};
+export default {liveCode: baconStream, generatorUpdate: generatorUpdate, beatFeedback:beatFeedback, remoteLogger, sequenceFeedback, individualGeneratorUpdate:individualGenUpdate};
 
 console.log("exported");

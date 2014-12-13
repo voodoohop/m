@@ -106,7 +106,7 @@ module.exports = component("generatorPreview", function(gens) {
   console.log("gens",gens);
   return <div style={style}>
   <svg className="noteView" {...svgAttrs} >{notes.map(noteRect)}{noteLines}{gridLine()}
-  <div style={({float:"right", top: "5px", fontSize:"10px","zIndex":1000, opacity:0.5, padding:"3px", marginTop:"-2px"})}>{Math.round(gens.evaluatedDetails.beatsPerTime)}</div>
+  <div style={({float:"right", top: "5px", fontSize:"10px","zIndex":1000, opacity:0.5, padding:"3px", marginTop:"-2px"})}>{Math.round(gens.beatsPerTime)}</div>
 
   </svg>
   </div>;

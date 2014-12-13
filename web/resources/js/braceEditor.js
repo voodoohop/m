@@ -41,11 +41,26 @@ module.exports = React.createClass({
     // this.editor.setOption("enableLinking",true);
     window.aceEditor = this.editor;
     this.editor.focus();
+    this.setState({});
+    this.props.cursorToSeq.onValue(function(v) {
+      this.setState({cursorToSeq: v});
+    }.bind(this));
     this.props.setCode.onValue(function(v) {
       this.editor.setValue(v);
-      this.setState({exportedSequences: findExports(v)});
-    }.bind(this));
+      var exported = findExports(v);
+      if (this.state.cursorToSeq) {
+        var seqName = this.state.cursorToSeq;
+        var exportMatch = _.find(exported,function(e) {
+          return e.name == seqName;
+        });
+        this.editor.moveCursorTo(exportMatch.loc.start.line-1,0);
+      }
+      this.setState({exportedSequences: exported});
+      this.editor.focus();
+      this.editor.clearSelection();
+      this.editor.setHighlightActiveLine(true);
 
+    }.bind(this));
     this.props.sequenceFeedback.onValue(function(v) {
         if (!v.velocity)
           return;

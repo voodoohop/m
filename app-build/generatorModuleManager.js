@@ -3,6 +3,9 @@ Object.defineProperties(exports, {
   newSequenceCode: {get: function() {
       return newSequenceCode;
     }},
+  evaluated: {get: function() {
+      return evaluated;
+    }},
   loadedSequences: {get: function() {
       return loadedSequences;
     }},

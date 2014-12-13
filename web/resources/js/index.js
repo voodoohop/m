@@ -43,6 +43,7 @@ console.log("device id",myDeviceId);
 
   socket.on("connect", function() {
     console.log("connected");
+    socket.emit("requestGenerators","yes");
   if (codeLoaded)
     window.setTimeout( function() {
       codePlay.push(codeLoaded);
@@ -78,7 +79,11 @@ var availableGenerators = Bacon.fromEventTarget(socket, "generators");
 
 availableGenerators.log("new generator list received");
 
-var genData = immstruct({generators: Immutable.List([])});
+var updateGenerator = Bacon.fromEventTarget(socket, "generatorUpdate");
+
+updateGenerator.log("generatorUpdate");
+
+var genData = immstruct({generators: Immutable.Map({})});
 
 var genCursor = genData.cursor("generators");
 
@@ -87,8 +92,15 @@ var genCursor = genData.cursor("generators");
 
 
 availableGenerators.onValue(function(genList) {
+  // genData.cursor("generators").update(function(prev) {
+  //   return Immutable.List(genList)});
+});
+
+updateGenerator.onValue(function (genUpdate) {
   genData.cursor("generators").update(function(prev) {
-    return Immutable.List(genList)});
+    console.log("prev",prev.toJS());
+    return prev.set(genUpdate.device, genUpdate);
+  });
 });
 
 var loadCode = function(path) {
@@ -96,7 +108,10 @@ var loadCode = function(path) {
   console.log("load device",device);
   myDeviceId = device;
   socket.emit("getCode", {device: myDeviceId});
+  cursorToSeq.push(path.split("/")[2]);
 }
+
+var cursorToSeq = new Bacon.Bus();
 
 var BraceEdit = require('./braceEditor');
 var GeneratorList = require('./generatorList');
@@ -113,9 +128,8 @@ function render (data) {
   var createEditor = function() {
     return (
     <div className="panel panel-default" style={style}>
-    <div className="panel-heading" style={style2} >Panel heading without title</div>
     <div className="panel-body" style={style}>
-    <BraceEdit style="width:100%; height:100%" codePlay={codePlay} setCode={codeReceived} sequenceFeedback={sequenceFeedback}/>
+    <BraceEdit style="width:100%; height:100%" codePlay={codePlay} setCode={codeReceived} sequenceFeedback={sequenceFeedback} cursorToSeq={cursorToSeq}/>
     </div>
     </div>);
   }

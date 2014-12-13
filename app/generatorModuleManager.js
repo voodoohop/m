@@ -83,7 +83,7 @@ var markForReEval = function(loadedSequences, device) {
   });
 }
 
-var evaluated =
+export var evaluated =
   Bacon.zipAsArray(loadedSequenceStream, processedAndReEval).map(s => {
     var res = evalStreamEntry(...s);
     var loadedSequences = s[0];
