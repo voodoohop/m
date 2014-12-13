@@ -61,7 +61,7 @@ var gridLine = component("gridLines", function(props) {
 module.exports = component("generatorPreview", function(gens) {
   console.log("genPreview",gens);
   var evts = gens.eventSample;
-  var style={display:"inline-block", width:"100%", height:"80px", border: "1px solid white"};
+  var style={display:"inline-block", width:"95%", height:"80px", border: "1px solid white", position:"relative"};
   var SIZE = 1;
   var svgAttrs = {
     preserveAspectRatio: 'none', // stretch to fill container
@@ -106,6 +106,8 @@ module.exports = component("generatorPreview", function(gens) {
   console.log("gens",gens);
   return <div style={style}>
   <svg className="noteView" {...svgAttrs} >{notes.map(noteRect)}{noteLines}{gridLine()}
+  <div style={({float:"right", top: "5px", fontSize:"10px","zIndex":1000, opacity:0.5, padding:"3px", marginTop:"-2px"})}>{Math.round(gens.evaluatedDetails.beatsPerTime)}</div>
+
   </svg>
   </div>;
   // {gens.sequenceAsString}

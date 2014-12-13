@@ -277,6 +277,7 @@ var MProcessAutomations = mGenerator(function*(node) {
 
 
 var MCache = function(node) {
+  // return node;
   var cached=[];
   var cacheLimit = 100000;
   var iterator = getIterator(node);

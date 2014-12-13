@@ -3,6 +3,7 @@ var vm = require("vm");
 
 var _ = require("lodash");
 
+var microtime = require("microtime");
 
 import sandbox from "./sequenceEvalSandbox";
   // var wait=require('wait.for-es6')
@@ -13,7 +14,7 @@ import sandbox from "./sequenceEvalSandbox";
     // var resSequences = vm.runInNewContext(code, sequenceSandbox, {timeout: '1000'});
 
 
-    console.log("seq res".bgYellow, sequences);
+    // console.log("seq res".bgYellow, sequences);
 
     // console.log("tester:",testerCode);
     return _.mapValues(sequences, seq => {
@@ -26,20 +27,29 @@ import sandbox from "./sequenceEvalSandbox";
 
       if (!res.isSequenceGenerator)
         return res;
-
-      var playableSequence = seq.toPlayable().take(30).takeWhile((n) => n.time < 4);
+      var sampleSize=500;
+      var playableSequence = seq.toPlayable().take(500);
       var testerCode = "result = sequence.toArray()";
 
       console.log("testing playableSequence:".bgYellow,seq, playableSequence);
 
       try {
+        var startTime=microtime.nowDouble();
         var testSeqResult = vm.runInNewContext(testerCode,{
           traceurRuntime: $traceurRuntime,
           sequence: playableSequence,
           console: sequenceSandbox.console
         }, {timeout: 1000});
+
+        var timeTaken = microtime.nowDouble()-startTime;
+        var lastBeatTime = testSeqResult[testSeqResult.length-1].time;
+        console.log("testSeqResult", lastBeatTime, timeTaken);
         res.playable = true;
         res.eventSample = testSeqResult;
+        res.timeTaken = timeTaken;
+        res.timePerEvent = timeTaken/sampleSize;
+        res.beatsPerTime = lastBeatTime/timeTaken;
+
       } catch(e) {
         console.log("exception while trying to generate events",e.stack,e);
         res.playable=false;

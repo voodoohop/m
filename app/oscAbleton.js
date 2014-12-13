@@ -156,7 +156,7 @@ var AbletonSender = function(outPort) {
   // var diffTime = null;
 
   var generatorUpdate=function(generatorList) {
-    console.log("sending generatorUpdate to Ableton".bold, (""+generatorList.map(g => g.name)).yellow);
+    console.log("sending generatorUpdate to Ableton".bold, (generatorList.map(g => g.device+"/"+g.name)).yellow);
     udpPort.send({
       address:"/generatorList",
       args: generatorList.map(g => g.name)

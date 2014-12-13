@@ -9,6 +9,8 @@ var limitStringLength = (s) => s.length>500 ? (s.substring(0,500)).yellow+"...".
 var toStringForLog =  (a, depth=1) => {
   if (a === undefined)
     return "undefined".bgMagenta;
+  if (a=== null)
+    return "null".bgMagenta;
   if (typeof a == "string")
     return depth > 0 ? '"'+limitStringLength(a)+'"' : limitStringLength(a);
     if (typeof a == "object" && a.isTom)

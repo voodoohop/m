@@ -69,6 +69,7 @@ var codePlay = new Bacon.Bus();
 codePlay.log("codePlay");
 
 codePlay.onValue(function(code) {
+  console.log("codeChange",{device:myDeviceId, code:code});
   socket.emit("codeChange",{device:myDeviceId, code:code});
 });
 
@@ -90,6 +91,13 @@ availableGenerators.onValue(function(genList) {
     return Immutable.List(genList)});
 });
 
+var loadCode = function(path) {
+  var device=path.split("/")[1];
+  console.log("load device",device);
+  myDeviceId = device;
+  socket.emit("getCode", {device: myDeviceId});
+}
+
 var BraceEdit = require('./braceEditor');
 var GeneratorList = require('./generatorList');
 
@@ -98,7 +106,7 @@ socket.emit("requestGenerators","yes");
 genData.on('swap', render);
 
 function render (data) {
-  console.log("render called",genCursor.toArray(),data);
+  console.log("render called",genCursor,data);
   var style={width:"100%",height:"100%", padding:"0px",background:"none"};
   var style2={padding:"2px",background:"none"};
 
@@ -114,7 +122,7 @@ function render (data) {
 
   React.render(createEditor(),document.getElementById("javascript-editor"));
 
-  React.render(GeneratorList(genData.cursor("generators")),
+  React.render(GeneratorList({cursor: genData.cursor("generators"), statics: {loadCode: loadCode}}),
     document.getElementById("nodeGenListContainer"));
 
 }

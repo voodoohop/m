@@ -8,27 +8,33 @@ Object.defineProperties(exports, {
 var $__sequenceEvalSandbox__;
 var vm = require("vm");
 var _ = require("lodash");
+var microtime = require("microtime");
 var sandbox = ($__sequenceEvalSandbox__ = require("./sequenceEvalSandbox"), $__sequenceEvalSandbox__ && $__sequenceEvalSandbox__.__esModule && $__sequenceEvalSandbox__ || {default: $__sequenceEvalSandbox__}).default;
 var testIfSeqEmitsNotes = function(sequences, sequenceSandbox) {
-  console.log("seq res".bgYellow, sequences);
   return _.mapValues(sequences, (function(seq) {
     var res = {};
     res.isSequenceGenerator = seq.isTom;
     if (!res.isSequenceGenerator)
       return res;
-    var playableSequence = seq.toPlayable().take(30).takeWhile((function(n) {
-      return n.time < 4;
-    }));
+    var sampleSize = 500;
+    var playableSequence = seq.toPlayable().take(500);
     var testerCode = "result = sequence.toArray()";
     console.log("testing playableSequence:".bgYellow, seq, playableSequence);
     try {
+      var startTime = microtime.nowDouble();
       var testSeqResult = vm.runInNewContext(testerCode, {
         traceurRuntime: $traceurRuntime,
         sequence: playableSequence,
         console: sequenceSandbox.console
       }, {timeout: 1000});
+      var timeTaken = microtime.nowDouble() - startTime;
+      var lastBeatTime = testSeqResult[testSeqResult.length - 1].time;
+      console.log("testSeqResult", lastBeatTime, timeTaken);
       res.playable = true;
       res.eventSample = testSeqResult;
+      res.timeTaken = timeTaken;
+      res.timePerEvent = timeTaken / sampleSize;
+      res.beatsPerTime = lastBeatTime / timeTaken;
     } catch (e) {
       console.log("exception while trying to generate events", e.stack, e);
       res.playable = false;

@@ -46,7 +46,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
     var [importDevice, importSeqNames] = i;
     // if (loadedSequences.get(importDevice))
     //   console.log("importdevice",loadedSequences.get(importDevice).toJS(),"imSeqNames",importSeqNames.toJS());
-    return !loadedSequences.get(importDevice) || !importSeqNames.isSuperset(loadedSequences.get(importDevice).get("exports"))
+    return !loadedSequences.get(importDevice) || !importSeqNames.isSubset(loadedSequences.get(importDevice).get("exports"))
   }
   );
   if (unsatisfiedImports.count() > 0) {
@@ -105,11 +105,11 @@ loadedSequenceStream.plug(evaluatedSequenceStream);
 
 export var loadedSequences = evaluatedSequenceStream;
 
-export var processedSequences = evaluated.filter((n) => n.get("evaluated"))//.flatMap((n) => n.get("evaluated").toJS());
+export var processedSequences = evaluated//.filter((n) => n.get("evaluated"))//.flatMap((n) => n.get("evaluated").toJS());
 .flatMap(n => {
  var n = n.toJS();
-
- return Bacon.fromArray(Object.keys(n.evaluated).map(seqName => _.extend(n, {sequence: n.evaluated[seqName], device: n.device, name:seqName})));
+ // console.log("flatMap",Object.keys(n.evaluated).map(seqName => ({device: n.device, name:seqName})));
+ return Bacon.fromArray(n.exports.map(seqName => _.extend({sequence: n.evaluated ? n.evaluated[seqName] : null, device: n.device, name:seqName},n)));
 });
 
 

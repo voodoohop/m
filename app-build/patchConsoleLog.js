@@ -9,6 +9,8 @@ var toStringForLog = (function(a) {
   var depth = arguments[1] !== (void 0) ? arguments[1] : 1;
   if (a === undefined)
     return "undefined".bgMagenta;
+  if (a === null)
+    return "null".bgMagenta;
   if (typeof a == "string")
     return depth > 0 ? '"' + limitStringLength(a) + '"' : limitStringLength(a);
   if (typeof a == "object" && a.isTom)

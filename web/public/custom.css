@@ -8,6 +8,7 @@
     transition: stroke 0.7s ease;
     stroke: black;
     stroke-width: 0.001px;
+
   }
 
 
@@ -26,6 +27,7 @@
 
 .noteView {
   background-color:rgba(0,0,0,0.8);
+  position:absolute;
 }
 
 .sequenceFeedbackMarker {

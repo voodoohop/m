@@ -201,7 +201,7 @@ setTimeout(function() {
   for (var seq of storedSequences) {
     moduleManager.newSequenceCode.push({device: seq.device, code: seq.code});
   }
-  moduleManager.loadedSequences.onValue(v =>console.log("after load:",v.toJS()));
+  // moduleManager.loadedSequences.onValue(v =>console.log("after load:",v.toJS()));
 }, 1000);
 
 // var clipAndCodeSequences = new Bacon.Bus();
@@ -219,27 +219,29 @@ sequencePlayManager.newSequence.plug(moduleManager.processedSequences);
 
 var Immutable = require("immutable");
 
+// moduleManager.processedSequences.log("thomashkickshouldbe".bold.bgYellow);
 var generatorList = moduleManager.processedSequences
   .scan({},(prev,next) => {
     console.log("generating first 500 samples of sequence",next);
-    prev[next.name] = {
+    prev[next.device+"/"+next.name] = {
       device:next.device,
       name: next.name,
-      sourceCode:
-      next.code,
-      sequenceAsString: next.sequence.toString(),
-      eventSample: next.sequence.toPlayable().take(500).takeWhile((n) => n.time < 8).toArray()
+      sourceCode: next.code,
+      sequenceAsString: next.sequence && next.sequence.toString(),
+      eventSample: next.evaluated ? next.evaluatedDetails[next.name].eventSample : [],
+      evaluatedError: next.evaluatedError,
+      evaluatedDetails: next.evaluated ? next.evaluatedDetails[next.name] : null
     };
-    // console.log("generated", prev);
+    console.log("generated", next.device+"/"+next.name);
     return prev;
   })
   .map(_.values)
-  .debounce(300);
+  .debounce(50);
 
 baconStorer.plug(moduleManager.processedSequences);
 
 generatorList.onValue((v) => {
-  // console.log("genList",v);
+  console.log("sending genList to ableton, web",v.map(v => v.device+"/"+v.name));
   webServer.generatorUpdate(v);
   abletonSender.generatorUpdate(v);
 });

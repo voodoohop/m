@@ -1,3 +1,6 @@
 import {kick} from "thomash";
 
-export var kick_thomash2=m.evt({pitch:60,velocity:0.9, duration:0.3}).metro(1);
+export var kick_thomash3=kick.pitch(50).prop("color", "yellow").duration(0.25).cache()
+.automate("pitchBend",n => (n.time+n.evt.time)%1).cache();
+
+

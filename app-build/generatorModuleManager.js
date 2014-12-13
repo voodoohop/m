@@ -41,7 +41,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
     var $__3 = i,
         importDevice = $__3[0],
         importSeqNames = $__3[1];
-    return !loadedSequences.get(importDevice) || !importSeqNames.isSuperset(loadedSequences.get(importDevice).get("exports"));
+    return !loadedSequences.get(importDevice) || !importSeqNames.isSubset(loadedSequences.get(importDevice).get("exports"));
   }));
   if (unsatisfiedImports.count() > 0) {
     console.log("imports unSatisfied".bold.red, unsatisfiedImports.toJS());
@@ -99,16 +99,14 @@ var evaluatedSequenceStream = evaluated.skipErrors().scan(Immutable.Map(), (func
 }));
 loadedSequenceStream.plug(evaluatedSequenceStream);
 var loadedSequences = evaluatedSequenceStream;
-var processedSequences = evaluated.filter((function(n) {
-  return n.get("evaluated");
-})).flatMap((function(n) {
+var processedSequences = evaluated.flatMap((function(n) {
   var n = n.toJS();
-  return Bacon.fromArray(Object.keys(n.evaluated).map((function(seqName) {
-    return _.extend(n, {
-      sequence: n.evaluated[seqName],
+  return Bacon.fromArray(n.exports.map((function(seqName) {
+    return _.extend({
+      sequence: n.evaluated ? n.evaluated[seqName] : null,
       device: n.device,
       name: seqName
-    });
+    }, n);
   })));
 }));
 

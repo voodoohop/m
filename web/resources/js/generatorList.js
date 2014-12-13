@@ -38,19 +38,46 @@
 
 var component = require('omniscient');
 var React = require('react');
+var TreeView = require('react-treeview');
 
 var GenPreview = require('./generatorPreview');
 
+
 module.exports = component('GeneratorList', function (props) {
 
-  var createItem = function(generator) {
-    console.log("li",generator);
+  var createItem = function(treeNode, root, key) {
+    if (!key)
+      key="";
+    console.log("li",treeNode);
     var style={padding:"10px", position: "relative"};
     var floatRight = {position:"absolute", left:"15px"};
+    // var keyOuter = generator.device;
+    // return <TreeView key=generator.device
+    if (typeof treeNode == "object" && !treeNode.hasOwnProperty("device")) {
+      var keys=Object.keys(treeNode);
+      return keys.map(function (nodeKey) { return <TreeView key={""+nodeKey+"_"+key} defaultCollapsed={root} nodeLabel={nodeKey}>{createItem(treeNode[nodeKey],false,key+"/"+nodeKey)}</TreeView>});
+    }
+    else {
+      //return <div>{treeNode.name}</div>
+      var handleClick = function() {
+        console.log("click",key,this);
+        this.props.statics.loadCode(key);
+      }.bind(this);
+      return <div onClick={handleClick}>{GenPreview(treeNode)}</div>;
+    }
     return <div style={style}><span style={floatRight}><small>{generator.device}</small>/<b>{generator.name}</b></span>{GenPreview(generator)}</div>;
-  };
+  }.bind(this);
   console.log("GenListProps",props.cursor.toArray());
-  return <div><h4>Generators</h4>{props.cursor.toArray().map(createItem)}</div>;
+  var tree = {};
+  props.cursor.toArray().forEach(function(gen) {
+    if (!tree[gen.device])
+      tree[gen.device] = {};
+    tree[gen.device][gen.name] = gen;
+  });
+  console.log("tree",tree);
+  return <div>{createItem(tree, true)}</div>
+
+  // return <div><h4>Generators</h4>{props.cursor.toArray().map(createItem)}</div>;
 
   // var self = this;
   // function onClick () {

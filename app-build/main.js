@@ -114,27 +114,28 @@ setTimeout(function() {
       });
     }
   }
-  moduleManager.loadedSequences.onValue((function(v) {
-    return console.log("after load:", v.toJS());
-  }));
 }, 1000);
 sequencePlayManager.newSequence.plug(moduleManager.processedSequences);
 var Immutable = require("immutable");
 var generatorList = moduleManager.processedSequences.scan({}, (function(prev, next) {
   console.log("generating first 500 samples of sequence", next);
-  prev[next.name] = {
+  prev[next.device + "/" + next.name] = {
     device: next.device,
     name: next.name,
     sourceCode: next.code,
-    sequenceAsString: next.sequence.toString(),
-    eventSample: next.sequence.toPlayable().take(500).takeWhile((function(n) {
-      return n.time < 8;
-    })).toArray()
+    sequenceAsString: next.sequence && next.sequence.toString(),
+    eventSample: next.evaluated ? next.evaluatedDetails[next.name].eventSample : [],
+    evaluatedError: next.evaluatedError,
+    evaluatedDetails: next.evaluated ? next.evaluatedDetails[next.name] : null
   };
+  console.log("generated", next.device + "/" + next.name);
   return prev;
-})).map(_.values).debounce(300);
+})).map(_.values).debounce(50);
 baconStorer.plug(moduleManager.processedSequences);
 generatorList.onValue((function(v) {
+  console.log("sending genList to ableton, web", v.map((function(v) {
+    return v.device + "/" + v.name;
+  })));
   webServer.generatorUpdate(v);
   abletonSender.generatorUpdate(v);
 }));
