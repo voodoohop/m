@@ -16,3 +16,5 @@ var generate = function*() {
     })};
   yield res2;
 };
+
+//# sourceMappingURL=module.map

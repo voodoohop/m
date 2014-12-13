@@ -25,6 +25,7 @@ module.exports = {
       {
         test: /\.js$/,
         loaders: [
+        //  '6to5-loader',
           'jsx-loader?harmony',
           'omniscient-hot-reload-loader' // when using, change this for 'omniscient-hot-reload-loader' from npm
         ]

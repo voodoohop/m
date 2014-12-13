@@ -34,3 +34,5 @@ baconStorer.onValue((function(s) {
   var path = liveCodeDir + "/" + s.device + ".js";
   fs.writeFileSync(path, s.code, 'utf8');
 }));
+
+//# sourceMappingURL=codeStore.map

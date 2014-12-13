@@ -200,6 +200,10 @@ var MGroupTime = mGenerator(function*(node) {
       $__6; !($__6 = $__5.next()).done; ) {
     var n = $__6.value;
     {
+      if (!n.hasOwnProperty("time")) {
+        console.error("groupByTime called but no time property".red);
+        return;
+      }
       if (n.time > currentTime) {
         if (grouped.length > 0) {
           yield {
@@ -229,7 +233,7 @@ var MDuplicateRemover = mGenerator(function*(node) {
 }, "removeDuplicateNotes");
 var MNoteAutomate = mGenerator(function*(node) {
   var notes = MFilter((function(n) {
-    return n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time");
+    return n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time") && n.duration > 0;
   }), node);
   yield* getIterator(MMapOp((function(n) {
     var $__2;
@@ -564,13 +568,13 @@ var MPluck = mGenerator(function*(propertyName, node) {
 }, "pluck", 2);
 var MMapWithMemory = mGenerator(function*(initial, mapFunc, node) {
   var current = initial;
-  yield* getIterator(MSet(convertToObject(current), MEvent(current)));
+  yield* getIterator(MSet(convertToObject(current), MData(current)));
   for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__6; !($__6 = $__5.next()).done; ) {
     var e = $__6.value;
     {
       current = mapFunc(current, e.value);
-      yield* getIterator(MSet(convertToObject(current), MEvent(e)));
+      yield* getIterator(MSet(convertToObject(current), MData(e)));
     }
   }
 }, "memoryMap", 3);
@@ -900,7 +904,8 @@ var makeChainable = function(lib, name, funcToChain) {
         for (var chainedArgs = [],
             $__16 = 0; $__16 < arguments.length; $__16++)
           chainedArgs[$__16] = arguments[$__16];
-        var res = ($__18 = lib)[origFunctionName].apply($__18, $traceurRuntime.spread(chainedArgs, [result]));
+        chainedArgs.push(result);
+        var res = ($__18 = lib)[origFunctionName].apply($__18, $traceurRuntime.spread(chainedArgs));
         return res;
       };
     }));
@@ -971,3 +976,5 @@ var FunctionalMusic = function() {
   return lib;
 };
 var m = FunctionalMusic();
+
+//# sourceMappingURL=functionalMonads.map

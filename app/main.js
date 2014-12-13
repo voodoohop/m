@@ -16,6 +16,7 @@
 // throw "bye";
 
 
+import "./patchConsoleLog";
 
 var teoria = require("teoria");
 
@@ -38,20 +39,10 @@ var _ = require("lodash");
 
 var Bacon = require("baconjs");
 
-var colors = require('colors');
 
-console.log('hello'.green);
-var util = require('util');
 
-var oldLog= console.log;
+// console.log('hello'.green);
 
-var newLog = function(...args) {
-  var mapped = args.map(a => typeof a =="string" ? a : (util.inspect(a,{colors:true}))).map(s => s.length>800 ? (s.substring(0,800)+"...").blue : s);
-  oldLog(...mapped);
-}
-
-console.log = newLog;
-console.warn = newLog;
 
 //
 // var kick=m.evt({pitch:60,duration:(1/4), velocity:100}).loop().metro((1)).notePlay();
@@ -210,7 +201,7 @@ setTimeout(function() {
   for (var seq of storedSequences) {
     moduleManager.newSequenceCode.push({device: seq.device, code: seq.code});
   }
-  console.log("after load:",moduleManager.loadedSequences.toJS());
+  moduleManager.loadedSequences.onValue(v =>console.log("after load:",v.toJS()));
 }, 1000);
 
 // var clipAndCodeSequences = new Bacon.Bus();
@@ -237,9 +228,9 @@ var generatorList = moduleManager.processedSequences
       sourceCode:
       next.code,
       sequenceAsString: next.sequence.toString(),
-      eventSample: next.sequence.toPlayable().take(1000).takeWhile((n) => n.time < 8).toArray()
+      eventSample: next.sequence.toPlayable().take(500).takeWhile((n) => n.time < 8).toArray()
     };
-    console.log("generated", prev);
+    // console.log("generated", prev);
     return prev;
   })
   .map(_.values)
@@ -248,6 +239,7 @@ var generatorList = moduleManager.processedSequences
 baconStorer.plug(moduleManager.processedSequences);
 
 generatorList.onValue((v) => {
+  // console.log("genList",v);
   webServer.generatorUpdate(v);
   abletonSender.generatorUpdate(v);
 });

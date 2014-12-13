@@ -4,180 +4,189 @@ var Bacon = require("baconjs");
 
 var Immutable = require("immutable");
 
-var depGraph = require('es-dependency-graph');
 
-var traceur = require("traceur");
+
+
 
 import {isIterable,getIterator,clone} from "./utils";
 
-var teoria = require("teoria");
-
-import {m} from "./functionalMonads";
-
-import {t} from "./time";
-
-import {wu} from "./wu";
-
-import {abletonReceiver, abletonSender} from "./oscAbleton";
 
 
-var Easer = require('functional-easing').Easer;
+
+import evalSequences from "./sequenceEvaluator";
 
 var _ = require("lodash");
 
-import webServer from "./webConnection";
-
-// console.log("WS2",webServer);
 
 export var newSequenceCode = new Bacon.Bus();
 
-export var loadedSequences = Immutable.Map();
+// export var loadedSequences = Immutable.Map();
 
-export var processedSequences = new Bacon.Bus();
 
-// TODO: deep checking of exported symbols
-function checkDepsAndEval(seqs, evalFunction) {
-  var reRun = false;
-  var newlyEvaluated = [];
-    var unSatisfiedDevices = seqs.filter(v => !v.get("satisfiedDeps"));
-    var satisfiedDevices = seqs.filter(v => v.get("satisfiedDeps"));
-    var existingDevices = satisfiedDevices.keySeq();
-    for (let entry of unSatisfiedDevices) {
-      var device = entry[0];
-      // console.log("checking unsatisfied",device);
-      var seqCode = entry[1];
-      // console.log(existingDevices,seqCode.get("imports").keySeq(),existingDevices.isSuperset(seqCode.get("imports").keySeq()))
-      if (existingDevices.isSuperset(seqCode.get("imports").keySeq())) {
-        // console.log("evaluating", seqCode);
-        var [evaluated, success] = evalSequences(seqCode.get("processedCode"));
-        seqs = seqs.setIn([device,"evaluatedSequences"], evaluated);
-        seqs = seqs.setIn([device,"satisfiedDeps"],success);
-        newlyEvaluated.push(device);
-        reRun=success;
-      }
-      //console.log("checkDeps", seqCode);
-    }
-
-  return [newlyEvaluated, seqs, reRun];
-}
 
 
 var fs = require("fs"),
     mkpath = require("mkpath");
 
-newSequenceCode.onValue((seqCode) => {
-  console.log("received seq to eval",seqCode);
+import processCode from "./sequenceCodeProcessor";
 
-  // var compiled = traceur.compile(seqCode.code,{modules:"inline", generators:"parse", blockBinding:"parse"});
-  //
-  // fs.writeFileSync(processedPath,compiled);
-  try {
-  var dependencies = depGraph(seqCode.code,{
-    includeBindings: true
+var processed=newSequenceCode.map(processCode);
+
+processed.onError(e => console.error("Error while processing code",e));
+
+var loadedSequenceStream = new Bacon.Bus();
+
+
+var evalStreamEntry = function(loadedSequences, newSequence) {
+  var newSeqIm = Immutable.fromJS(newSequence);
+  console.log("evaluating new Sequence:".underline.bold,newSeqIm.get("device"));
+
+  var allExports = loadedSequences.valueSeq().map(v => v.get("exports")).flatten();
+  var unsatisfiedImports = newSeqIm.get("imports").entrySeq().filter((i) => {
+    var [importDevice, importSeqNames] = i;
+    // if (loadedSequences.get(importDevice))
+    //   console.log("importdevice",loadedSequences.get(importDevice).toJS(),"imSeqNames",importSeqNames.toJS());
+    return !loadedSequences.get(importDevice) || !importSeqNames.isSuperset(loadedSequences.get(importDevice).get("exports"))
+  }
+  );
+  if (unsatisfiedImports.count() > 0) {
+    console.log("imports unSatisfied".bold.red, unsatisfiedImports.toJS());
+    // console.log("all imports",newSeqIm.get("imports").entrySeq().toJS());
+    console.log("existing exports".bold,loadedSequences.entrySeq().map(s => ({name: s[0],  exports:s[1].get("exports").toJS()})).toJS());
+    return newSeqIm.set("evaluatedError", Immutable.Map({type:"importsUnsatisfied", msg:"imports unsatisfied", imports:unsatisfiedImports}));
+  }
+  var [evaluated,details, error] = evalSequences(newSequence.processedCode, loadedSequences);
+  var evaluatedRes = null;
+  if (!details) {
+    console.error("eval of ",newSequence,"FAILED!!!".bold.red);
+    //return Bacon.never();
+    evaluatedRes = Immutable.fromJS(newSequence).set("evaluatedError", error);
+  } else
+    evaluatedRes = Immutable.fromJS(newSequence).merge({evaluated: evaluated, evaluatedDetails: details});
+    // console.log("evalSequences result", evaluatedRes.toJS());
+    return evaluatedRes;
+}
+
+var processedAndReEval = new Bacon.Bus();
+
+processedAndReEval.plug(processed.skipErrors());
+
+
+var markForReEval = function(loadedSequences, device) {
+  loadedSequences.entrySeq().forEach((s) => {
+    var [seqName, seq]=s;
+    if (seq.get("imports").get(device)) {
+      console.log("marking ".bgMagenta, (""+seqName).underline,"for reEvaluation");
+      processedAndReEval.push(seq.toJS());
+      markForReEval(loadedSequences, seq.get("device"));
+    }
   });
-  } catch(exception) {
-    console.error("dependency exception",exception);
-    return;
-  }
+}
 
-  var compiled = traceur.compile(seqCode.code,{modules:"register", generators:"parse", blockBinding:"parse"});
-
-  var newDev = Immutable.Map({code:seqCode.code, processedCode: compiled});
-  newDev = newDev.merge(dependencies);
-  console.log("newDevSeq",newDev.toJS());
-  var [evaluated,success] = evalSequences(newDev.get("processedCode"));
-  if (!success) {
-    console.error("eval of ",seqCode.device,"FAILED!!!");
-    return;
-  }
-  newDev = newDev.set("evaluatedSequences",evaluated);
-  newDev = newDev.set("satisfiedDeps",true);
-
-  console.log("newDev after eval",newDev.toJS());
-
-  // if (loadedSequences.get(seqCode.device) && ""+newDev.toJS().evaluatedSequences == ""+loadedSequences.get(seqCode.device).toJS().evaluatedSequences) {
-  //   console.log("is Equal:"+newDev.toJS().evaluatedSequences);
-  //   console.log("NO CHANGE DETECTED IN "+seqCode.device+" ignoring".bgRed);
-  // }
-
-  loadedSequences = loadedSequences.set(seqCode.device,newDev);
+var evaluated =
+  Bacon.zipAsArray(loadedSequenceStream, processedAndReEval).map(s => {
+    var res = evalStreamEntry(...s);
+    var loadedSequences = s[0];
+    var newSequence = s[1];
+    if (!res.get("evaluatedError"))
+      markForReEval(loadedSequences, newSequence.device);
+    return res;
+  });
 
 
-  var newSequences = loadedSequences.map((s,sName) => {
-    // console.log("lsmap",s);
-    if (s.get("imports").keySeq().contains(seqCode.device)) {
-      console.log("devalitaing",sName,"because ",seqCode.device," was compiled");
-      return s.set("evaluatedSequences",null).set("satisfiedDeps",false);
-    }
-    else
-      return s;
-  })
+var evaluatedSequenceStream = evaluated.skipErrors().scan(
+  Immutable.Map(), (prev, next) => prev.set(next.get("device"), next)
+);
+
+// evaluatedSequenceStream.onValue(v => console.log("evaluated".bold.underline, v.valueSeq().map(v=>v.get("evaluatedDetails")).toJS()));
 
 
-  var reRun=false;
-  do {
-    var updated = null;
-    [updated, newSequences,reRun] = checkDepsAndEval(newSequences);
-    updated.unshift(seqCode.device);
-    console.log("evaluated sequences",updated);
-    for (var device of updated) {
-      var seqs = newSequences.get(device).get("evaluatedSequences");
-      for (var seqName of Object.keys(seqs)) {
-        console.log("passing on evaluated",seqName);
-        processedSequences.push({device:device, name: seqName, sequence:seqs[seqName], code: newSequences.get(device).get("code")});
-      }
-    }
-    loadedSequences = newSequences;
-  }
-  while(reRun);
-  return loadedSequences = newSequences;
+loadedSequenceStream.plug(evaluatedSequenceStream);
+
+export var loadedSequences = evaluatedSequenceStream;
+
+export var processedSequences = evaluated.filter((n) => n.get("evaluated"))//.flatMap((n) => n.get("evaluated").toJS());
+.flatMap(n => {
+ var n = n.toJS();
+
+ return Bacon.fromArray(Object.keys(n.evaluated).map(seqName => _.extend(n, {sequence: n.evaluated[seqName], device: n.device, name:seqName})));
 });
 
 
+// processedSequences.log("processedSequences");
+// evaluatedSequenceStream.
 
 
-var seqLoader = {
-  get: (m) => {
-    console.log("seqLoader: requesting sequences from",m);
-    //var importableSequences = _.mapValues(sequencePlayManager.availableSequences, (p) => p.sequence);
-    console.log("seqLoader: sending evaluated",loadedSequences.getIn([m,"evaluatedSequence"]));
-    return loadedSequences.getIn([m,"evaluatedSequences"]);
-  }
-}
+// var evaluated = unEvaluated.map(s => {
+//   console.log("evaluating",s);
+//   var [evaluated,success] = evalSequences(s.processedCode,loadedSequences);
+//   if (!success) {
+//     console.error("eval of ",seqCode.device,"FAILED!!!".bold.red);
+//     return;
+//   }
+//   newDev = newDev.set("evaluated",evaluated);
+//   newDev = newDev.set("satisfiedDeps",true);
+// });
 
-
-var evalSequences = function(code) {
-  var sequences = null
-  var passedTests = false;
-  try {
-    // console.log("sequencesForLoading", sequencePlayManager.availableSequences);
-    var f = new Function("m","t","params", "wu", "teoria","_","System","clone","easer","console", "return "+code);
-    console.log("compiled",code);
-    var remoteLog = function(...m) {
-      console.log("logging",m);
-      try {
-        webServer.remoteLogger.push(""+m)
-      } catch (e) {
-        console.error("error sending log",e);
-      }
-    };
-    sequences = f(m, t, abletonReceiver.param, wu, teoria,_, seqLoader,  clone, () => new Easer(),{log: remoteLog, warn: remoteLog, error: remoteLog});
-    console.log("testing if sequence emits events");
-    for (let k of Object.keys(sequences)) {
-      if (sequences[k].isTom)
-        console.log("first 5 event of sequence",sequences[k].take(5).toArray());
-      else
-        console.log("wasn't a sequence generator:",k);
-    }
-    passedTests = true;
-  } catch(e) {
-    console.log("exception in live code",e.stack);
-  }
-
-  if (sequences == null || !passedTests)
-    return [null, false];
-  return [sequences,true];
-};
+//
+//
+// loadedSequenceStream.onValue((seqCode) => {
+//   console.log("received seq code to eval",seqCode.toJS());
+//   return;
+//   // fs.writeFileSync(processedPath,compiled);
+//
+//
+//   // var compiled = traceur.compile(seqCode.code,{modules:"register", generators:"parse", blockBinding:"parse"});
+//
+//   // var newDev = Immutable.Map(seqCode);
+//   console.log("newDevSeq",newDev.toJS());
+//   var [evaluated,success] = evalSequences(newDev.get("processedCode"),loadedSequences);
+//   if (!success) {
+//     console.error("eval of ",seqCode.device,"FAILED!!!".bold.red);
+//     return;
+//   }
+//   newDev = newDev.set("evaluated",evaluated);
+//   newDev = newDev.set("satisfiedDeps",true);
+//
+//   console.log("newDev after eval",newDev.toJS());
+//
+//   // if (loadedSequences.get(seqCode.device) && ""+newDev.toJS().evaluated == ""+loadedSequences.get(seqCode.device).toJS().evaluated) {
+//   //   console.log("is Equal:"+newDev.toJS().evaluated);
+//   //   console.log("NO CHANGE DETECTED IN "+seqCode.device+" ignoring".bgRed);
+//   // }
+//
+//   loadedSequences = loadedSequences.set(seqCode.device,newDev);
+//
+//
+//   var newSequences = loadedSequences.map((s,sName) => {
+//     console.log("lsmap",s);
+//     if (s.get("imports").keySeq().contains(seqCode.device)) {
+//       console.log("devalitaing",sName,"because ",seqCode.device," was compiled");
+//       return s.set("evaluated",null).set("satisfiedDeps",false);
+//     }
+//     else
+//       return s;
+//   })
+//
+//
+//   var reRun=false;
+//   do {
+//     var updated = null;
+//     [updated, newSequences,reRun] = checkDepsAndEval(newSequences);
+//     updated.unshift(seqCode.device);
+//     console.log("evaluated sequences",updated);
+//     for (var device of updated) {
+//       var seqs = newSequences.get(device).get("evaluated");
+//       for (var seqName of Object.keys(seqs)) {
+//         console.log("passing on evaluated",seqName);
+//         processedSequences.push({device:device, name: seqName, sequence:seqs[seqName], code: newSequences.get(device).get("code")});
+//       }
+//     }
+//     loadedSequences = newSequences;
+//   }
+//   while(reRun);
+//   return loadedSequences = newSequences;
+// });
 
 
 //

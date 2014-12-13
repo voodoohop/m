@@ -5,13 +5,13 @@
 //     appName: 'GenMusic',
 //     debug:true
 //   });
-
+require('source-map-support').install();
 require('traceur/bin/traceur-runtime');
 
 var agent = require('strong-agent');
 
 var fs = require("fs");
-//agent.metrics.startCpuProfiling();
+// agent.metrics.startCpuProfiling();
 
 console.log("requiring main");
 require('./app-build/main');
@@ -20,4 +20,4 @@ require('./app-build/main');
 //     var filename = 'CPU-' + Date.now() + '.cpuprofile';
 //     var data = agent.metrics.stopCpuProfiling();
 //     fs.writeFileSync(filename, data);
-// },300000);
+// },30000);

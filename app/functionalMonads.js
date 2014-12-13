@@ -59,6 +59,8 @@ var mGenerator = function(generatorProducer, name, curryArgCount = 0, toStringOv
     else
       prettyToString(name,args,res);
 
+
+
     return res;
   };
   genProducer.producerName = name;
@@ -187,7 +189,12 @@ var MGroupTime = mGenerator(function*(node) {
   var grouped=[];
   //console.log(""+node);
   for (var n of node) {
+    if (!n.hasOwnProperty("time")) {
+      console.error("groupByTime called but no time property".red);
+      return;
+    }
     if (n.time > currentTime) {
+
       if (grouped.length > 0) {
         yield {events: grouped, time:currentTime};
         grouped = [];
@@ -199,12 +206,16 @@ var MGroupTime = mGenerator(function*(node) {
 },"groupByTime");
 
 var MDuplicateRemover = mGenerator(function*(node) {
+
+
   for (var timeGrouped of MGroupTime(node)) {
+
     //console.log(_.groupBy(timeGrouped, "pitch"));
     for (var n of _.values(_.groupBy(timeGrouped.events, "pitch")))
       yield n[n.length-1]; // last one... could be first too
 
   }
+
 },"removeDuplicateNotes");
 
 
@@ -212,8 +223,12 @@ var MDuplicateRemover = mGenerator(function*(node) {
 
 
 var MNoteAutomate = mGenerator(function*(node) {
-  var notes = MFilter((n) => n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time"), node);
-  //console.log("notes", m.data(notes).take(5).toArray());
+  // console.log(MToArray(MTake(2,node)));
+
+  var notes = MFilter((n) => n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time") && n.duration>0, node);
+  // console.log(MToArray(MTake(2,notes)));
+
+  // console.log("notes", m.data(notes).take(5).toArray());
   yield* getIterator(MMapOp((n) => {
     // var automationHolder = n.hasOwnProperty("children") ? n.children : Object.create(null);
     var automation = m.data([{type:"noteOn", velocity:n.velocity, pitch: n.pitch, time: 0, evt:n}, {type: "noteOff", pitch: n.pitch, time: n.duration, evt: n}]);
@@ -243,6 +258,9 @@ var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
 
 
 var MProcessAutomations = mGenerator(function*(node) {
+  // if (MToArray(MNoteAutomate(MTake(100,node))).length ==0)
+  //   throw "no notes to automate";
+
   yield* getIterator(MCache(MFlattenAndSchedule(MSimpleMap( (n) => {
     var merged = m.data([]);
     for (var automation of _.filter(_.values(n), (nVal) => Object(nVal).automation === true)) {
@@ -572,11 +590,11 @@ var MPluck = mGenerator(function*(propertyName, node) { yield* getIterator(MMapO
 
 var MMapWithMemory = mGenerator(function*(initial, mapFunc,node) {
   var current = initial;
-  yield* getIterator(MSet(convertToObject(current), MEvent(current)));
+  yield* getIterator(MSet(convertToObject(current), MData(current)));
   for (var e of node) {
     current = mapFunc(current, e.value);
   //  console.log("current",current);
-    yield* getIterator(MSet(convertToObject(current), MEvent(e)));
+    yield* getIterator(MSet(convertToObject(current), MData(e)));
   }
 },"memoryMap",3);
 
@@ -611,9 +629,8 @@ var MSkipWhile = mGenerator(function*(skipFunc,node) {
 
 var MTake = mGenerator(function*(n,node) {
     var count = n;
-    //console.log("mtake",node);
+    // console.log("mtake",node,n);
     for (var e of node) {
-      //console.log("take yield",e,node);
       yield e;
       if (--count <= 0)
         break;
@@ -945,7 +962,8 @@ var makeChainable = function (lib,name,funcToChain) {
     var result = funcToChain(...args);
     _.each(lib,(origFunction, origFunctionName) => {
         result[origFunctionName] = function(...chainedArgs) {
-          var res = lib[origFunctionName](...chainedArgs,result);
+          chainedArgs.push(result);
+          var res = lib[origFunctionName](...chainedArgs);
           return res;
         };
     });
@@ -1151,3 +1169,56 @@ export var m = FunctionalMusic();
 // //return;
 //
 // //var seqNewNew2 = m.note().repeat(10).pitch([3,4,5]).velocity(100).duration([20,10,10]).eventCount().timeFromDurations().filter((e) => e.count % 5 != 0);
+
+//
+//
+// var pitchMap=wu.curryable(function(pitches,node) {
+//   return node.pitch(n => n.pitch+pitches[Math.floor(n.time/4%pitches.length)]);
+// });
+//
+// var tPitchMap=pitchMap([2,0,3,4,-12,-5,12,12]);
+// //var tPitchMap=pitchMap([0]);
+//
+// export var marimba2=tPitchMap(m.evt({pitch:50,duration:[0.2,0.1,0.3],color:"red",velocity:[0.9,0.7]})
+// .metro(1)
+// //.bjorklund(8,6,0)
+// .automate("param1", n => (n.time+n.evt.time) % 4 /4)
+// .automate("pitchBend", n => (n.time+n.evt.time) % 64 /64));
+//
+//
+// var c=0;
+// for (let e of marimba2.toPlayable()) {
+//   c++;
+//   if (c %500==0)
+//     console.log("m2",c,e);
+//     if (c > 5000)
+//       break;
+//
+//     }
+//
+// c=0;
+//     for (let e of marimba2.toPlayable()) {
+//       c++;
+//       if (c %500==0)
+//         console.log("m2",c,e);
+//         if (c > 5000)
+//           break;
+//         }
+//         c=0;
+//         for (let e of marimba2.toPlayable()) {
+//           c++;
+//           if (c %500==0)
+//             console.log("m2",c,e);
+//             if (c > 5000)
+//               break;
+//             }
+//
+//             c=0;
+//             for (let e of marimba2.toPlayable()) {
+//               c++;
+//               if (c %500==0)
+//                 console.log("m2",c,e);
+//                 if (c > 5000)
+//                   break;
+//                 }
+//                 c=0;

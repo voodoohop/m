@@ -1,3 +1,4 @@
+
 import {wu} from "./wu";
 
 var _ = require("lodash");
@@ -65,7 +66,8 @@ export var addObjectProps=function(eventObject, props, enumerable=true) {
     var descriptor = {};
     for (let propN of Object.getOwnPropertyNames(eventObject))
       descriptor[propN] = Object.getOwnPropertyDescriptor(eventObject, propN);
-
+    // console.log(eventObject);
+    // console.trace();
     for (let key of keys) {
       var value = props[key];
       if (enumerable && typeof value === "function" && value.length <= 1) {

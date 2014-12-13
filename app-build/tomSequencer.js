@@ -38,14 +38,17 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
       var prevTime = prevDecoded.time;
       var time = timeDecoded.time;
       if (seqIterator == null) {
+        console.log("skipping to", prevTime, "for sequence", sequence);
         seqIterator = getIterator(sequence.skipWhile((function(n) {
           return n.time < prevTime;
         })).toPlayable());
         next = seqIterator.next();
+        console.log("done skipping");
       }
       var count = 0;
       while (next.value.time < prevTime) {
         next = seqIterator.next();
+        console.warn("time lag:", prevTime - next.value.time + "".bgRed, next.value);
         if (count++ > 5) {
           console.log("event overflow, yielding to bacon", time.toFixed(2));
           return [];
@@ -69,3 +72,5 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
     return Bacon.fromArray(v);
   })).map(eventPlayer);
 });
+
+//# sourceMappingURL=tomSequencer.map

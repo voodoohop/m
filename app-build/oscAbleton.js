@@ -135,6 +135,9 @@ var AbletonSender = function(outPort) {
   var baconInstrumentBus = new Bacon.Bus();
   baconInstrumentBus.onValue((function(v) {}));
   var generatorUpdate = function(generatorList) {
+    console.log("sending generatorUpdate to Ableton".bold, ("" + generatorList.map((function(g) {
+      return g.name;
+    }))).yellow);
     udpPort.send({
       address: "/generatorList",
       args: generatorList.map((function(g) {
@@ -163,5 +166,7 @@ var AbletonSender = function(outPort) {
     generatorUpdate: generatorUpdate
   };
 };
-var abletonSender = AbletonSender(8915);
+var abletonSender = AbletonSender(8916);
 var abletonReceiver = AbletonReceiver(8895);
+
+//# sourceMappingURL=oscAbleton.map
