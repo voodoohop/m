@@ -36,7 +36,7 @@ processed.onError((function(e) {
 var loadedSequenceStream = new Bacon.Bus();
 var evalStreamEntry = function(loadedSequences, newSequence) {
   var newSeqIm = Immutable.fromJS(newSequence);
-  console.log("evaluating new Sequence:".underline.bold, newSeqIm.get("device"));
+  console.log("evaluating new Sequence:".underline.bold, newSeqIm.toJS());
   var allExports = loadedSequences.valueSeq().map((function(v) {
     return v.get("exports");
   })).flatten();
