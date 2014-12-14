@@ -16,9 +16,9 @@ export default function(time, resetMessages, sequenceFeedback) {
 
   var availableSequences = {};
 
-  var playSequencer = (sequencer,inst, name) => sequencer.onValue((playFunc) => {
+  var playSequencer = (sequencer,inst, name,device) => sequencer.onValue((playFunc) => {
     // console.log("sending seqName",name);
-    sequenceFeedback.push(_.extend({seqName: name}, playFunc.evt))  ;
+    sequenceFeedback.push(_.extend({seqName: name, device: device }, playFunc.evt))  ;
     playFunc.play(inst);
   });
   var playingSequences = {};
@@ -63,7 +63,7 @@ export default function(time, resetMessages, sequenceFeedback) {
     var port = _.find(subscribedSequences,(s) => s.sequenceName == seq.name).port;
     console.log("creating instrument for",seq.name,port);
     var seqInst = abletonSender.subscribeInstrument(seq.name,port);
-    playingSequences[seq.name] = {stop: playSequencer(Sequencer(seq.sequence,seq.name),seqInst, seq.name), sequence: seq.sequence, name:seq.name, port: port};
+    playingSequences[seq.name] = {stop: playSequencer(Sequencer(seq.sequence,seq.name),seqInst, seq.name,seq.device), sequence: seq.sequence, name:seq.name, port: port};
   }
 
   resetMessages.onValue(() => {

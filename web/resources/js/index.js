@@ -96,6 +96,21 @@ availableGenerators.onValue(function(genList) {
   //   return Immutable.List(genList)});
 });
 
+sequenceFeedback.onValue(function(v) {
+//   genData.cursor("generators").update(function(prev) {
+// //    console.log("prev",v,prev.get(v.device));
+//     return prev.set(v.device,_.extend(prev.toJS()[v.device],{feedback: v}));
+//   });
+//   setTimeout(function() {
+//     genData.cursor("generators").update(function(prev) {
+//       //    console.log("prev",v,prev.get(v.device));
+//       return prev.set(v.device,_.extend(prev.get(v.device),{feedback: null}));
+//     });
+//   },50);
+  console.log(genData.cursor("generators"));
+});
+
+
 updateGenerator.onValue(function (genUpdate) {
   genData.cursor("generators").update(function(prev) {
     console.log("prev",prev.toJS());
@@ -121,7 +136,7 @@ socket.emit("requestGenerators","yes");
 genData.on('swap', render);
 
 function render (data) {
-  console.log("render called",genCursor,data);
+  // console.log("render called",genCursor,data);
   var style={width:"100%",height:"100%", padding:"0px",background:"none"};
   var style2={padding:"2px",background:"none"};
 

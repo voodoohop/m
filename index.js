@@ -8,7 +8,7 @@
 require('source-map-support').install();
 require('traceur/bin/traceur-runtime');
 
-var agent = require('strong-agent');
+//var agent = require('strong-agent');
 
 var fs = require("fs");
 // agent.metrics.startCpuProfiling();

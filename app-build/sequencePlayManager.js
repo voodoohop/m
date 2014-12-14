@@ -18,9 +18,12 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
   var newSequenceBus = new Bacon.Bus();
   var resetRequests = new Bacon.Bus();
   var availableSequences = {};
-  var playSequencer = (function(sequencer, inst, name) {
+  var playSequencer = (function(sequencer, inst, name, device) {
     return sequencer.onValue((function(playFunc) {
-      sequenceFeedback.push(_.extend({seqName: name}, playFunc.evt));
+      sequenceFeedback.push(_.extend({
+        seqName: name,
+        device: device
+      }, playFunc.evt));
       playFunc.play(inst);
     }));
   });
@@ -34,7 +37,7 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     var needToBeStopped = ($__6 = _).without.apply($__6, $traceurRuntime.spread([Object.keys(playingSequences)], _.pluck(subscribedSequences, "sequenceName")));
     for (var $__2 = needToBeStopped[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__3; !($__3 = $__2.next()).done; ) {
-      let seqName = $__3.value;
+      var seqName = $__3.value;
       {
         playingSequences[seqName].stop();
         delete playingSequences[seqName];
@@ -45,10 +48,10 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     console.log("needToPlay", needToPlay);
     for (var $__4 = needToPlay[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
-      let seqName = $__5.value;
+      var seqName$__8 = $__5.value;
       {
-        if (availableSequences[seqName])
-          instrumentPlayer(availableSequences[seqName]);
+        if (availableSequences[seqName$__8])
+          instrumentPlayer(availableSequences[seqName$__8]);
       }
     }
     resetRequests.push(Math.random());
@@ -75,7 +78,7 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     console.log("creating instrument for", seq.name, port);
     var seqInst = abletonSender.subscribeInstrument(seq.name, port);
     playingSequences[seq.name] = {
-      stop: playSequencer(Sequencer(seq.sequence, seq.name), seqInst, seq.name),
+      stop: playSequencer(Sequencer(seq.sequence, seq.name), seqInst, seq.name, seq.device),
       sequence: seq.sequence,
       name: seq.name,
       port: port
@@ -84,7 +87,7 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
   resetMessages.onValue((function() {
     for (var $__2 = Object.keys(playingSequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__3; !($__3 = $__2.next()).done; ) {
-      let seqName = $__3.value;
+      var seqName = $__3.value;
       {
         playingSequences[seqName].stop();
         console.log("after reset recreating instrumentPlayer for ", seqName, playingSequences[seqName]);
@@ -106,5 +109,3 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     resetRequests: resetRequests
   };
 };
-
-//# sourceMappingURL=sequencePlayManager.map

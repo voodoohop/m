@@ -36,7 +36,7 @@ processed.onError((function(e) {
 var loadedSequenceStream = new Bacon.Bus();
 var evalStreamEntry = function(loadedSequences, newSequence) {
   var newSeqIm = Immutable.fromJS(newSequence);
-  console.log("evaluating new Sequence:".underline.bold, newSeqIm.toJS());
+  console.log("evaluating new Sequence:".underline, newSeqIm);
   var allExports = loadedSequences.valueSeq().map((function(v) {
     return v.get("exports");
   })).flatten();
@@ -47,7 +47,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
     return !loadedSequences.get(importDevice) || !importSeqNames.isSubset(loadedSequences.get(importDevice).get("exports"));
   }));
   if (unsatisfiedImports.count() > 0) {
-    console.log("imports unSatisfied".bold.red, unsatisfiedImports.toJS());
+    console.log("imports unSatisfied".red, unsatisfiedImports.toJS());
     console.log("existing exports".bold, loadedSequences.entrySeq().map((function(s) {
       return ({
         name: s[0],
@@ -66,7 +66,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
       error = $__3[2];
   var evaluatedRes = null;
   if (!details) {
-    console.error("eval of ", newSequence, "FAILED!!!".bold.red);
+    console.error("eval of ", newSequence, "FAILED!!!".red);
     evaluatedRes = Immutable.fromJS(newSequence).set("evaluatedError", error);
   } else
     evaluatedRes = Immutable.fromJS(newSequence).merge({
@@ -112,5 +112,3 @@ var processedSequences = evaluated.flatMap((function(n) {
     }, n);
   })));
 }));
-
-//# sourceMappingURL=generatorModuleManager.map

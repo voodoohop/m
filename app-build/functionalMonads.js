@@ -8,21 +8,23 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__wu__,
+var $__proxiedImmutable__,
+    $__wu__,
     $__utils__;
+var immutableTom = ($__proxiedImmutable__ = require("./proxiedImmutable"), $__proxiedImmutable__ && $__proxiedImmutable__.__esModule && $__proxiedImmutable__ || {default: $__proxiedImmutable__}).immutableTom;
 var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
-var $__1 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
-    prettyToString = $__1.prettyToString,
-    toStringObject = $__1.toStringObject,
-    toStringDetailed = $__1.toStringDetailed,
-    addFuncProp = $__1.addFuncProp,
-    clone = $__1.clone,
-    addObjectProp = $__1.addObjectProp,
-    addObjectProps = $__1.addObjectProps,
-    isIterable = $__1.isIterable,
-    getIterator = $__1.getIterator,
-    fixFloat = $__1.fixFloat,
-    cloneableEmptyObject = $__1.cloneableEmptyObject;
+var $__2 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
+    prettyToString = $__2.prettyToString,
+    toStringObject = $__2.toStringObject,
+    toStringDetailed = $__2.toStringDetailed,
+    addFuncProp = $__2.addFuncProp,
+    clone = $__2.clone,
+    addObjectProp = $__2.addObjectProp,
+    addObjectProps = $__2.addObjectProps,
+    isIterable = $__2.isIterable,
+    getIterator = $__2.getIterator,
+    fixFloat = $__2.fixFloat,
+    cloneableEmptyObject = $__2.cloneableEmptyObject;
 var _ = require("lodash");
 var memoize = require('memoizee');
 var SortedMap = require("collections/sorted-map");
@@ -37,29 +39,77 @@ var iteratorNextValLooping = (function(value, iterator) {
   return nextVal == undefined ? iteratorNextValLooping(value, getIterator(value)) : [nextVal, iterator];
 });
 var loopValue = function*(value) {
-  var $__17;
+  var $__19;
   var iterator = getIterator(value);
   while (true) {
     var nextVal = null;
-    ($__17 = iteratorNextValLooping(value, iterator), iterator = $__17[0], nextVal = $__17[1], $__17);
+    ($__19 = iteratorNextValLooping(value, iterator), iterator = $__19[0], nextVal = $__19[1], $__19);
     yield nextVal;
   }
 };
 var loopGeneratorArgs = function(generatorProducer, args) {
   var node = args[args.length - 1];
 };
-var mGenerator = function(generatorProducer, name) {
+var Immutable = require("immutable");
+var caches = {};
+var cacheLimit = 10000;
+var mGenerator = function() {
+  for (var args = [],
+      $__14 = 0; $__14 < arguments.length; $__14++)
+    args[$__14] = arguments[$__14];
+  var origGenerator = args.shift();
+  if (origGenerator.isTom)
+    origGenerator[wu.iteratorSymbol] = MCache(origGenerator)[wu.iteratorSymbol];
+  args.unshift(origGenerator);
+  return mGeneratorUnCached.apply(null, $traceurRuntime.spread(args));
+};
+var doCache = function*(node) {
+  var cacheKey = "" + node;
+  if (!caches[cacheKey]) {
+    console.log("not yet cashed".bgBlue.white, cacheKey);
+    caches[cacheKey] = [];
+  }
+  var cached = caches[cacheKey];
+  var count = 0;
+  var iterator = null;
+  while (true) {
+    if (cached.length <= count || count > cacheLimit) {
+      if (iterator == null) {
+        if (count > cacheLimit) {
+          node = MSkip(count, node);
+          console.warn("cache full", node);
+        }
+        iterator = getIterator(node);
+      }
+      var n = iterator.next();
+      if (n.done)
+        break;
+      if (count > cacheLimit) {
+        yield n.value;
+        continue;
+      }
+      cached.push(n.value);
+    }
+    yield cached[count++];
+  }
+};
+;
+var MCache = function(node) {
+  var gen = mGeneratorUnCached(doCache, "cache");
+  return gen(node);
+};
+var mGeneratorUnCached = function(generator, name) {
   var curryArgCount = arguments[2] !== (void 0) ? arguments[2] : 0;
   var toStringOverride = arguments[3] !== (void 0) ? arguments[3] : null;
-  var genProducer = function() {
+  var getIterable = function() {
     for (var args = [],
-        $__13 = 0; $__13 < arguments.length; $__13++)
-      args[$__13] = arguments[$__13];
+        $__15 = 0; $__15 < arguments.length; $__15++)
+      args[$__15] = arguments[$__15];
     var res = Object.create(null);
     res.isTom = true;
     res.name = name;
     res[wu.iteratorSymbol] = (function() {
-      return generatorProducer.apply(null, $traceurRuntime.spread(args));
+      return generator.apply(null, $traceurRuntime.spread(args));
     });
     if (toStringOverride)
       res.toString = (function() {
@@ -69,14 +119,14 @@ var mGenerator = function(generatorProducer, name) {
       prettyToString(name, args, res);
     return res;
   };
-  genProducer.producerName = name;
-  return curryArgCount > 0 ? wu.curryable(genProducer, curryArgCount) : genProducer;
+  getIterable.producerName = name;
+  return curryArgCount > 0 ? wu.curryable(getIterable, curryArgCount) : getIterable;
 };
 var MData = mGenerator(function*(data) {
   if (isIterable(data)) {
-    for (var $__3 = data[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__4; !($__4 = $__3.next()).done; ) {
-      var d = $__4.value;
+    for (var $__4 = data[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__5; !($__5 = $__4.next()).done; ) {
+      var d = $__5.value;
       {
         yield* getIterator(MData(d));
       }
@@ -104,27 +154,27 @@ var MData = mGenerator(function*(data) {
     yield dataObj;
   }
 }, "data");
-for (var $__3 = MData([{
+for (var $__4 = MData([{
   pitch: 12,
   velocity: 0.5
 }, {bla: 2}])[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__4; !($__4 = $__3.next()).done; ) {
-  var e = $__4.value;
+    $__5; !($__5 = $__4.next()).done; ) {
+  var e = $__5.value;
   console.log("datatest", e);
 }
 var MLoopData = mGenerator(function*(dataNode) {
-  for (var $__7 = dataNode[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__8; !($__8 = $__7.next()).done; ) {
-    var data = $__8.value;
+  for (var $__8 = dataNode[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__9; !($__9 = $__8.next()).done; ) {
+    var data = $__9.value;
     {
       var keys = Object.keys(data);
       if (keys.length == 0) {
         yield* getIterator(MLoop(dataNode));
         return;
       }
-      for (var $__5 = MZip.apply(null, $traceurRuntime.spread(_.values(data)))[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__6; !($__6 = $__5.next()).done; ) {
-        var props = $__6.value;
+      for (var $__6 = MZip.apply(null, $traceurRuntime.spread(_.values(data)))[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__7; !($__7 = $__6.next()).done; ) {
+        var props = $__7.value;
         {
           var resData = {};
           props.forEach(function(val, i) {
@@ -137,9 +187,9 @@ var MLoopData = mGenerator(function*(dataNode) {
   }
 }, "loopData");
 var MMergeZipped = mGenerator(function*(node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     yield addObjectProps(n[0], n[1]);
   }
 }, "mergeZippedObjects");
@@ -161,28 +211,28 @@ var MSet = mGenerator(function*(data, node) {
 }, "set");
 var MEvent = mGenerator(function*(data) {
   if (isIterable(data)) {
-    for (var $__5 = MLoop(data)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__6; !($__6 = $__5.next()).done; ) {
-      var e = $__6.value;
+    for (var $__6 = MLoop(data)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__7; !($__7 = $__6.next()).done; ) {
+      var e = $__7.value;
       yield* getIterator(MData(e));
     }
   } else
     yield* getIterator(MLoopData(MData(data)));
 }, "evt");
 var MProperty = mGenerator(function*(name, tomValue, children) {
-  var $__2;
-  yield* getIterator(MSet(($__2 = {}, Object.defineProperty($__2, name, {
+  var $__3;
+  yield* getIterator(MSet(($__3 = {}, Object.defineProperty($__3, name, {
     value: tomValue,
     configurable: true,
     enumerable: true,
     writable: true
-  }), $__2), children));
+  }), $__3), children));
 }, "prop", 3);
 var MWithNext = mGenerator(function*(node) {
   var me = null;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     {
       if (me == null) {
         me = n;
@@ -196,9 +246,9 @@ var MWithNext = mGenerator(function*(node) {
 var MGroupTime = mGenerator(function*(node) {
   var currentTime = -1;
   var grouped = [];
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     {
       if (!n.hasOwnProperty("time")) {
         console.error("groupByTime called but no time property".red);
@@ -219,13 +269,13 @@ var MGroupTime = mGenerator(function*(node) {
   }
 }, "groupByTime");
 var MDuplicateRemover = mGenerator(function*(node) {
-  for (var $__7 = MGroupTime(node)[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__8; !($__8 = $__7.next()).done; ) {
-    var timeGrouped = $__8.value;
+  for (var $__8 = MGroupTime(node)[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__9; !($__9 = $__8.next()).done; ) {
+    var timeGrouped = $__9.value;
     {
-      for (var $__5 = _.values(_.groupBy(timeGrouped.events, "pitch"))[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__6; !($__6 = $__5.next()).done; ) {
-        var n = $__6.value;
+      for (var $__6 = _.values(_.groupBy(timeGrouped.events, "pitch"))[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__7; !($__7 = $__6.next()).done; ) {
+        var n = $__7.value;
         yield n[n.length - 1];
       }
     }
@@ -236,7 +286,7 @@ var MNoteAutomate = mGenerator(function*(node) {
     return n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time") && n.duration > 0;
   }), node);
   yield* getIterator(MMapOp((function(n) {
-    var $__2;
+    var $__3;
     var automation = m.data([{
       type: "noteOn",
       velocity: n.velocity,
@@ -250,17 +300,17 @@ var MNoteAutomate = mGenerator(function*(node) {
       evt: n
     }]);
     automation.automation = true;
-    return ($__2 = {}, Object.defineProperty($__2, "automation_note", {
+    return ($__3 = {}, Object.defineProperty($__3, "automation_note", {
       value: automation,
       configurable: true,
       enumerable: true,
       writable: true
-    }), $__2);
+    }), $__3);
   }), MDuplicateRemover(notes)));
 }, "notePlay");
 var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
   yield* getIterator(MMapOp((function(n) {
-    var $__2;
+    var $__3;
     var automation = m.data({
       type: "automation",
       evt: n,
@@ -270,22 +320,22 @@ var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
       return a.time < a.evt.duration;
     })).set({automationVal: valGenerator});
     automation.automation = true;
-    return ($__2 = {}, Object.defineProperty($__2, paramName, {
+    return ($__3 = {}, Object.defineProperty($__3, paramName, {
       value: automation,
       configurable: true,
       enumerable: true,
       writable: true
-    }), $__2);
+    }), $__3);
   }), node));
 }, "automate");
 var MProcessAutomations = mGenerator(function*(node) {
   yield* getIterator(MCache(MFlattenAndSchedule(MSimpleMap((function(n) {
     var merged = m.data([]);
-    for (var $__5 = _.filter(_.values(n), (function(nVal) {
+    for (var $__6 = _.filter(_.values(n), (function(nVal) {
       return Object(nVal).automation === true;
     }))[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__6; !($__6 = $__5.next()).done; ) {
-      var automation = $__6.value;
+        $__7; !($__7 = $__6.next()).done; ) {
+      var automation = $__7.value;
       {
         merged = merged.merge(automation);
       }
@@ -296,35 +346,13 @@ var MProcessAutomations = mGenerator(function*(node) {
     };
   }), MNoteAutomate(node)))));
 }, "processAutomations");
-var MCache = function(node) {
-  var cached = [];
-  var cacheLimit = 100000;
-  var iterator = getIterator(node);
-  var gen = mGenerator(function*(node) {
-    var count = 0;
-    while (true) {
-      if (cached.length <= count || count > cacheLimit) {
-        var n = iterator.next();
-        if (n.done)
-          break;
-        if (count > cacheLimit) {
-          yield n.value;
-          continue;
-        }
-        cached.push(n.value);
-      }
-      yield cached[count++];
-    }
-  }, "cache");
-  return gen(node);
-};
 var MSetValue = mGenerator(function*(value, child) {
   yield* MProperty("value", value, child);
 }, "setValue", 2);
 var MZip = mGenerator(function*() {
   for (var nodes = [],
-      $__13 = 0; $__13 < arguments.length; $__13++)
-    nodes[$__13] = arguments[$__13];
+      $__15 = 0; $__15 < arguments.length; $__15++)
+    nodes[$__15] = arguments[$__15];
   var loopedIterators = nodes.map((function(node) {
     return getIterator(MLoop(node));
   }));
@@ -348,9 +376,9 @@ var MLoop = mGenerator(function*(node) {
   }
 }, "loop");
 var simpleMap = mGenerator(function*(mapFunc, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     {
       yield mapFunc(n);
     }
@@ -379,18 +407,18 @@ var MCombine = mGenerator(function*(combineNode, node) {
   var previousOther = null;
   var nextOther = null;
   var meWaitingForNextOther = [];
-  for (var $__7 = merged[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__8; !($__8 = $__7.next()).done; ) {
-    var m = $__8.value;
+  for (var $__8 = merged[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__9; !($__9 = $__8.next()).done; ) {
+    var m = $__9.value;
     {
       if (m.hasOwnProperty("me"))
         meWaitingForNextOther.push(m.me);
       if (m.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
         previousOther = nextOther;
         nextOther = m.other;
-        for (var $__5 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__6; !($__6 = $__5.next()).done; ) {
-          var me = $__6.value;
+        for (var $__6 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__7; !($__7 = $__6.next()).done; ) {
+          var me = $__7.value;
           {
             yield combineFunc(me, previousOther, nextOther);
           }
@@ -399,9 +427,9 @@ var MCombine = mGenerator(function*(combineNode, node) {
       }
     }
   }
-  for (var $__9 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__10; !($__10 = $__9.next()).done; ) {
-    var me = $__10.value;
+  for (var $__10 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__11; !($__11 = $__10.next()).done; ) {
+    var me = $__11.value;
     {
       yield combineFunc(me, previousOther, nextOther);
       ;
@@ -415,11 +443,11 @@ var MCombineMap = mGenerator(function*(combineFunc, combineNode, node) {
 }, "combineMap", 3);
 var MCompose = mGenerator(function*() {
   for (var nodes = [],
-      $__14 = 0; $__14 < arguments.length; $__14++)
-    nodes[$__14] = arguments[$__14];
-  for (var $__5 = nodes[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var node = $__6.value;
+      $__16 = 0; $__16 < arguments.length; $__16++)
+    nodes[$__16] = arguments[$__16];
+  for (var $__6 = nodes[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var node = $__7.value;
     {
       yield* getIterator(node);
     }
@@ -428,9 +456,9 @@ var MCompose = mGenerator(function*() {
 var MLoopFixedLength = mGenerator(function*(loopLength, node) {
   var time = 0;
   while (true) {
-    for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__6; !($__6 = $__5.next()).done; ) {
-      var n = $__6.value;
+    for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__7; !($__7 = $__6.next()).done; ) {
+      var n = $__7.value;
       {
         yield addObjectProp(n, "time", time + n.time);
       }
@@ -442,9 +470,9 @@ var convertToObject = (function(externalVal) {
   return Object(externalVal);
 });
 var MSimpleMap = mGenerator(function*(mapFunc, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       yield mapFunc(e);
     }
@@ -452,21 +480,21 @@ var MSimpleMap = mGenerator(function*(mapFunc, node) {
 }, "simpleMap");
 var MFlattenAndSchedule = mGenerator(function*(node) {
   var scheduled = new SortedMap();
-  for (var $__11 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__12; !($__12 = $__11.next()).done; ) {
-    var n = $__12.value;
+  for (var $__12 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__13; !($__13 = $__12.next()).done; ) {
+    var n = $__13.value;
     {
       if (n.hasOwnProperty("time")) {
         var scheduledNow = _.take(scheduled.entries(), (function(s) {
           return s[0] < n.time;
         }));
-        for (var $__7 = scheduledNow[$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__8; !($__8 = $__7.next()).done; ) {
-          var scheduledEvents = $__8.value;
+        for (var $__8 = scheduledNow[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__9; !($__9 = $__8.next()).done; ) {
+          var scheduledEvents = $__9.value;
           {
-            for (var $__5 = scheduledEvents[1][$traceurRuntime.toProperty(Symbol.iterator)](),
-                $__6; !($__6 = $__5.next()).done; ) {
-              var scheduledEvent = $__6.value;
+            for (var $__6 = scheduledEvents[1][$traceurRuntime.toProperty(Symbol.iterator)](),
+                $__7; !($__7 = $__6.next()).done; ) {
+              var scheduledEvent = $__7.value;
               {
                 yield scheduledEvent;
               }
@@ -476,9 +504,9 @@ var MFlattenAndSchedule = mGenerator(function*(node) {
         }
       } else
         console.error("Flatten and Schedule should work on events with time set");
-      for (var $__9 = n.events[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__10; !($__10 = $__9.next()).done; ) {
-        var nFlat = $__10.value;
+      for (var $__10 = n.events[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__11; !($__11 = $__10.next()).done; ) {
+        var nFlat = $__11.value;
         {
           if (nFlat.hasOwnProperty("time")) {
             if (nFlat.time <= n.time)
@@ -497,9 +525,9 @@ var MFlattenAndSchedule = mGenerator(function*(node) {
   yield* getIterator(scheduled.values());
 }, "flattenAndSchedule");
 var MFlattenShallow = mGenerator(function*(node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     {
       if (isIterable(n))
         yield* getIterator(n);
@@ -533,9 +561,9 @@ var MMapOp = mGenerator(function*(mapFunc, node) {
 var MCombineLast = mGenerator(function*(combineFunc, combineNode, node) {
   var meIterator = getIterator(node);
   var last = meIterator.next().value;
-  for (var $__5 = combineNode[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var c = $__6.value;
+  for (var $__6 = combineNode[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var c = $__7.value;
     {
       var next = meIterator.next();
       if (next.time < c.time) {
@@ -548,9 +576,9 @@ var MCombineLast = mGenerator(function*(combineFunc, combineNode, node) {
   }
 });
 var MFlatten = mGenerator(function*(node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     if (isIterable(e))
       yield* getIterator(MFlatten(e));
     else
@@ -569,9 +597,9 @@ var MPluck = mGenerator(function*(propertyName, node) {
 var MMapWithMemory = mGenerator(function*(initial, mapFunc, node) {
   var current = initial;
   yield* getIterator(MSet(convertToObject(current), MData(current)));
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       current = mapFunc(current, e.value);
       yield* getIterator(MSet(convertToObject(current), MData(e)));
@@ -579,9 +607,9 @@ var MMapWithMemory = mGenerator(function*(initial, mapFunc, node) {
   }
 }, "memoryMap", 3);
 var MFilter = mGenerator(function*(filterFunc, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       if (filterFunc(e))
         yield e;
@@ -589,9 +617,9 @@ var MFilter = mGenerator(function*(filterFunc, node) {
   }
 }, "filter", 2);
 var MTakeWhile = mGenerator(function*(filterFunc, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       if (!filterFunc(e))
         break;
@@ -601,9 +629,9 @@ var MTakeWhile = mGenerator(function*(filterFunc, node) {
 }, "takeWhile", 2);
 var MSkipWhile = mGenerator(function*(skipFunc, node) {
   var skipNo = 0;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       if (skipFunc(e)) {
         continue;
@@ -614,9 +642,9 @@ var MSkipWhile = mGenerator(function*(skipFunc, node) {
 }, "skipWhile", 2);
 var MTake = mGenerator(function*(n, node) {
   var count = n;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       yield e;
       if (--count <= 0)
@@ -626,9 +654,9 @@ var MTake = mGenerator(function*(n, node) {
 }, "take", 2);
 var MTakeTime = mGenerator(function*(time, node) {
   var timeTaken = 0;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       yield e;
       timeTaken += e.event.duration;
@@ -641,9 +669,9 @@ var MRepeat = mGenerator(function*(n, node) {
   yield* getIterator(MTake(n, MLoop(node)));
 }, "repeat", 2);
 var MMapTime = mGenerator(function*(mapFunc, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       yield e.set("time", mapFunc(e.time));
     }
@@ -656,9 +684,9 @@ var MTimeShift = mGenerator((function(amount, node) {
 }), "timeShift", 2);
 var MReduce = mGenerator(function*(reduceFunc, startValue, node) {
   var current = startValue;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       current = reduceFunc(_.clone(current), e);
     }
@@ -670,9 +698,9 @@ var MDurationSum = mGenerator(MReduce((function(sum, timedEvent) {
 }), 0), "durationSum");
 var MSkip = mGenerator(function*(n, node) {
   var count = n;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       if (count > 0)
         count--;
@@ -682,9 +710,9 @@ var MSkip = mGenerator(function*(n, node) {
   }
 }, "skip", 2);
 var MBranch = mGenerator(function*(condition, branchNode, elseNode, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       var branchTo = (condition(e) ? branchNode : elseNode);
       yield* getIterator(branchTo.takeWhile((function(n) {
@@ -715,9 +743,9 @@ var MEventCount = MProperty("count", MCount(0, 1));
 var MDelay = mGenerator(function*(amount, node) {
   if (!isIterable(amount))
     amount = [amount];
-  for (var $__5 = amount[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var a = $__6.value;
+  for (var $__6 = amount[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var a = $__7.value;
     yield* getIterator(MProperty("time", (function(n) {
       return n.time + a;
     }), node));
@@ -759,9 +787,9 @@ var MDurationsFromTime = mGenerator(function*(node) {
 var MTimeOrderedMerge = mGenerator(function*(mergeNode, node) {
   var nodeIterator = getIterator(node);
   var nextNode = nodeIterator.next().value;
-  for (var $__5 = mergeNode[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var mergeEvent = $__6.value;
+  for (var $__6 = mergeNode[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var mergeEvent = $__7.value;
     {
       while (nextNode != undefined && nextNode.time < mergeEvent.time) {
         yield nextNode;
@@ -780,9 +808,9 @@ var MNoteOnOffSequence = mGenerator(function*(node) {
   var toInsert = {};
   while (next = iterator.next().value) {
     var ks = Object.keys(toInsert);
-    for (var $__5 = ks[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__6; !($__6 = $__5.next()).done; ) {
-      var time = $__6.value;
+    for (var $__6 = ks[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__7; !($__7 = $__6.next()).done; ) {
+      var time = $__7.value;
       {
         if (time < next.time) {
           yield* toInsert[time];
@@ -818,9 +846,9 @@ var MQuantize = mGenerator(function*(timeGrid, amount, node) {
   }), node));
 }, "quantize", 3);
 var MLog = mGenerator(function*(name, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       console.log(name, e);
       yield e;
@@ -833,9 +861,9 @@ var MBjorklund = mGenerator(function*(steps, pulses, rotation, node) {
   console.log(pattern, steps, pulses);
   if (pattern.length == 0)
     pattern = [1];
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     {
       if (pattern[counter++ % pattern.length])
         yield n;
@@ -885,9 +913,9 @@ function bjorklund(steps, pulses) {
 }
 function MToArray(node) {
   var res = [];
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     res.push(n.valueOf());
   }
   return res;
@@ -895,17 +923,17 @@ function MToArray(node) {
 var makeChainable = function(lib, name, funcToChain) {
   return function() {
     for (var args = [],
-        $__15 = 0; $__15 < arguments.length; $__15++)
-      args[$__15] = arguments[$__15];
+        $__17 = 0; $__17 < arguments.length; $__17++)
+      args[$__17] = arguments[$__17];
     var result = funcToChain.apply(null, $traceurRuntime.spread(args));
     _.each(lib, (function(origFunction, origFunctionName) {
       result[origFunctionName] = function() {
-        var $__18;
+        var $__20;
         for (var chainedArgs = [],
-            $__16 = 0; $__16 < arguments.length; $__16++)
-          chainedArgs[$__16] = arguments[$__16];
+            $__18 = 0; $__18 < arguments.length; $__18++)
+          chainedArgs[$__18] = arguments[$__18];
         chainedArgs.push(result);
-        var res = ($__18 = lib)[origFunctionName].apply($__18, $traceurRuntime.spread(chainedArgs));
+        var res = ($__20 = lib)[origFunctionName].apply($__20, $traceurRuntime.spread(chainedArgs));
         return res;
       };
     }));
@@ -976,5 +1004,3 @@ var FunctionalMusic = function() {
   return lib;
 };
 var m = FunctionalMusic();
-
-//# sourceMappingURL=functionalMonads.map

@@ -103,7 +103,7 @@ module.exports = React.createClass({
     var res= (
       <div style={style} className="ace-editor-wrapper"></div>
     );
-    console.log("draggable res",res);
+    // console.log("draggable res",res);
     return res;
   }
 });

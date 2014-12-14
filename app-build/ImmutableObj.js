@@ -124,5 +124,3 @@ ImmutableObject.keys = function(obj) {
   }
   return keys;
 };
-
-//# sourceMappingURL=ImmutableObj.map

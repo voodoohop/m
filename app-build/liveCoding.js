@@ -34,5 +34,3 @@ function run(m, t, baconParam, teoria) {
   }))];
 }
 module.exports = {run: run};
-
-//# sourceMappingURL=liveCoding.map

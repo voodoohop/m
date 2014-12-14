@@ -39,7 +39,7 @@ var loadedSequenceStream = new Bacon.Bus();
 
 var evalStreamEntry = function(loadedSequences, newSequence) {
   var newSeqIm = Immutable.fromJS(newSequence);
-  console.log("evaluating new Sequence:".underline.bold,newSeqIm);
+  console.log("evaluating new Sequence:".underline,newSeqIm);
 
   var allExports = loadedSequences.valueSeq().map(v => v.get("exports")).flatten();
   var unsatisfiedImports = newSeqIm.get("imports").entrySeq().filter((i) => {
@@ -50,7 +50,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
   }
   );
   if (unsatisfiedImports.count() > 0) {
-    console.log("imports unSatisfied".bold.red, unsatisfiedImports.toJS());
+    console.log("imports unSatisfied".red, unsatisfiedImports.toJS());
     // console.log("all imports",newSeqIm.get("imports").entrySeq().toJS());
     console.log("existing exports".bold,loadedSequences.entrySeq().map(s => ({name: s[0],  exports:s[1].get("exports").toJS()})).toJS());
     return newSeqIm.set("evaluatedError", Immutable.Map({type:"importsUnsatisfied", msg:"imports unsatisfied", imports:unsatisfiedImports}));
@@ -58,7 +58,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
   var [evaluated,details, error] = evalSequences(newSequence.processedCode, loadedSequences);
   var evaluatedRes = null;
   if (!details) {
-    console.error("eval of ",newSequence,"FAILED!!!".bold.red);
+    console.error("eval of ",newSequence,"FAILED!!!".red);
     //return Bacon.never();
     evaluatedRes = Immutable.fromJS(newSequence).set("evaluatedError", error);
   } else

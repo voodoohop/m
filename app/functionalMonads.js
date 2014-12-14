@@ -2,6 +2,8 @@
 
 // TODO: add sanity checks and user understandable errors in every method
 
+import {immutableTom} from "./proxiedImmutable";
+
 import {wu} from "./wu";
 
 import {prettyToString,toStringObject,toStringDetailed,addFuncProp, clone, addObjectProp, addObjectProps, isIterable, getIterator,fixFloat, cloneableEmptyObject} from "./utils";
@@ -45,15 +47,75 @@ var loopGeneratorArgs = function(generatorProducer, args) {
 
 // // TODO: work in progress
 // TODO: change to one option param
-var mGenerator = function(generatorProducer, name, curryArgCount = 0, toStringOverride=null) {
+var Immutable = require("immutable");
 
-  var genProducer = function(...args) {
+var caches = {};
+var cacheLimit = 10000;
+
+var mGenerator = function(...args) {
+  var origGenerator = args.shift();
+  if (origGenerator.isTom)
+    origGenerator[wu.iteratorSymbol]=MCache(origGenerator)[wu.iteratorSymbol];
+  args.unshift(origGenerator);
+  return mGeneratorUnCached(...args);
+};
+
+var doCache = function*(node) {
+  var cacheKey = ""+node;
+  // console.log("cacheKey",cacheKey);
+  if (!caches[cacheKey]) {
+    console.log("not yet cashed".bgBlue.white,cacheKey);
+    caches[cacheKey] = [];
+  }
+
+  var cached=caches[cacheKey];
+
+  var count = 0;
+  var iterator = null;
+  while (true) {
+    if (cached.length<=count || count > cacheLimit) {
+      if (iterator == null) {
+        if (count>cacheLimit) {
+          node = MSkip(count,node);
+          console.warn("cache full",node);
+        }
+        iterator = getIterator(node);
+      }
+      var n = iterator.next();
+      if (n.done)
+        break;
+        if (count > cacheLimit) {
+          yield n.value;
+          continue;
+        }
+        cached.push(n.value);
+    }
+    yield cached[count++];
+  }
+
+}
+
+  ;
+
+    var MCache = function(node) {
+      //return node;
+
+      var gen = mGeneratorUnCached(doCache, "cache");
+      return gen(node);
+    }
+
+
+
+
+var mGeneratorUnCached = function(generator, name, curryArgCount = 0, toStringOverride=null) {
+
+  var getIterable = function(...args) {
     var res = Object.create(null);
     res.isTom = true;
     res.name = name;
 
 
-    res[wu.iteratorSymbol] = () => generatorProducer(...args);//loopGeneratorArgs(generatorProducer, args);
+    res[wu.iteratorSymbol] = () => generator(...args);//loopGeneratorArgs(generatorProducer, args);
     if (toStringOverride)
       res.toString = () => toStringOverride;
     else
@@ -63,9 +125,9 @@ var mGenerator = function(generatorProducer, name, curryArgCount = 0, toStringOv
 
     return res;
   };
-  genProducer.producerName = name;
+  getIterable.producerName = name;
   //console.log("constructed node",generatorProducer,name);
-  return curryArgCount > 0 ? wu.curryable(genProducer, curryArgCount) : genProducer;
+  return curryArgCount > 0 ? wu.curryable(getIterable, curryArgCount) : getIterable;
 }
 
 
@@ -275,31 +337,6 @@ var MProcessAutomations = mGenerator(function*(node) {
 
 },"processAutomations");
 
-
-var MCache = function(node) {
-  // return node;
-  var cached=[];
-  var cacheLimit = 100000;
-  var iterator = getIterator(node);
-  var gen = mGenerator(function*(node) {
-    var count = 0;
-    while (true) {
-      if (cached.length<=count || count > cacheLimit) {
-        var n = iterator.next();
-        if (n.done)
-          break;
-        if (count > cacheLimit) {
-          yield n.value;
-          continue;
-        }
-        cached.push(n.value);
-      }
-      yield cached[count++];
-    }
-
-  }, "cache");
-  return gen(node);
-}
 
 
 // var MAutomatePlay = mGenerator(function*(propName,node) {

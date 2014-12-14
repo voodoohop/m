@@ -67,5 +67,3 @@ function getSandBox(loadedSequences) {
   return Object.freeze(sandbox);
 }
 var $__default = getSandBox;
-
-//# sourceMappingURL=sequenceEvalSandbox.map

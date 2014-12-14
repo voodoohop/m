@@ -31,11 +31,14 @@ var eventPlayer = function(evtWithOffset) {
   };
 };
 var BaconSequencer = wu.curryable(function(baconTime, sequence) {
+  console.log("sequencer", sequence);
   var seqIterator = null;
   var next = null;
   return baconTime.take(1).flatMap((function(firstTime) {
     return baconTime.diff(firstTime, (function(prevDecoded, timeDecoded) {
       var prevTime = prevDecoded.time;
+      if (Number.isNaN(prevTime))
+        prevTime = 0;
       var time = timeDecoded.time;
       if (seqIterator == null) {
         console.log("skipping to", prevTime, "for sequence", sequence);
@@ -43,12 +46,11 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
           return n.time < prevTime;
         })).toPlayable());
         next = seqIterator.next();
-        console.log("done skipping");
       }
       var count = 0;
       while (next.value.time < prevTime) {
         next = seqIterator.next();
-        console.warn("time lag:", prevTime - next.value.time + "".bgRed, next.value);
+        console.warn("time lag:", prevTime - next.value.time + "".bgRed);
         if (count++ > 5) {
           console.log("event overflow, yielding to bacon", time.toFixed(2));
           return [];
@@ -72,5 +74,3 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
     return Bacon.fromArray(v);
   })).map(eventPlayer);
 });
-
-//# sourceMappingURL=tomSequencer.map

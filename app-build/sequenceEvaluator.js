@@ -66,5 +66,3 @@ function evalSequences(code, loadedSequences) {
 }
 var $__default = evalSequences;
 ;
-
-//# sourceMappingURL=sequenceEvaluator.map

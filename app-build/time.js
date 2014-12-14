@@ -20,5 +20,3 @@ var t = {
     return 1.0 / n;
   }))
 };
-
-//# sourceMappingURL=time.map

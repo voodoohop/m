@@ -141,5 +141,3 @@ generatorList.onValue((function(v) {
 moduleManager.evaluated.onValue((function(v) {
   return webServer.individualGeneratorUpdate(v);
 }));
-
-//# sourceMappingURL=main.map

@@ -1,6 +1,6 @@
 import {t} from "./time";
 
-import timeInterpolator from "./timeInterpolator";
+// import timeInterpolator from "./timeInterpolator";
 
 import {wu} from "./wu";
 

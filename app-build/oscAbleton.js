@@ -9,10 +9,8 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $__time__,
-    $__timeInterpolator__,
     $__wu__;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
-var timeInterpolator = ($__timeInterpolator__ = require("./timeInterpolator"), $__timeInterpolator__ && $__timeInterpolator__.__esModule && $__timeInterpolator__ || {default: $__timeInterpolator__}).default;
 var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
 var osc = require("osc");
 var Bacon = require("baconjs");
@@ -31,9 +29,9 @@ var noteOffTracker = function(seqName, outPort, baconReset, notePlayer) {
   var noteOff = notePlayer.noteOff;
   var currentOn = {};
   baconReset.take(1).onValue((function() {
-    for (var $__3 = Object.keys(currentOn)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__4; !($__4 = $__3.next()).done; ) {
-      let n = $__4.value;
+    for (var $__2 = Object.keys(currentOn)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__3; !($__3 = $__2.next()).done; ) {
+      var n = $__3.value;
       notePlayer.noteOff(seqName, outPort, n);
     }
     currentOn = {};
@@ -168,5 +166,3 @@ var AbletonSender = function(outPort) {
 };
 var abletonSender = AbletonSender(8916);
 var abletonReceiver = AbletonReceiver(8895);
-
-//# sourceMappingURL=oscAbleton.map

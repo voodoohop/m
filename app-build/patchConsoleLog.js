@@ -38,5 +38,3 @@ var newLog = (function(bgCol) {
 console.log = newLog(null);
 console.warn = newLog("bgMagenta");
 console.error = newLog("bgRed");
-
-//# sourceMappingURL=patchConsoleLog.map

@@ -5,6 +5,8 @@ import {t} from "./time";
 
 var Bacon = require("baconjs");
 
+// var Rx = require("Rx");
+
 var eventPlayer = function(evtWithOffset) {
 //  console.log("trying to play", evt);
   var evt = evtWithOffset.evt;
@@ -24,13 +26,15 @@ var eventPlayer = function(evtWithOffset) {
 }
 
 export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
-  //console.log("sequencer",baconTime);
+  console.log("sequencer",sequence);
   var seqIterator = null;
   var next=null;
   return baconTime.take(1).flatMap((firstTime) => baconTime.diff(firstTime,(prevDecoded,timeDecoded) => {
 
     // TODO: do backwards time jump here
     var prevTime = prevDecoded.time;
+    if (Number.isNaN(prevTime))
+      prevTime = 0;
     var time = timeDecoded.time;
 
     if (seqIterator == null) {
@@ -39,14 +43,29 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
         .skipWhile((n) => n.time < prevTime)
         .toPlayable());
       next = seqIterator.next();
-      console.log("done skipping");
+    //   console.log("Rx",Rx.Observable);
+    //   var seqStream = Rx.Observable.from(sequence.skipWhile((n) => n.time < prevTime)
+    //   .toPlayable());
+    //   console.log("rxStream",seqStream);
+    //   var subscription = seqStream.subscribe(
+    //     function (x) {
+    //       console.log('Next: ' + x);
+    //     },
+    //     function (err) {
+    //       console.log('Error: ' + err);
+    //     },
+    //     function () {
+    //       console.log('Completed');
+    //     });
+    //
+    //   console.log("done skipping");
     }
 
     // console.log("timeDecoded", timeDecoded);
     var count=0;
     while (next.value.time < prevTime) {
       next = seqIterator.next();
-      console.warn("time lag:",prevTime-next.value.time+"".bgRed, next.value);
+      console.warn("time lag:",prevTime-next.value.time+"".bgRed);
       if (count++ > 5) { // low limit for too many events may need to change for other environments!!!
          console.log("event overflow, yielding to bacon",time.toFixed(2));
          return [];

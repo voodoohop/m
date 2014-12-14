@@ -45,5 +45,3 @@ var $__default = function(baconTime) {
   });
   return interpolatedTime;
 };
-
-//# sourceMappingURL=timeInterpolator.map

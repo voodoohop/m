@@ -62,11 +62,14 @@ var remoteLogger = new Bacon.Bus();
 remoteLogger.onValue((function(v) {
   io.sockets.emit("consoleMessage", v);
 }));
+var count = 0;
 var sequenceFeedback = new Bacon.Bus();
 sequenceFeedback.filter((function(v) {
-  return !v.automationVal;
-})).onValue((function(v) {
+  return v.type == "noteOn" && !v.automationVal;
+})).skipDuplicates(_.isEqual).onValue((function(v) {
   io.sockets.emit("sequenceEvent", {
+    count: count++,
+    device: v.device,
     pitch: v.pitch,
     time: v.time,
     name: v.name,
@@ -84,5 +87,3 @@ var $__default = {
   individualGeneratorUpdate: individualGenUpdate
 };
 console.log("exported");
-
-//# sourceMappingURL=webConnection.map

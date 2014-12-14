@@ -10,11 +10,9 @@ Object.defineProperties(exports, {
 });
 var test = 'es6!';
 var generate = function*() {
-  let res2 = "hey";
+  var res2 = "hey";
   yield {t: (function() {
       return 3;
     })};
   yield res2;
 };
-
-//# sourceMappingURL=module.map

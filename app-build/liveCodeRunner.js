@@ -21,18 +21,16 @@ function liveCodeRun(path, sequencer) {
     console.log("stopping activeSequencers", activeSequencers);
     for (var $__3 = activeSequencers[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__4; !($__4 = $__3.next()).done; ) {
-      let s = $__4.value;
+      var s = $__4.value;
       {
         s.stop();
       }
     }
     firstTime = null;
-    let sequences = newCode.run(m, t, baconParam, teoria);
+    var sequences = newCode.run(m, t, baconParam, teoria);
     activeSequencers = sequences.map((function(s) {
       return sequencer(s);
     }));
     console.log("activeSequencers", activeSequencers.length);
   });
 }
-
-//# sourceMappingURL=liveCodeRunner.map

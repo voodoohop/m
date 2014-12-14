@@ -1,6 +1,7 @@
 #!/bin/sh
 rm app-build/*
 
-traceur --arrow-functions=true --unicode-expressions=true --numeric-literals=true --unicode-escape-sequences=true --block-binding=parse --generators=parse --symbols=parse --default-parameters=true --for-of=true --rest-parameters=true --spread=true --destructuring=true --classes=true --computed-property-names=true --dir app app-build --modules=commonjs --source-maps  
+traceur --arrow-functions=true --unicode-expressions=true --numeric-literals=true --unicode-escape-sequences=true --block-binding=true --generators=parse --symbols=parse --default-parameters=true --for-of=true --rest-parameters=true --spread=true --destructuring=true --classes=true --computed-property-names=true --dir app app-build --modules=commonjs
+#--source-maps
 #browserify browser/braceEditor.js > browser-build/app.js
 node  --harmony index.js

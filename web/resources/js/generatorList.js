@@ -44,7 +44,6 @@ var GenPreview = require('./generatorPreview');
 
 
 module.exports = component('GeneratorList', function (props) {
-
   var createItem = function(treeNode, root, key) {
     if (!key)
       key="";
@@ -75,9 +74,11 @@ module.exports = component('GeneratorList', function (props) {
 
   console.log("keysss",props.cursor.toJS());//keySeq().toJS());
 
-  props.cursor.toArray().forEach(function(gen) {
+
+  props.cursor.valueSeq().forEach(function(gen) {
+    console.log("genCursor",gen);
     tree[gen.device] = gen.evaluatedDetails;
-  });
+  }.bind(this));
 
 
 
