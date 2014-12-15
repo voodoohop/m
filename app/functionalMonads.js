@@ -2,11 +2,20 @@
 
 // TODO: add sanity checks and user understandable errors in every method
 
-import {immutableTom} from "./proxiedImmutable";
+
 
 import {wu} from "./wu";
 
-import {prettyToString,toStringObject,toStringDetailed,addFuncProp, clone, addObjectProp, addObjectProps, isIterable, getIterator,fixFloat, cloneableEmptyObject} from "./utils";
+import {prettyToString,toStringObject,toStringDetailed,addFuncProp, /*clone, addObjectProp, addObjectProps, */isIterable, getIterator,fixFloat} from "./utils";
+
+import immutableTom from "./proxiedImmutable";
+
+var addObjectProp = (obj, name, val,enumerable) => obj.set(name,val);
+var addObjectProps = (obj, props,enumerable) => {
+  // console.log("adding to immuuutable",obj,props,obj.set);
+  props = _.mapValues(props, (value) => (typeof value === "function" && value.length <= 1) ? value(obj):value);
+  return obj.set(props);
+}
 
 var _ = require("lodash");
 
@@ -144,23 +153,20 @@ var MData = mGenerator(function*(data) {
   } else {
     var dataObj;
     if (data instanceof Object) {
-      dataObj = _.clone(data);
+      dataObj = immutableTom(data);
 
-      // if (!dataObj.prototype)
-      //   dataObj.prototype = {
-      //     toString: () => toStringDetailed(data)
-      //   };
-      // else
+
       if (isIterable(data))
         throw "Errrrroorr data shouldn't be iterable";
-      //delete dataObj.toString;
-      Object.defineProperty(dataObj,"toString", {enumerable:false,value:() => toStringDetailed(data)});
-      // if (dataObj.prototype)
-      //   dataObj.prototype.toString = data.toString;
-      // dataObj = data;
+
+
+      //   //   //   //   //   // Object.defineProperty(dataObj,"toString", {enumerable:false,value:() => toStringDetailed(data)});
+
+
     }
     else {
-      dataObj = {type:"value", valueOf: () => data};
+      dataObj = immutableTom({type:"value", valueOf: () => data});
+      console.log("created dataObj from value",dataObj);
     }
     yield dataObj;
   }
@@ -183,13 +189,13 @@ var MLoopData = mGenerator( function*(dataNode) {
 
     for (var props of MZip(..._.values(data))) {
       //console.log(zippedProps);
-      var resData = {};
-      props.forEach(function(val,i) {
-        //val = Object(val);
-        resData[keys[i]] = val;
-      });
+
+      var resData = props.reduce(function(prev, val,i) {
+        // console.log("reduceLoopData",prev,keys[i]+":"+val,i);
+        return prev.set(keys[i],val);
+      },immutableTom());
       //resData._data = data;
-      yield resData;
+      yield immutableTom(resData);
     }
   }
 },"loopData");
@@ -258,7 +264,7 @@ var MGroupTime = mGenerator(function*(node) {
     if (n.time > currentTime) {
 
       if (grouped.length > 0) {
-        yield {events: grouped, time:currentTime};
+        yield immutableTom({events: grouped, time:currentTime});
         grouped = [];
       }
       currentTime = fixFloat(n.time);
@@ -332,7 +338,7 @@ var MProcessAutomations = mGenerator(function*(node) {
     }
     // console.log("mapping",n);
     // console.log("returning for flatten and schedule", {time:n.time, events: merged.delay(n.time).toArray()});
-    return {time:n.time, events: merged.delay(n.time)};
+    return immutableTom({time:n.time, events: merged.delay(n.time)});
   }, MNoteAutomate(node)))));
 
 },"processAutomations");
@@ -539,8 +545,10 @@ var MFlattenAndSchedule = mGenerator(function* (node) {
         if (nFlat.time <= n.time)
           yield nFlat;
         else {
-          if (!scheduled.has(nFlat.time))
+          if (!scheduled.has(nFlat.time)){
+            // console.log("nflat",nFlat, nFlat.time);
             scheduled.set(nFlat.time, []);
+          }
           scheduled.get(nFlat.time).push(nFlat);
         }
       }
@@ -698,9 +706,9 @@ var MTimeShift = mGenerator((amount,node) => MMapTime((time) => time + amount, n
 var MReduce = mGenerator(function*(reduceFunc, startValue,node) {
     var current = startValue;
     for (var e of node) {
-      current = reduceFunc(_.clone(current), e);
+      current = reduceFunc(current, e);
     }
-    yield _.clone(current);
+    yield current;
 },"reduce", 3);
 
 

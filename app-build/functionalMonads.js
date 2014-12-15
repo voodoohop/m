@@ -8,23 +8,28 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__proxiedImmutable__,
-    $__wu__,
-    $__utils__;
-var immutableTom = ($__proxiedImmutable__ = require("./proxiedImmutable"), $__proxiedImmutable__ && $__proxiedImmutable__.__esModule && $__proxiedImmutable__ || {default: $__proxiedImmutable__}).immutableTom;
+var $__wu__,
+    $__utils__,
+    $__proxiedImmutable__;
 var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
-var $__2 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
-    prettyToString = $__2.prettyToString,
-    toStringObject = $__2.toStringObject,
-    toStringDetailed = $__2.toStringDetailed,
-    addFuncProp = $__2.addFuncProp,
-    clone = $__2.clone,
-    addObjectProp = $__2.addObjectProp,
-    addObjectProps = $__2.addObjectProps,
-    isIterable = $__2.isIterable,
-    getIterator = $__2.getIterator,
-    fixFloat = $__2.fixFloat,
-    cloneableEmptyObject = $__2.cloneableEmptyObject;
+var $__1 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
+    prettyToString = $__1.prettyToString,
+    toStringObject = $__1.toStringObject,
+    toStringDetailed = $__1.toStringDetailed,
+    addFuncProp = $__1.addFuncProp,
+    isIterable = $__1.isIterable,
+    getIterator = $__1.getIterator,
+    fixFloat = $__1.fixFloat;
+var immutableTom = ($__proxiedImmutable__ = require("./proxiedImmutable"), $__proxiedImmutable__ && $__proxiedImmutable__.__esModule && $__proxiedImmutable__ || {default: $__proxiedImmutable__}).default;
+var addObjectProp = (function(obj, name, val, enumerable) {
+  return obj.set(name, val);
+});
+var addObjectProps = (function(obj, props, enumerable) {
+  props = _.mapValues(props, (function(value) {
+    return (typeof value === "function" && value.length <= 1) ? value(obj) : value;
+  }));
+  return obj.set(props);
+});
 var _ = require("lodash");
 var memoize = require('memoizee');
 var SortedMap = require("collections/sorted-map");
@@ -134,22 +139,17 @@ var MData = mGenerator(function*(data) {
   } else {
     var dataObj;
     if (data instanceof Object) {
-      dataObj = _.clone(data);
+      dataObj = immutableTom(data);
       if (isIterable(data))
         throw "Errrrroorr data shouldn't be iterable";
-      Object.defineProperty(dataObj, "toString", {
-        enumerable: false,
-        value: (function() {
-          return toStringDetailed(data);
-        })
-      });
     } else {
-      dataObj = {
+      dataObj = immutableTom({
         type: "value",
         valueOf: (function() {
           return data;
         })
-      };
+      });
+      console.log("created dataObj from value", dataObj);
     }
     yield dataObj;
   }
@@ -176,11 +176,10 @@ var MLoopData = mGenerator(function*(dataNode) {
           $__7; !($__7 = $__6.next()).done; ) {
         var props = $__7.value;
         {
-          var resData = {};
-          props.forEach(function(val, i) {
-            resData[keys[i]] = val;
-          });
-          yield resData;
+          var resData = props.reduce(function(prev, val, i) {
+            return prev.set(keys[i], val);
+          }, immutableTom());
+          yield immutableTom(resData);
         }
       }
     }
@@ -256,10 +255,10 @@ var MGroupTime = mGenerator(function*(node) {
       }
       if (n.time > currentTime) {
         if (grouped.length > 0) {
-          yield {
+          yield immutableTom({
             events: grouped,
             time: currentTime
-          };
+          });
           grouped = [];
         }
         currentTime = fixFloat(n.time);
@@ -340,10 +339,10 @@ var MProcessAutomations = mGenerator(function*(node) {
         merged = merged.merge(automation);
       }
     }
-    return {
+    return immutableTom({
       time: n.time,
       events: merged.delay(n.time)
-    };
+    });
   }), MNoteAutomate(node)))));
 }, "processAutomations");
 var MSetValue = mGenerator(function*(value, child) {
@@ -512,8 +511,9 @@ var MFlattenAndSchedule = mGenerator(function*(node) {
             if (nFlat.time <= n.time)
               yield nFlat;
             else {
-              if (!scheduled.has(nFlat.time))
+              if (!scheduled.has(nFlat.time)) {
                 scheduled.set(nFlat.time, []);
+              }
               scheduled.get(nFlat.time).push(nFlat);
             }
           } else
@@ -688,10 +688,10 @@ var MReduce = mGenerator(function*(reduceFunc, startValue, node) {
       $__7; !($__7 = $__6.next()).done; ) {
     var e = $__7.value;
     {
-      current = reduceFunc(_.clone(current), e);
+      current = reduceFunc(current, e);
     }
   }
-  yield _.clone(current);
+  yield current;
 }, "reduce", 3);
 var MDurationSum = mGenerator(MReduce((function(sum, timedEvent) {
   return sum + timedEvent.duration;

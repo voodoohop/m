@@ -9,8 +9,10 @@ var _ = require("lodash");
 var Proxy = require('harmony-proxy');
 var nothing = {};
 var deleteMe = {DELETED: true};
-var immutableTom = function(initial) {
-  var wrapNewProps = (function(target, newProps) {
+var immutableTom = function() {
+  var initial = arguments[0] !== (void 0) ? arguments[0] : {};
+  var deep = arguments[1] !== (void 0) ? arguments[1] : false;
+  var wrapNewProps = (function(target, newProps, deep) {
     var setFunc = (function(name) {
       var val = arguments[1] !== (void 0) ? arguments[1] : deleteMe;
       var $__0;
@@ -19,10 +21,10 @@ var immutableTom = function(initial) {
         configurable: true,
         enumerable: true,
         writable: true
-      }), $__0) : name);
+      }), $__0) : name, deep);
     });
     var getFunc = _.memoize((function(name) {
-      var res = newProps && newProps.hasOwnProperty(name) && newProps[name] ? newProps[name] : target[name];
+      var res = newProps && newProps.hasOwnProperty(name) && newProps.hasOwnProperty(name) ? newProps[name] : target[name];
       return res === deleteMe ? undefined : res;
     }));
     var keysFunc = _.memoize((function() {
@@ -50,13 +52,15 @@ var immutableTom = function(initial) {
           return setFunc;
         if (name === "delete")
           return setFunc;
+        if (name === "isImmutable")
+          return true;
         return getFunc(name);
       }),
       set: (function() {
         for (var args = [],
             $__1 = 0; $__1 < arguments.length; $__1++)
           args[$__1] = arguments[$__1];
-        throw ["tried mutating immutableTom", args, target];
+        throw ["tried mutating immutableTom", args, "" + target];
       }),
       has: (function(t, name) {
         return hasCheck(name);
@@ -92,12 +96,12 @@ var immutableTom = function(initial) {
         for (var args = [],
             $__3 = 0; $__3 < arguments.length; $__3++)
           args[$__3] = arguments[$__3];
-        throw ["tried defining a property of immutableTom", args, target];
+        throw ["tried defining a property of immutableTom"];
       })
     });
     return newProxy;
   });
-  return wrapNewProps(nothing, initial);
+  return wrapNewProps(nothing, initial, deep);
 };
 var assert = require("assert");
 var test1 = immutableTom({bla: 2}).set("test", 5);
@@ -113,5 +117,4 @@ var deletedProp = test1.delete("bla");
 assert.equal(deletedProp.bla, undefined);
 assert.equal(deletedProp.hasOwnProperty("bla"), false);
 console.log("immutableTom Test1", test1, test1.test, deletedProp, Object.keys(test1));
-throw "bye";
 var $__default = immutableTom;

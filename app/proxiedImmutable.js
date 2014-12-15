@@ -12,11 +12,11 @@ const deleteMe= {DELETED:true};
 var immutableTom = function(initial={}, deep=false) {
   var wrapNewProps = (target, newProps, deep) => {
     // console.log("wrapping",target," with newProps",newProps);
-
+    // console.log("adding ",newProps,"to",target)
     var setFunc = (name, val=deleteMe) => wrapNewProps(newProxy, typeof name === "string" ? {[name]:val}:name,deep);
 
     var getFunc = _.memoize(name => {
-      var res = newProps && newProps.hasOwnProperty(name) && newProps[name] ? newProps[name] : target[name];
+      var res = newProps && newProps.hasOwnProperty(name) && newProps.hasOwnProperty(name) ? newProps[name] : target[name];
       return res === deleteMe ? undefined:res;
     });
 
@@ -33,9 +33,13 @@ var immutableTom = function(initial={}, deep=false) {
           return setFunc;
         if (name === "delete")
           return setFunc;
+        if (name === "isImmutable")
+          return true;
+        // if (name === "toString")
+        //   return () => "vlaaaa";
         return getFunc(name);
       },
-      set: (...args) => {throw ["tried mutating immutableTom",args,target]},
+      set: (...args) => {throw ["tried mutating immutableTom",args,""+target]},
       has: (t, name) => hasCheck(name),
       hasOwn: (t, name) => hasCheck(name),
       iterate: (t) => keysFunc().map(k => getFunc(k)),
@@ -47,7 +51,7 @@ var immutableTom = function(initial={}, deep=false) {
       getOwnPropertyNames: keysFunc,
       getOwnPropertyDescriptor: (t,name) => getPropDescriptor(name),
       deleteProperty: (...args) => {throw ["tried deleting from immutableTom",args,target]},
-      defineProperty: (...args) => {throw ["tried defining a property of immutableTom",args,target]},
+      defineProperty: (...args) => {throw ["tried defining a property of immutableTom"]},
     });
     return newProxy;
   }
@@ -72,6 +76,6 @@ assert.equal(deletedProp.hasOwnProperty("bla"),false);
 
 console.log("immutableTom Test1", test1, test1.test, deletedProp, Object.keys(test1));
 
- throw "bye";
+ // throw "bye";
 
 export default immutableTom;
