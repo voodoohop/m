@@ -1,4 +1,7 @@
+//require('source-map-support').install();
+require('traceur/bin/traceur-runtime');
 
+require('stack-displayname');
 //var traceur = require("traceur");
 //
 // console.log("traceur",traceur);

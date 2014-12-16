@@ -5,7 +5,7 @@ export var kick=m.evt({pitch:[54,60,65],velocity:0.9, duration:kickGrid-0.5}).ca
 .automate("pitchBend", n => Math.sin((n.time+n.evt.time)*Math.PI/1)/4+0.5).cache();
 
 
-export var tom=m.evt({pitch:60,velocity:0.7, duration:0.1,color:"yellow"}).metro(0.2).bjorklund(16,9,2);
+export var tom=m.evt({pitch:60,velocity:0.7, duration:0.1,color:"yellow"}).metro(0.25).bjorklund(16,9,2);
     
 export var hat=m.evt({pitch:[48,60],velocity:[0.3,0.5,0.7,0.3,0.6], duration:0.1}).metro(0.25).bjorklund(4,3,0).swing(1/4,0.15).cache();
 

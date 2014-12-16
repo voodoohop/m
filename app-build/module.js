@@ -10,7 +10,7 @@ Object.defineProperties(exports, {
 });
 var test = 'es6!';
 var generate = function*() {
-  var res2 = "hey";
+  let res2 = "hey";
   yield {t: (function() {
       return 3;
     })};

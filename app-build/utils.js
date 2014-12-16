@@ -50,25 +50,25 @@ var generatorize = function(fn) {
     return function*() {
       for (var $__2 = getIterator(params)[$traceurRuntime.toProperty(Symbol.iterator)](),
           $__3; !($__3 = $__2.next()).done; ) {
-        var p = $__3.value;
+        let p = $__3.value;
         yield fn(p);
       }
     };
   };
 };
-var isIterable = (function(thing) {
+const isIterable = (function(thing) {
   return thing && typeof thing[wu.iteratorSymbol] === "function" && typeof thing != "string";
 });
-var getIterator = (function(thing) {
+const getIterator = (function(thing) {
   if (isIterable(thing))
     return thing[wu.iteratorSymbol]();
   throw new TypeError("Not iterable: " + thing);
 });
-var fixFloat = (function(n) {
+const fixFloat = (function(n) {
   return parseFloat(n.toPrecision(12));
 });
 var objectsCloned = 0;
-var clone = function(obj) {
+const clone = function(obj) {
   objectsCloned++;
   if (objectsCloned % 5000 == 0)
     console.log("cloned", objectsCloned);
@@ -93,12 +93,12 @@ var addObjectProps = function(eventObject, props) {
   var descriptor = {};
   for (var $__2 = Object.getOwnPropertyNames(eventObject)[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__3; !($__3 = $__2.next()).done; ) {
-    var propN = $__3.value;
+    let propN = $__3.value;
     descriptor[propN] = Object.getOwnPropertyDescriptor(eventObject, propN);
   }
   for (var $__4 = keys[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
-    var key = $__5.value;
+    let key = $__5.value;
     {
       var value = props[key];
       if (enumerable && typeof value === "function" && value.length <= 1) {

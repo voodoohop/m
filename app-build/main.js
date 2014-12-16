@@ -9,6 +9,8 @@ var $__patchConsoleLog__,
     $__webConnection__,
     $__sequencePlayManager__,
     $__codeStore__;
+require('traceur/bin/traceur-runtime');
+require('stack-displayname');
 ($__patchConsoleLog__ = require("./patchConsoleLog"), $__patchConsoleLog__ && $__patchConsoleLog__.__esModule && $__patchConsoleLog__ || {default: $__patchConsoleLog__});
 var teoria = require("teoria");
 var m = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).m;

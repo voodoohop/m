@@ -1,1 +1,0 @@
-{"version":3,"file":"app-build/test2.js","sources":["app/test2.js"],"names":[],"mappings":"AACA;AAAA,MAAM,IAAI,AAAC,CAAC,SAAQ,CAAC,CAAC;AACtB","sourceRoot":"app-build/","sourcesContent":["\nconsole.log(\"heeeeey\");\n"]}

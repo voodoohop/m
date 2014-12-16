@@ -14,7 +14,7 @@ function text(code) {
   var es5code = traceur.Compiler.script(code);
   console.log("compiled", es5code);
   userFunc = new Function("log", "time", "osc", "events", "control", "sequencer", es5code);
-  var beautified = js_beautify(code, {indent_size: 2});
+  let beautified = js_beautify(code, {indent_size: 2});
   log("beautified", beautified);
   outlet(1, ["set", code]);
   userFuncUpdated = true;
@@ -102,7 +102,7 @@ function mapDevice(path) {
   }
 }
 function midiInstrument() {
-  var playingNotes = new Set();
+  let playingNotes = new Set();
   return {play: (function(event) {
       playingNotes.add(event);
       outlet(2, [event.pitch, event.velocity]);

@@ -6,11 +6,23 @@ Object.defineProperties(exports, {
   m: {get: function() {
       return m;
     }},
+  kick: {get: function() {
+      return kick;
+    }},
+  tom: {get: function() {
+      return tom;
+    }},
+  hat: {get: function() {
+      return hat;
+    }},
+  kick_real: {get: function() {
+      return kick_real;
+    }},
   __esModule: {value: true}
 });
 var $__wu__,
     $__utils__,
-    $__proxiedImmutable__;
+    $__nodeProxiedImmutable__;
 var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
 var $__1 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
     prettyToString = $__1.prettyToString,
@@ -20,18 +32,12 @@ var $__1 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule
     isIterable = $__1.isIterable,
     getIterator = $__1.getIterator,
     fixFloat = $__1.fixFloat;
-var immutableTom = ($__proxiedImmutable__ = require("./proxiedImmutable"), $__proxiedImmutable__ && $__proxiedImmutable__.__esModule && $__proxiedImmutable__ || {default: $__proxiedImmutable__}).default;
-var addObjectProp = (function(obj, name, val, enumerable) {
-  return obj.set(name, val);
-});
-var addObjectProps = (function(obj, props, enumerable) {
-  props = _.mapValues(props, (function(value) {
-    return (typeof value === "function" && value.length <= 1) ? value(obj) : value;
-  }));
-  return obj.set(props);
-});
+var $__2 = ($__nodeProxiedImmutable__ = require("./nodeProxiedImmutable"), $__nodeProxiedImmutable__ && $__nodeProxiedImmutable__.__esModule && $__nodeProxiedImmutable__ || {default: $__nodeProxiedImmutable__}),
+    immutableObj = $__2.immutableTom,
+    addObjectProp = $__2.addObjectProp,
+    addObjectProps = $__2.addObjectProps;
 var _ = require("lodash");
-var memoize = require('memoizee');
+var memoize = require('memoizee/weak');
 var SortedMap = require("collections/sorted-map");
 var getIterators = (function(values) {
   return values.map(getIterator);
@@ -56,8 +62,29 @@ var loopGeneratorArgs = function(generatorProducer, args) {
   var node = args[args.length - 1];
 };
 var Immutable = require("immutable");
-var caches = {};
-var cacheLimit = 10000;
+var cacheLimit = 500;
+var cache_disabled = {disabled: true};
+var createCache = function() {
+  var caches = {};
+  return function(key, disable) {
+    if (disable) {
+      caches[key] = cache_disabled;
+      return undefined;
+    }
+    if (!caches[key])
+      caches[key] = [];
+    return caches[key];
+  };
+};
+var createCacheWM = function() {
+  var caches = new WeakMap();
+  return function(key) {
+    if (!caches.get(key))
+      caches.set(key, []);
+    return caches.get(key);
+  };
+};
+var cache = createCache();
 var mGenerator = function() {
   for (var args = [],
       $__14 = 0; $__14 < arguments.length; $__14++)
@@ -69,20 +96,22 @@ var mGenerator = function() {
   return mGeneratorUnCached.apply(null, $traceurRuntime.spread(args));
 };
 var doCache = function*(node) {
+  yield* getIterator(node);
+  return;
   var cacheKey = "" + node;
-  if (!caches[cacheKey]) {
-    console.log("not yet cashed".bgBlue.white, cacheKey);
-    caches[cacheKey] = [];
+  var cached = cache(cacheKey);
+  if (cached === cache_disabled) {
+    yield* getIterator(node);
+    return;
   }
-  var cached = caches[cacheKey];
   var count = 0;
   var iterator = null;
   while (true) {
     if (cached.length <= count || count > cacheLimit) {
       if (iterator == null) {
+        node = MSkip(count, node);
         if (count > cacheLimit) {
-          node = MSkip(count, node);
-          console.warn("cache full", node);
+          cache(cacheKey, true);
         }
         iterator = getIterator(node);
       }
@@ -91,7 +120,8 @@ var doCache = function*(node) {
         break;
       if (count > cacheLimit) {
         yield n.value;
-        continue;
+        yield* iterator;
+        return;
       }
       cached.push(n.value);
     }
@@ -139,11 +169,11 @@ var MData = mGenerator(function*(data) {
   } else {
     var dataObj;
     if (data instanceof Object) {
-      dataObj = immutableTom(data);
+      dataObj = immutableObj(data);
       if (isIterable(data))
         throw "Errrrroorr data shouldn't be iterable";
     } else {
-      dataObj = immutableTom({
+      dataObj = immutableObj({
         type: "value",
         valueOf: (function() {
           return data;
@@ -178,8 +208,8 @@ var MLoopData = mGenerator(function*(dataNode) {
         {
           var resData = props.reduce(function(prev, val, i) {
             return prev.set(keys[i], val);
-          }, immutableTom());
-          yield immutableTom(resData);
+          }, immutableObj());
+          yield immutableObj(resData);
         }
       }
     }
@@ -255,7 +285,7 @@ var MGroupTime = mGenerator(function*(node) {
       }
       if (n.time > currentTime) {
         if (grouped.length > 0) {
-          yield immutableTom({
+          yield immutableObj({
             events: grouped,
             time: currentTime
           });
@@ -339,7 +369,7 @@ var MProcessAutomations = mGenerator(function*(node) {
         merged = merged.merge(automation);
       }
     }
-    return immutableTom({
+    return immutableObj({
       time: n.time,
       events: merged.delay(n.time)
     });
@@ -366,9 +396,7 @@ var MLoop = mGenerator(function*(node) {
   var cached = null;
   while (true) {
     if (isIterable(node)) {
-      if (cached == null)
-        cached = MCache(node);
-      yield* getIterator(cached);
+      yield* getIterator(node);
     } else {
       yield node;
     }
@@ -920,6 +948,20 @@ function MToArray(node) {
   }
   return res;
 }
+var Rx = require("Rx");
+var MToRx = (function(node) {
+  return Rx.Observable.from(node);
+});
+var wait = require('wait.for-es6');
+var MfromRx = function*(rxObservable) {
+  return {next: function*() {
+      var nextVal = yield wait.for(rxObservable.onValue);
+      return {
+        value: nextVal,
+        done: false
+      };
+    }};
+};
 var makeChainable = function(lib, name, funcToChain) {
   return function() {
     for (var args = [],
@@ -945,6 +987,7 @@ var FunctionalMusic = function() {
   var addFunction = function(name, func) {
     var chaining = arguments[2] !== (void 0) ? arguments[2] : true;
     func.prototype = _.clone(func.prototype);
+    func.displayName = name;
     func.prototype.toString = (function() {
       return name;
     });
@@ -999,8 +1042,104 @@ var FunctionalMusic = function() {
   addFunction("combine", MCombine);
   addFunction("combineMap", MCombineMap);
   addFunction("toArray", MToArray, false);
+  addFunction("toRx", MToRx, false);
+  addFunction("fromRx", MfromRx);
   addFunction("withNext", MWithNext);
   addFunction("cache", MCache);
   return lib;
 };
 var m = FunctionalMusic();
+var kickGrid = 2;
+var kick = m.evt({
+  pitch: [54, 60, 65],
+  velocity: 0.9,
+  duration: kickGrid - 0.5
+}).metro(kickGrid).automate("pitchBend", (function(n) {
+  return Math.sin((n.time + n.evt.time) * Math.PI / 1) / 4 + 0.5;
+}));
+var tom = m.evt({
+  pitch: 60,
+  velocity: 0.7,
+  duration: 0.1,
+  color: "yellow"
+}).metro(0.2).bjorklund(16, 9, 2);
+var rxified = tom.take(100).toRx();
+rxified.subscribe((function(v) {
+  return console.log("rx", v);
+}));
+var mified = m.fromRx(rxified);
+console.log(mified.toArray());
+var hat = m.evt({
+  pitch: [48, 60],
+  velocity: [0.3, 0.5, 0.7, 0.3, 0.6],
+  duration: 0.1
+}).metro(0.25).bjorklund(4, 3, 0).swing(1 / 4, 0.15);
+var kick_real = m.evt({
+  pitch: 60,
+  velocity: [0.9, 0.7, 0.8],
+  duration: 0.1
+}).metro(1);
+var microtime = require("microtime");
+var profilerDataStore = [];
+var profileSamples = 2000;
+var startTime = microtime.nowDouble();
+for (var $__6 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__7; !($__7 = $__6.next()).done; ) {
+  var n = $__7.value;
+  var x = ({
+    time: n.time,
+    pitch: n.pitch,
+    veloctiy: n.velocity,
+    type: n.type
+  });
+}
+var timeTaken = microtime.nowDouble() - startTime;
+console.log("time:", timeTaken);
+for (var $__8 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__9; !($__9 = $__8.next()).done; ) {
+  var n = $__9.value;
+  var x = ({
+    time: n.time,
+    pitch: n.pitch,
+    veloctiy: n.velocity
+  });
+}
+timeTaken = microtime.nowDouble() - startTime;
+console.log("time:", timeTaken);
+for (var $__10 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__11; !($__11 = $__10.next()).done; ) {
+  var n = $__11.value;
+  {
+    var x = ({
+      time: n.time,
+      pitch: n.pitch,
+      veloctiy: n.velocity,
+      type: n.type
+    });
+    x = ({
+      time: n.time,
+      pitch: n.pitch,
+      veloctiy: n.velocity,
+      type: n.type
+    });
+    x = ({
+      time: n.time,
+      pitch: n.pitch,
+      veloctiy: n.velocity,
+      type: n.type
+    });
+  }
+}
+timeTaken = microtime.nowDouble() - startTime;
+console.log("time2:", timeTaken);
+for (var $__12 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__13; !($__13 = $__12.next()).done; ) {
+  var n = $__13.value;
+  var x = ({
+    time: n.time,
+    pitch: n.pitch,
+    veloctiy: n.velocity
+  });
+}
+timeTaken = microtime.nowDouble() - startTime;
+console.log("time:", timeTaken);

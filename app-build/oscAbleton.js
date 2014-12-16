@@ -31,7 +31,7 @@ var noteOffTracker = function(seqName, outPort, baconReset, notePlayer) {
   baconReset.take(1).onValue((function() {
     for (var $__2 = Object.keys(currentOn)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__3; !($__3 = $__2.next()).done; ) {
-      var n = $__3.value;
+      let n = $__3.value;
       notePlayer.noteOff(seqName, outPort, n);
     }
     currentOn = {};

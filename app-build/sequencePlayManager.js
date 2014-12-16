@@ -37,7 +37,7 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     var needToBeStopped = ($__6 = _).without.apply($__6, $traceurRuntime.spread([Object.keys(playingSequences)], _.pluck(subscribedSequences, "sequenceName")));
     for (var $__2 = needToBeStopped[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__3; !($__3 = $__2.next()).done; ) {
-      var seqName = $__3.value;
+      let seqName = $__3.value;
       {
         playingSequences[seqName].stop();
         delete playingSequences[seqName];
@@ -48,10 +48,10 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     console.log("needToPlay", needToPlay);
     for (var $__4 = needToPlay[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
-      var seqName$__8 = $__5.value;
+      let seqName = $__5.value;
       {
-        if (availableSequences[seqName$__8])
-          instrumentPlayer(availableSequences[seqName$__8]);
+        if (availableSequences[seqName])
+          instrumentPlayer(availableSequences[seqName]);
       }
     }
     resetRequests.push(Math.random());
@@ -87,7 +87,7 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
   resetMessages.onValue((function() {
     for (var $__2 = Object.keys(playingSequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__3; !($__3 = $__2.next()).done; ) {
-      var seqName = $__3.value;
+      let seqName = $__3.value;
       {
         playingSequences[seqName].stop();
         console.log("after reset recreating instrumentPlayer for ", seqName, playingSequences[seqName]);
