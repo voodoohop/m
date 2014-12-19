@@ -59,7 +59,7 @@ module.exports = component('GeneratorList', function (props) {
     else {
       //return <div>{treeNode.name}</div>
       var handleClick = function() {
-        console.log("click",key,this);
+        console.log("click",key,this,treeNode);
         this.props.statics.loadCode(key);
       }.bind(this);
       if (treeNode.isSequenceGenerator)

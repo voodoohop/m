@@ -57,9 +57,14 @@ var gridLine = component("gridLines", function(props) {
     return <g>{gridLines}</g>;
 });
 
+// var Inspector = require('react-json-inspector');
 
 module.exports = component("generatorPreview", function(gens) {
   console.log("genPreview",gens);
+  if (gens.evaluatedError){
+    var errorStyle = {color:"red", fontWeight:"bold"};
+    return <div style={errorStyle}>{gens}</div>
+  }
   var evts = gens.eventSample;
   var style={display:"inline-block", width:"95%", height:"80px", border: "1px solid white", position:"relative"};
   var SIZE = 1;

@@ -116,6 +116,20 @@ updateGenerator.onValue(function (genUpdate) {
     console.log("prev",prev.toJS());
     return prev.set(genUpdate.device, genUpdate);
   });
+  console.log("genUpdate",genUpdate);
+  if (genUpdate.device != myDeviceId)
+    return
+  var myGens = genUpdate.evaluatedDetails;
+  Object.keys(myGens).forEach(function(seqName) {
+    var error;
+    console.log("checking ",seqName,"for errors");
+    if (error = myGens[seqName].evaluatedError) {
+      if (error.errorPos) {
+        console.log("marking error",error);
+        cursorToSeq.push(error);
+      }
+    }
+  })
 });
 
 var loadCode = function(path) {

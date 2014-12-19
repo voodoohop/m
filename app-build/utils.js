@@ -42,13 +42,13 @@ var generatorize = function(fn) {
   return function() {
     for (var params = [],
         $__6 = 0; $__6 < arguments.length; $__6++)
-      params[$__6] = arguments[$__6];
+      params[$traceurRuntime.toProperty($__6)] = arguments[$traceurRuntime.toProperty($__6)];
     if (params.length == 1)
       params = params[0];
     if (!isIterable(params) && !(typeof params === "function"))
       return fn(params);
     return function*() {
-      for (var $__2 = getIterator(params)[$traceurRuntime.toProperty(Symbol.iterator)](),
+      for (var $__2 = getIterator(params)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
           $__3; !($__3 = $__2.next()).done; ) {
         let p = $__3.value;
         yield fn(p);
@@ -57,11 +57,11 @@ var generatorize = function(fn) {
   };
 };
 const isIterable = (function(thing) {
-  return thing && typeof thing[wu.iteratorSymbol] === "function" && typeof thing != "string";
+  return thing && typeof thing[$traceurRuntime.toProperty(Symbol.iterator)] === "function" && typeof thing != "string";
 });
 const getIterator = (function(thing) {
   if (isIterable(thing))
-    return thing[wu.iteratorSymbol]();
+    return thing[$traceurRuntime.toProperty(Symbol.iterator)]();
   throw new TypeError("Not iterable: " + thing);
 });
 const fixFloat = (function(n) {
@@ -79,7 +79,7 @@ const clone = function(obj) {
   Object.getOwnPropertyNames(obj).forEach(function(name) {
     var prop = Object.getOwnPropertyDescriptor(obj, name);
     prop.configurable = true;
-    descriptors[name] = prop;
+    descriptors[$traceurRuntime.toProperty(name)] = prop;
   });
   return Object.create(Object.getPrototypeOf(obj), descriptors);
 };
@@ -91,16 +91,16 @@ var addObjectProps = function(eventObject, props) {
   if (keys.length == 0)
     return eventObject;
   var descriptor = {};
-  for (var $__2 = Object.getOwnPropertyNames(eventObject)[$traceurRuntime.toProperty(Symbol.iterator)](),
+  for (var $__2 = Object.getOwnPropertyNames(eventObject)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
       $__3; !($__3 = $__2.next()).done; ) {
     let propN = $__3.value;
-    descriptor[propN] = Object.getOwnPropertyDescriptor(eventObject, propN);
+    descriptor[$traceurRuntime.toProperty(propN)] = Object.getOwnPropertyDescriptor(eventObject, propN);
   }
-  for (var $__4 = keys[$traceurRuntime.toProperty(Symbol.iterator)](),
+  for (var $__4 = keys[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
       $__5; !($__5 = $__4.next()).done; ) {
     let key = $__5.value;
     {
-      var value = props[key];
+      var value = props[$traceurRuntime.toProperty(key)];
       if (enumerable && typeof value === "function" && value.length <= 1) {
         if (key != "toString" && key != "valueOf") {
           var functor = value;
@@ -112,7 +112,7 @@ var addObjectProps = function(eventObject, props) {
           }
         }
       }
-      descriptor[key] = {
+      descriptor[$traceurRuntime.toProperty(key)] = {
         configurable: true,
         enumerable: enumerable,
         value: value
@@ -125,7 +125,7 @@ var addObjectProps = function(eventObject, props) {
 var addObjectProp = function(eventObject, name, value) {
   var enumerable = arguments[3] !== (void 0) ? arguments[3] : true;
   var $__1;
-  if (eventObject[name] === value) {
+  if (eventObject[$traceurRuntime.toProperty(name)] === value) {
     return eventObject;
   }
   return addObjectProps(eventObject, ($__1 = {}, Object.defineProperty($__1, name, {
@@ -146,8 +146,12 @@ var addFuncProp = function(eventObject, name, func) {
   return newObject;
 };
 var toStringDetailed = function(v) {
+  if (v == null)
+    return "null";
   if (!v.isTom) {
     var stringified = JSON.stringify(v, function(key, val) {
+      if (val === null)
+        return "null";
       if (val.isTom)
         return toStringDetailed(val);
       if (key == "toString" || key == "inspect")
@@ -162,7 +166,7 @@ var toStringDetailed = function(v) {
   return "" + v;
 };
 var toStringObject = function(o) {
-  if (typeof o == "object") {
+  if ((typeof o === 'undefined' ? 'undefined' : $traceurRuntime.typeof(o)) == "object") {
     o.prototype.toString = (function() {
       return "tooostring";
     });

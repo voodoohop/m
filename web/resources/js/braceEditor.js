@@ -43,7 +43,17 @@ module.exports = React.createClass({
     this.editor.focus();
     this.setState({});
     this.props.cursorToSeq.onValue(function(v) {
-      this.setState({cursorToSeq: v});
+      if (v.error) {
+        this.editor.getSession().setAnnotations([{
+          row: v.errorPos[0]-1,
+          column: v.errorPos[1],
+          text: v.description,
+          type: "error" // also warning and information
+        }]);
+        this.editor.moveCursorTo(v.errorPos[0]-1,v.errorPos[1]);
+      }
+      else
+        this.setState({cursorToSeq: v});
     }.bind(this));
     this.props.setCode.onValue(function(v) {
       this.editor.setValue(v);

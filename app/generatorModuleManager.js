@@ -6,8 +6,6 @@ var Immutable = require("immutable");
 
 
 
-
-
 import {isIterable,getIterator,clone} from "./utils";
 
 
@@ -38,9 +36,10 @@ var loadedSequenceStream = new Bacon.Bus();
 
 
 var evalStreamEntry = function(loadedSequences, newSequence) {
+  console.log("evaluating new Sequence:".underline,newSequence);
   var newSeqIm = Immutable.fromJS(newSequence);
-  console.log("evaluating new Sequence:".underline,newSeqIm);
-
+  if (newSeqIm.get("error"))
+    return newSeqIm;
   var allExports = loadedSequences.valueSeq().map(v => v.get("exports")).flatten();
   var unsatisfiedImports = newSeqIm.get("imports").entrySeq().filter((i) => {
     var [importDevice, importSeqNames] = i;
@@ -55,21 +54,21 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
     console.log("existing exports".bold,loadedSequences.entrySeq().map(s => ({name: s[0],  exports:s[1].get("exports").toJS()})).toJS());
     return newSeqIm.set("evaluatedError", Immutable.Map({type:"importsUnsatisfied", msg:"imports unsatisfied", imports:unsatisfiedImports}));
   }
-  var [evaluated,details, error] = evalSequences(newSequence.processedCode, loadedSequences);
+  var [evaluated,details, error] = evalSequences(newSequence, loadedSequences);
   var evaluatedRes = null;
   if (!details) {
     console.error("eval of ",newSequence,"FAILED!!!".red);
     //return Bacon.never();
     evaluatedRes = Immutable.fromJS(newSequence).set("evaluatedError", error);
   } else
-    evaluatedRes = Immutable.fromJS(newSequence).merge({evaluated: evaluated, evaluatedDetails: details});
+    evaluatedRes = Immutable.fromJS(newSequence).merge({evaluated: evaluated, evaluatedDetails: details, evaluatedError:error, error:error});
     // console.log("evalSequences result", evaluatedRes.toJS());
     return evaluatedRes;
 }
 
 var processedAndReEval = new Bacon.Bus();
 
-processedAndReEval.plug(processed.skipErrors());
+processedAndReEval.plug(processed);
 
 
 var markForReEval = function(loadedSequences, device) {
@@ -88,13 +87,14 @@ export var evaluated =
     var res = evalStreamEntry(...s);
     var loadedSequences = s[0];
     var newSequence = s[1];
-    if (!res.get("evaluatedError"))
-      markForReEval(loadedSequences, newSequence.device);
+    // if (!res.get("evaluatedError"))
+    markForReEval(loadedSequences, newSequence.device);
     return res;
   });
 
+var stackTrace = require('stack-trace');
 
-var evaluatedSequenceStream = evaluated.skipErrors().scan(
+var evaluatedSequenceStream = evaluated.scan(
   Immutable.Map(), (prev, next) => prev.set(next.get("device"), next)
 );
 
@@ -105,9 +105,24 @@ loadedSequenceStream.plug(evaluatedSequenceStream);
 
 export var loadedSequences = evaluatedSequenceStream;
 
-export var processedSequences = evaluated//.filter((n) => n.get("evaluated"))//.flatMap((n) => n.get("evaluated").toJS());
+
+var processedSequences_noStack = evaluated//.filter((n) => n.get("evaluated"))//.flatMap((n) => n.get("evaluated").toJS());
 .flatMap(n => {
+  if (!n.toJS)
+  console.log("nnn",n);
  var n = n.toJS();
  // console.log("flatMap",Object.keys(n.evaluated).map(seqName => ({device: n.device, name:seqName})));
  return Bacon.fromArray(n.exports.map(seqName => _.extend({sequence: n.evaluated ? n.evaluated[seqName] : null, device: n.device, name:seqName},n)));
 });
+
+
+export var processedSequences = processedSequences_noStack.map((s) => {
+  var error = s.error || s.evaluatedError;
+  if (error && error instanceof Error) {
+    console.log("generating stacktrace for error", error);
+    s.error = error;
+    s.error.stackTrace = stackTrace.parse(error);
+  }
+  return s;
+}
+);

@@ -24,14 +24,14 @@ export var generatorize = function(fn) {
 
 // Return whether a thing is iterable.
 export const isIterable = thing => {
-  return thing && typeof thing[wu.iteratorSymbol] === "function" && typeof thing != "string";
+  return thing && typeof thing[Symbol.iterator] === "function" && typeof thing != "string";
 };
 
 // Get the iterator for the thing or throw an error.
 // TODO: make two functions, one for when we are expecting a tom music type and one for converting outside arguments to iterators
 export const getIterator = (thing) => {
   if (isIterable(thing))
-    return thing[wu.iteratorSymbol]();
+    return thing[Symbol.iterator]();
   throw new TypeError("Not iterable: " + thing);
 };
 
@@ -123,9 +123,13 @@ export var addFuncProp = function(eventObject, name, func) {
 export var toStringDetailed = function(v) {
 //  console.log(v);
   //  if (v instanceof Object) {
+      if (v==null)
+        return "null";
       if (!v.isTom) {
         // console.log("stringify");
         var stringified = JSON.stringify(v, function(key, val) {
+          if (val === null)
+            return "null"
           if (val.isTom)
             return toStringDetailed(val);
           if (key=="toString" || key=="inspect")

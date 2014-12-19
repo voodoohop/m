@@ -19,7 +19,7 @@ function liveCodeRun(path, sequencer) {
   var liveCode = hotload(path, function(newCode) {
     console.log("reloaded", newCode);
     console.log("stopping activeSequencers", activeSequencers);
-    for (var $__3 = activeSequencers[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__3 = activeSequencers[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__4; !($__4 = $__3.next()).done; ) {
       let s = $__4.value;
       {

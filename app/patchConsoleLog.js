@@ -4,7 +4,8 @@ var colors = require('colors');
 
 var oldLog= console.log;
 
-var limitStringLength = (s) => s.length>500 ? (s.substring(0,500)).yellow+"...".bold.underline : s;
+var lengthLimit = 20000;
+var limitStringLength = (s) => s.length>lengthLimit ? (s.substring(0,lengthLimit)).yellow+"...".bold.underline : s;
 
 var toStringForLog =  (a, depth=1) => {
   if (a === undefined)
@@ -18,6 +19,7 @@ var toStringForLog =  (a, depth=1) => {
     if (depth > 0 && typeof a == "object" && !util.isArray(a)) {
         return "{ "+Object.keys(a).map(key => key.bold+ ": " + toStringForLog(a[key],0)).join(", ")+" }";
       }
+
       return limitStringLength(util.inspect(a,{colors:true}));
     }
 

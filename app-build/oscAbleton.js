@@ -29,7 +29,7 @@ var noteOffTracker = function(seqName, outPort, baconReset, notePlayer) {
   var noteOff = notePlayer.noteOff;
   var currentOn = {};
   baconReset.take(1).onValue((function() {
-    for (var $__2 = Object.keys(currentOn)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__2 = Object.keys(currentOn)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__3; !($__3 = $__2.next()).done; ) {
       let n = $__3.value;
       notePlayer.noteOff(seqName, outPort, n);
@@ -38,11 +38,11 @@ var noteOffTracker = function(seqName, outPort, baconReset, notePlayer) {
   }));
   return {
     noteOn: wu.curryable(function(pitch, velocity, time) {
-      currentOn[pitch] = true;
+      currentOn[$traceurRuntime.toProperty(pitch)] = true;
       return notePlayer.noteOn(seqName, outPort, pitch, velocity, time);
     }),
     noteOff: wu.curryable(function(pitch, time) {
-      delete currentOn[pitch];
+      delete currentOn[$traceurRuntime.toProperty(pitch)];
       return notePlayer.noteOff(seqName, outPort, pitch, time);
     }),
     param: notePlayer.param
@@ -79,8 +79,12 @@ var AbletonReceiver = function(inPort) {
   var sequencePlayRequests = oscMessageIn.filter((function(message) {
     return message.address == "/requestSequence";
   })).map((function(v) {
+    var seqPath = v.args[0];
+    console.log("got subscribe request from ableton", seqPath);
     return {
-      sequenceName: v.args[0],
+      name: seqPath.split("/")[1],
+      device: seqPath.split("/")[0],
+      path: seqPath,
       port: v.args[1]
     };
   }));
@@ -112,22 +116,24 @@ var AbletonSender = function(outPort) {
   });
   console.log("starting OSC Ableton sender to port", outPort);
   udpPort.open();
-  var noteOn = wu.curryable(function(seqName, outPort, pitch, velocity, time) {
+  var noteOn = wu.curryable(function(seqPath, outPort, pitch, velocity, time) {
+    console.log("noteOn", pitch, time * t.beats(1));
     udpPort.send({
       address: "/midiNote",
-      args: [seqName, pitch, Math.floor(velocity * 127), 1, time * t.beats(1)]
+      args: [seqPath, pitch, Math.floor(velocity * 127), 1, time * t.beats(1)]
     }, "127.0.0.1", outPort);
   });
-  var noteOff = wu.curryable(function(seqName, outPort, pitch, time) {
+  var noteOff = wu.curryable(function(seqPath, outPort, pitch, time) {
+    console.log("noteOff", pitch, time * t.beats(1));
     udpPort.send({
       address: "/midiNote",
-      args: [seqName, pitch, 0, 0, time * t.beats(1)]
+      args: [seqPath, pitch, 0, 0, time * t.beats(1)]
     }, "127.0.0.1", outPort);
   });
-  var param = wu.curryable(function(seqName, outPort, name, val, time) {
+  var param = wu.curryable(function(seqPath, outPort, name, val, time) {
     udpPort.send({
       address: "/param",
-      args: [seqName, name, name == "pitchBend" ? Math.floor(val * 127) : val, time * t.beats(1)]
+      args: [seqPath, name, name == "pitchBend" ? Math.floor(val * 127) : val, time * t.beats(1)]
     }, "127.0.0.1", outPort);
   });
   var baconInstrumentBus = new Bacon.Bus();
@@ -139,23 +145,23 @@ var AbletonSender = function(outPort) {
     udpPort.send({
       address: "/generatorList",
       args: generatorList.map((function(g) {
-        return g.name;
+        return g.device + "/" + g.name;
       }))
     }, "127.0.0.1", outPort);
   };
   return {
-    instrument: function(seqName) {
+    instrument: function(seqPath) {
       return {
-        noteOn: noteOn(seqName, outPort),
-        noteOff: noteOff(seqName, outPort),
-        param: param(seqName, outPort)
+        noteOn: noteOn(seqPath, outPort),
+        noteOff: noteOff(seqPath, outPort),
+        param: param(seqPath, outPort)
       };
     },
-    subscribeInstrument: function(seqName, listenerPort) {
+    subscribeInstrument: function(seqPath, listenerPort) {
       return {
-        noteOn: noteOn(seqName, listenerPort),
-        noteOff: noteOff(seqName, listenerPort),
-        param: param(seqName, listenerPort)
+        noteOn: noteOn(seqPath, listenerPort),
+        noteOff: noteOff(seqPath, listenerPort),
+        param: param(seqPath, listenerPort)
       };
     },
     noteOn: noteOn,

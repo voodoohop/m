@@ -1,105 +1,136 @@
-
 var vm = require("vm");
 
 var _ = require("lodash");
 
 var microtime = require("microtime");
+var stackTrace = require("stack-trace");
+
+import wrapError from "./wrapSequenceError";
 
 import sandbox from "./sequenceEvalSandbox";
-  // var wait=require('wait.for-es6')
+// var wait=require('wait.for-es6')
 
-  var testIfSeqEmitsNotes = function(sequences, sequenceSandbox) {
-
-
-    // var resSequences = vm.runInNewContext(code, sequenceSandbox, {timeout: '1000'});
+var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) {
 
 
-    // console.log("seq res".bgYellow, sequences);
+  // var resSequences = vm.runInNewContext(code, sequenceSandbox, {timeout: '1000'});
 
-    // console.log("tester:",testerCode);
-    return _.mapValues(sequences, seq => {
-      // var seq = sequences[seqName];
-      var res = {
-        // sequence: seq
-      };
 
-      res.isSequenceGenerator = seq.isTom;
+  // console.log("seq res".bgYellow, sequences);
 
-      if (!res.isSequenceGenerator)
-        return res;
-      var sampleSize=500;
-      var playableSequence = seq.toPlayable().take(500);
-      var testerCode = "result = sequence.toArray()";
+  // console.log("tester:",testerCode);
+  return _.mapValues(sequences, seq => {
+    // var seq = sequences[seqName];
 
-      console.log("testing playableSequence:".bgYellow,seq, playableSequence);
+    var res = {
+      // sequence: seq
+    };
 
-      try {
-        var startTime=microtime.nowDouble();
-        var testSeqResult = vm.runInNewContext(testerCode,{
-          traceurRuntime: $traceurRuntime,
-          sequence: playableSequence,
-          console: sequenceSandbox.console
-        }, {timeout: 1000});
+    res.isSequenceGenerator = seq.isTom;
 
-        var timeTaken = microtime.nowDouble()-startTime;
-        var lastBeatTime = testSeqResult[testSeqResult.length-1].time;
-        console.log("testSeqResult", lastBeatTime, timeTaken);
-        res.playable = true;
-        res.eventSample = testSeqResult;
-        res.timeTaken = timeTaken;
-        res.timePerEvent = timeTaken/sampleSize;
-        res.beatsPerTime = lastBeatTime/timeTaken;
-
-      } catch(e) {
-        console.log("exception while trying to generate events",e.stack,e);
-        res.playable=false;
-      }
+    if (!res.isSequenceGenerator)
       return res;
-      //console.log("test result:",testSeqResult);
-    });
-  }
+    var sampleSize = 500;
+    var playableSequence = seq.toPlayable().take(500);
+    var testerCode = "result = sequence.toArray();";
+    // console.log("testing playableSequence:".bgYellow,seq, playableSequence);
 
+    var globalBack = {};
+    for (let key of Object.keys(sequenceSandbox)) {
+      globalBack[key] = global[key];
+      global[key] = sequenceSandbox[key];
+    }
+    globalBack.sequence = global.sequence;
+    global.sequence = playableSequence;
 
-  export default  function evalSequences(code, loadedSequences) {
-
-    // console.log("creating sandbox");
-    var sequenceSandbox = sandbox(loadedSequences);
-    // console.log("created sandbox");
-
-    var sequences = null
-    var passedTests = false;
-    var error =null;
+    var startTime = microtime.nowDouble();
+    var testSeqResult = null;
+    var timeTaken;
     try {
-      // console.log("sequencesForLoading", sequencePlayManager.availableSequences);
-      var availableGlobals = Object.keys(sequenceSandbox);
-      var f = new Function(...availableGlobals, "return "+code);
+      testSeqResult = vm.runInThisContext(testerCode, {
+        timeout: 3000
+      });
+      timeTaken = microtime.nowDouble() - startTime;
 
-      var globals = _.values(sequenceSandbox);
-      sequences = f(...globals);
-
-      console.log("testing if sequences emit events", Object.keys(sequences));
-
-      var testedSequences = testIfSeqEmitsNotes(sequences,sequenceSandbox);
-      console.log("testedSequences".bgYellow, testedSequences);
-      //if (_.find(tested))
-      // for (let k of Object.keys(sequences)) {
-      //   if (sequences[k].isTom) {
-      //     console.log("first 5 event of sequence",sequences[k].take(5).toArray());
-      //     console.log("test if seq emits notes in separate worker");
-      //     // wait.launchFiber(testIfSeqEmitsNotes, sequences[k]);
-      //   }
-      //   else
-      //     console.log("wasn't a sequence generator:",k);
-      //   }
-      //   passedTests = true;
-      passedTests=testedSequences;
-    } catch(e) {
-      console.log("exception in live code",e.stack);
-      error = ["exception in live code",e.stack];
+    } catch (e) {
+      console.log("exception while trying to generate events", e.stack, e, seq);
+      res.playable = false;
+      res.evaluatedError = wrapError(e, sequenceContext, seq.name); //{msg:"msg.runTimeError"+e, stack:e.stack, exception: e};
+      // res.stackTrace = stackTrace.parse(e);
     }
 
-    if (sequences == null || !passedTests)
-      return [null, false, error];
+    for (let key of Object.keys(globalBack))
+      global[key] = globalBack[key];
 
-    return [sequences,passedTests];
-  };
+    // global = globalBackup;
+    if (!res.evaluatedError && testSeqResult && testSeqResult.length > 0) {
+      var lastBeatTime = testSeqResult[testSeqResult.length - 1].time;
+      console.log("testSeqResult", lastBeatTime, timeTaken);
+      res.playable = true;
+      res.eventSample = testSeqResult;
+      res.timeTaken = timeTaken;
+      res.timePerEvent = timeTaken / sampleSize;
+      res.beatsPerTime = lastBeatTime / timeTaken;
+    }
+
+    return res;
+    //console.log("test result:",testSeqResult);
+  });
+}
+
+
+export default function evalSequences(seqContext, loadedSequences) {
+
+  var code = seqContext.processedCode;
+  // console.log("creating sandbox");
+  var sequenceSandbox = sandbox(loadedSequences);
+  // console.log("created sandbox");
+
+  var sequences = null
+  var passedTests = false;
+  var error = null;
+
+
+
+    // console.log("sequencesForLoading", sequencePlayManager.availableSequences);
+    // var availableGlobals = Object.keys(sequenceSandbox);
+    // var f = new Function(...availableGlobals, code);
+    // console.log("running code",code);
+    // var globalBackup = global;
+    var globalBack = {};
+    for (let key of Object.keys(sequenceSandbox)) {
+      globalBack[key] = global[key];
+      global[key] = sequenceSandbox[key];
+    }
+    try {
+
+    sequences = vm.runInThisContext(code, {
+      timeout: 500
+    });
+  } catch (e) {
+    console.log("exception in live code", e.stack);
+    error = wrapError(e, seqContext);
+  }
+  for (let key of Object.keys(globalBack))
+    global[key] = globalBack[key];
+
+    // global = globalBackup;
+    // console.log(testSeqResult);
+    // process.exit(1);
+    // var globals = _.values(sequenceSandbox);
+    // sequences = f(...globals);
+
+    console.log("testing if sequences emit events", Object.keys(sequences));
+
+    var testedSequences = testIfSeqEmitsNotes(sequences, sequenceSandbox, seqContext);
+    console.log("testedSequences".bgYellow, testedSequences);
+
+    passedTests = testedSequences;
+
+
+
+  if (sequences == null || !passedTests)
+    return [null, false, error];
+
+  return [sequences, passedTests];
+};

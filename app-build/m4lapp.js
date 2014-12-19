@@ -28,8 +28,8 @@ function getDeviceParamController() {
 function neighbourPath(this_device, offset) {
   var path = this_device.path.split(" ");
   log(path);
-  var rightDeviceNo = path[path.length - 1];
-  path[path.length - 1] = "" + (parseInt(rightDeviceNo) + offset);
+  var rightDeviceNo = path[$traceurRuntime.toProperty(path.length - 1)];
+  path[$traceurRuntime.toProperty(path.length - 1)] = "" + (parseInt(rightDeviceNo) + offset);
   log(path);
   var newPath = path.join(" ");
   return newPath;
@@ -38,8 +38,8 @@ var syncedOscillators = function() {
   var globalTime = 0;
   var syncedOscs = {};
   Object.keys(OZ).forEach(function(key) {
-    syncedOscs[key] = function(rate, optionalTime) {
-      var osc = OZ[key];
+    syncedOscs[$traceurRuntime.toProperty(key)] = function(rate, optionalTime) {
+      var osc = OZ[$traceurRuntime.toProperty(key)];
       var time = (arguments.length > 1 ? optionalTime : globalTime);
       return osc(time, rate);
     };
@@ -60,8 +60,8 @@ function tick(rawTicks) {
 var oscillators = function(gTime) {
   var syncedOscs = {};
   Object.keys(OZ).forEach(function(key) {
-    syncedOscs[key] = function(rate, optionalTime) {
-      var osc = OZ[key];
+    syncedOscs[$traceurRuntime.toProperty(key)] = function(rate, optionalTime) {
+      var osc = OZ[$traceurRuntime.toProperty(key)];
       var time = (arguments.length > 1 ? optionalTime : gTime);
       return osc(time, rate);
     };
@@ -78,7 +78,7 @@ function userNote(pitch, velocity, startTime, duration) {
 function controlSequenceGenerator(time) {
   var control = {};
   function controlValues(c, v) {
-    control[c] = v;
+    control[$traceurRuntime.toProperty(c)] = v;
   }
   control.time = time;
   userFunc(log, time, oscillators(time), scheduledEvents, controlValues, tomSequencer);

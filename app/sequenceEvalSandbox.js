@@ -18,7 +18,7 @@ var _ = require("lodash");
 
 import {abletonReceiver, abletonSender} from "./oscAbleton";
 
-
+var vm = require("vm");
 
 var remoteLog = function(...m) {
   console.log("seqLog".bgYellow,m);
@@ -39,7 +39,7 @@ export default function getSandBox(loadedSequences) {
       var evaluated = loadedSequences.getIn([m,"evaluated"]);
       console.log("seqLoader: sending evaluated",evaluated);
       if (!evaluated)
-        throw "evaluated sequences falsy",m;
+        throw new Error("evaluated sequences falsy"+m);
       return evaluated;
     }
   }
@@ -56,9 +56,10 @@ export default function getSandBox(loadedSequences) {
     "System": seqLoader,
     "clone":clone,
     "easer":() => new Easer(),
-    "console": {log: remoteLog, warn: remoteLog, error: remoteLog}
+    // "console": {log: remoteLog, warn: remoteLog, error: remoteLog},
+    "Symbol": Symbol
   };
 
 
-  return Object.freeze(sandbox);
+  return sandbox;
 }

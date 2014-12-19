@@ -25,7 +25,7 @@ var baconStream = Bacon.fromBinder(function(sink) {
       if (generatorStore) {
         Object.keys(generatorStore).forEach(function(devName) {
           console.log("emitting ", devName);
-          io.sockets.emit("generatorUpdate", generatorStore[devName]);
+          io.sockets.emit("generatorUpdate", generatorStore[$traceurRuntime.toProperty(devName)]);
         });
       }
     });
@@ -50,7 +50,7 @@ var generatorUpdate = function() {
   var generators = arguments[0] !== (void 0) ? arguments[0] : null;
 };
 var individualGenUpdate = function(genData) {
-  generatorStore[genData.get("device")] = genData.toJS();
+  generatorStore[$traceurRuntime.toProperty(genData.get("device"))] = genData.toJS();
   io.sockets.emit("generatorUpdate", genData.toJS());
 };
 var beatFeedback = function(beatInfo) {

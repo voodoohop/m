@@ -9,8 +9,6 @@ var $__patchConsoleLog__,
     $__webConnection__,
     $__sequencePlayManager__,
     $__codeStore__;
-require('traceur/bin/traceur-runtime');
-require('stack-displayname');
 ($__patchConsoleLog__ = require("./patchConsoleLog"), $__patchConsoleLog__ && $__patchConsoleLog__.__esModule && $__patchConsoleLog__ || {default: $__patchConsoleLog__});
 var teoria = require("teoria");
 var m = ($__functionalMonads__ = require("./functionalMonads"), $__functionalMonads__ && $__functionalMonads__.__esModule && $__functionalMonads__ || {default: $__functionalMonads__}).m;
@@ -27,7 +25,7 @@ var moduleManager = ($__generatorModuleManager__ = require("./generatorModuleMan
 var _ = require("lodash");
 var Bacon = require("baconjs");
 var traceur = require("traceur");
-var liveCodeReset = new Bacon.Bus();
+var timeResetRequest = new Bacon.Bus();
 var lastCodeResetNo = -1;
 var decodedTime = abletonReceiver.time.diff(0, (function(a, b) {
   return b - a;
@@ -38,7 +36,7 @@ var decodedTime = abletonReceiver.time.diff(0, (function(a, b) {
   };
 })).map((function(time) {
   return time.timeDiff < -8 ? _.extend({reset: true}, time) : time;
-})).combine(liveCodeReset.debounceImmediate(500).toProperty(), function(time, codeReset) {
+})).combine(timeResetRequest.debounceImmediate(500).toProperty(), function(time, codeReset) {
   if (lastCodeResetNo != codeReset) {
     console.log("RESET", time, codeReset);
     lastCodeResetNo = codeReset;
@@ -55,8 +53,8 @@ var decodedTime = abletonReceiver.time.diff(0, (function(a, b) {
 }));
 var timeThatAccountsForTransportJumps2 = decodedTime.map((function(t) {
   return {
-    time: t.time - t.firstTime,
-    offset: t.firstTime
+    time: t.time,
+    offset: 0
   };
 }));
 var timeThatAccountsForTransportJumps = timeThatAccountsForTransportJumps2;
@@ -67,10 +65,17 @@ var resetMessages = decodedTime.map((function(t) {
 })).debounce(50);
 timeThatAccountsForTransportJumps.throttle(1000).log("timeWithOffset");
 resetMessages.log("RESET");
+setTimeout((function() {
+  return timeResetRequest.push("first time resseeet");
+}), 2000);
 var webServer = ($__webConnection__ = require("./webConnection"), $__webConnection__ && $__webConnection__.__esModule && $__webConnection__ || {default: $__webConnection__}).default;
 var SequencePlayManager = ($__sequencePlayManager__ = require("./sequencePlayManager"), $__sequencePlayManager__ && $__sequencePlayManager__.__esModule && $__sequencePlayManager__ || {default: $__sequencePlayManager__}).default;
 var sequencePlayManager = SequencePlayManager(timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
-liveCodeReset.plug(sequencePlayManager.resetRequests);
+timeThatAccountsForTransportJumps.throttle(1000).onValue((function() {
+  return console.log("playing Sequences".bgMagenta.white, Object.keys(sequencePlayManager.playingSequences).map((function(seqPath) {
+    return seqPath + ":" + sequencePlayManager.playingSequences[$traceurRuntime.toProperty(seqPath)].port;
+  })));
+}));
 var $__7 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
     baconStorer = $__7.baconStorer,
     onCodeLoaded = $__7.onCodeLoaded,
@@ -106,7 +111,7 @@ moduleManager.newSequenceCode.plug(newClipSequences);
 moduleManager.newSequenceCode.plug(webServer.liveCode);
 setTimeout(function() {
   console.log("CODE LOADED", storedSequences);
-  for (var $__8 = storedSequences[$traceurRuntime.toProperty(Symbol.iterator)](),
+  for (var $__8 = storedSequences[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
       $__9; !($__9 = $__8.next()).done; ) {
     var seq = $__9.value;
     {
@@ -117,18 +122,19 @@ setTimeout(function() {
     }
   }
 }, 100);
-sequencePlayManager.newSequence.plug(moduleManager.processedSequences);
 var Immutable = require("immutable");
 var generatorList = moduleManager.processedSequences.scan({}, (function(prev, next) {
-  console.log("generating first 500 samples of sequence", next);
-  prev[next.device + "/" + next.name] = {
+  if (next.evaluatedError) {
+    console.error("ERROR", next.evaluatedError);
+  }
+  prev[$traceurRuntime.toProperty(next.device + "/" + next.name)] = {
+    evaluatedError: next.evaluatedError,
     device: next.device,
     name: next.name,
     sourceCode: next.code,
     sequenceAsString: next.sequence && next.sequence.toString(),
-    eventSample: next.evaluated ? next.evaluatedDetails[next.name].eventSample : [],
-    evaluatedError: next.evaluatedError,
-    evaluatedDetails: next.evaluated ? next.evaluatedDetails[next.name] : null
+    eventSample: next.evaluated ? next.evaluatedDetails[$traceurRuntime.toProperty(next.name)].eventSample : [],
+    evaluatedDetails: next.evaluated ? next.evaluatedDetails[$traceurRuntime.toProperty(next.name)] : null
   };
   console.log("generated", next.device + "/" + next.name);
   return prev;

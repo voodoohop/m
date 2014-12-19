@@ -17,6 +17,7 @@ import {
 }
 from "./nodeProxiedImmutable";
 
+var util = require("util");
 
 var _ = require("lodash");
 
@@ -59,20 +60,22 @@ var loopGeneratorArgs = function(generatorProducer, args) {
 // TODO: change to one option param
 var Immutable = require("immutable");
 var cacheLimit = 500;
-var cache_disabled = {disabled:true};
+var cache_disabled = {
+  disabled: true
+};
 
 var createCache = function() {
   // var cache = new WeakMap();
   var caches = {};
-  return function(key,disable) {
-      if (disable) {
-        caches[key] = cache_disabled;
-        return undefined;
-      }
-      if (!caches[key])
-        caches[key] = [];
-      return caches[key];
+  return function(key, disable) {
+    if (disable) {
+      caches[key] = cache_disabled;
+      return undefined;
     }
+    if (!caches[key])
+      caches[key] = [];
+    return caches[key];
+  }
 }
 
 
@@ -82,7 +85,7 @@ var createCacheWM = function() {
   return function(key) {
     // console.log(key);
     if (!caches.get(key))
-      caches.set(key,[]);
+      caches.set(key, []);
     return caches.get(key);
   }
 }
@@ -94,14 +97,16 @@ var mGenerator = function(...args) {
   if (origGenerator.isTom)
     origGenerator[wu.iteratorSymbol] = MCache(origGenerator)[wu.iteratorSymbol];
   args.unshift(origGenerator);
+  if (args.length > 1)
+    origGenerator.displayName = args[1];
   return mGeneratorUnCached(...args);
 };
 
 var doCache = function*(node) {
-yield* getIterator(node);
-return;
+  yield * getIterator(node);
+  return;
 
-  var cacheKey = ""+node;
+  var cacheKey = "" + node;
   // console.log("cacheKey",cacheKey);
   // if (!caches[cacheKey]) {
   //   // console.log("not yet cashed".bgBlue.white,cacheKey);
@@ -110,7 +115,7 @@ return;
 
   var cached = cache(cacheKey);
   if (cached === cache_disabled) {
-    yield* getIterator(node);
+    yield * getIterator(node);
     return;
   }
 
@@ -121,7 +126,7 @@ return;
       if (iterator == null) {
         node = MSkip(count, node);
         if (count > cacheLimit) {
-          cache(cacheKey,true);
+          cache(cacheKey, true);
           // console.warn("cache full", node);
         }
         iterator = getIterator(node);
@@ -131,7 +136,7 @@ return;
         break;
       if (count > cacheLimit) {
         yield n.value;
-        yield* iterator;
+        yield * iterator;
         return;
         //continue;
       }
@@ -152,17 +157,23 @@ var MCache = function(node) {
 }
 
 
+var stackTrace = require('stack-trace');
+
+var path = process.cwd();
 
 
 var mGeneratorUnCached = function(generator, name, curryArgCount = 0, toStringOverride = null) {
 
   var getIterable = function(...args) {
+    // var trace = stackTrace.get();
+    // console.log(path);
+    // console.log(trace.map(t => t.toString().replace(path,"")).filter(t => t.indexOf("evalmachine")>=0));
+
     var res = Object.create(null);
     res.isTom = true;
     res.name = name;
 
-
-    res[wu.iteratorSymbol] = () => generator(...args); //loopGeneratorArgs(generatorProducer, args);
+    res[wu.iteratorSymbol] = () =>  generator(...args); //loopGeneratorArgs(generatorProducer, args);
     if (toStringOverride)
       res.toString = () => toStringOverride;
     else
@@ -173,6 +184,7 @@ var mGeneratorUnCached = function(generator, name, curryArgCount = 0, toStringOv
     return res;
   };
   getIterable.producerName = name;
+  getIterable.displayName = name;
   //console.log("constructed node",generatorProducer,name);
   return curryArgCount > 0 ? wu.curryable(getIterable, curryArgCount) : getIterable;
 }
@@ -180,9 +192,13 @@ var mGeneratorUnCached = function(generator, name, curryArgCount = 0, toStringOv
 
 
 
-var MData = mGenerator(function*(data) {
+var MData = mGenerator(function* mData(data) {
 
 
+  // console.log("wu",wu);
+  //  console.log("data", typeof data, util.isArray(data), isIterable([1,2,3]));
+  // console.log("blaaa", [1,2,3][@@iterator]);
+  // console.log("iterable",util.isArray(data), [1,2,3][wu.iteratorSymbol],data[wu.iteratorSymbol]);
   if (isIterable(data)) {
     for (var d of data) {
       // console.log("data:",d);
@@ -195,7 +211,7 @@ var MData = mGenerator(function*(data) {
 
 
       if (isIterable(data))
-        throw "Errrrroorr data shouldn't be iterable";
+        throw new Error("data shouldn't be iterable");
 
 
       //   //   //   //   //   // Object.defineProperty(dataObj,"toString", {enumerable:false,value:() => toStringDetailed(data)});
@@ -213,17 +229,17 @@ var MData = mGenerator(function*(data) {
 }, "data");
 
 
-for (var e of MData([{
-    pitch: 12,
-    velocity: 0.5
-  }, {
-    bla: 2
-  }]))
-  console.log("datatest", e);
+// for (var e of MData([{
+//     pitch: 12,
+//     velocity: 0.5
+//   }, {
+//     bla: 2
+//   }]))
+//   console.log("datatest", e);
 
 
 // TODO: remove this data generator nonsense? if it's not used later yes!
-var MLoopData = mGenerator(function*(dataNode) {
+var MLoopData = mGenerator(function* loopData(dataNode) {
   for (var data of dataNode) {
     var keys = Object.keys(data);
 
@@ -245,13 +261,21 @@ var MLoopData = mGenerator(function*(dataNode) {
   }
 }, "loopData");
 
+function* ftesttest() {
+console.log("hey",this);
+}
+ftesttest.constructor.bind({hey:2});
 
-var MMergeZipped = mGenerator(function*(node) {
+console.log(ftesttest.name,ftesttest().next());
+throw "bye";
+
+
+var MMergeZipped = mGenerator(function* zipMerge(node) {
   for (var n of node)
     yield addObjectProps(n[0], n[1]);
 }, "mergeZippedObjects");
 
-var MMerge = mGenerator(function*(node1, node2) {
+var MMerge = mGenerator(function* simpleMerge(node1, node2) {
   var iterators = [node1, node2].map((node) => getIterator(node));
   while (true) {
     var next = iterators.map((i) => i.next().value);
@@ -262,13 +286,13 @@ var MMerge = mGenerator(function*(node1, node2) {
   }
 }, "mergeObjects");
 
-var MSet = mGenerator(function*(data, node) {
+var MSet = mGenerator(function* set(data, node) {
   yield * getIterator(MMerge(node, MLoopData(MData(data))));
 }, "set");
 
 
 // TODO: if we leave out the shallow check we automatically have a flatmap (Maybe??)
-var MEvent = mGenerator(function*(data) {
+var MEvent = mGenerator(function* evt(data) {
   // here if data is iterable we are not looping individual properties
   if (isIterable(data)) {
     for (var e of MLoop(data))
@@ -278,14 +302,14 @@ var MEvent = mGenerator(function*(data) {
 }, "evt");
 
 
-var MProperty = mGenerator(function*(name, tomValue, children) {
+var MProperty = mGenerator(function* prop(name, tomValue, children) {
   yield * getIterator(MSet({
     [name]: tomValue
   }, children));
 }, "prop", 3);
 
 
-var MWithNext = mGenerator(function*(node) {
+var MWithNext = mGenerator(function* withNext(node) {
   var me = null;
   for (var n of node) {
     if (me == null) {
@@ -300,7 +324,7 @@ var MWithNext = mGenerator(function*(node) {
   }
 }, "withNext")
 
-var MGroupTime = mGenerator(function*(node) {
+var MGroupTime = mGenerator(function* groupByTime(node) {
   var currentTime = -1;
   var grouped = [];
   //console.log(""+node);
@@ -341,7 +365,7 @@ var MDuplicateRemover = mGenerator(function*(node) {
 
 
 
-var MNoteAutomate = mGenerator(function*(node) {
+var MNoteAutomate = mGenerator(function* noteAutomate(node) {
   // console.log(MToArray(MTake(2,node)));
 
   var notes = MFilter((n) => n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time") && n.duration > 0, node);
@@ -373,7 +397,7 @@ var MNoteAutomate = mGenerator(function*(node) {
 
 
 //TODO: figure out how to deal with automations of notes that overlap in duration. at the moment automations are overlapping
-var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
+var MAutomate = mGenerator(function* automate(paramName, valGenerator, node) {
   yield * getIterator(MMapOp((n) => {
     // var automationHolder = n.hasOwnProperty("children") ? n.children : Object.create(null);
     var automation = m.data({
@@ -398,7 +422,7 @@ var MAutomate = mGenerator(function*(paramName, valGenerator, node) {
 
 
 
-var MProcessAutomations = mGenerator(function*(node) {
+var MProcessAutomations = mGenerator(function* processAutomations(node) {
   // if (MToArray(MNoteAutomate(MTake(100,node))).length ==0)
   //   throw "no notes to automate";
 
@@ -445,15 +469,20 @@ var MProcessAutomations = mGenerator(function*(node) {
 // },"automatePlay",2);
 
 
-var MSetValue = mGenerator(function*(value, child) {
+var MSetValue = mGenerator(function* setValue(value, child) {
   //  console.log("MSetValue", value, child);
   yield * MProperty("value", value, child);
 }, "setValue", 2);
 
 
 
-var MZip = mGenerator(function*(...nodes) {
-  var loopedIterators = nodes.map((node) => getIterator(MLoop(node)));
+var MZip = mGenerator(function* zip(...nodes) {
+
+
+  var loopedIterators = nodes.map((node) => {
+    console.log(node.length,MLoop(node),MLoop(node).length)
+    return getIterator(MLoop(node))
+  });
   while (true) {
     var next = loopedIterators.map((i) => i.next().value);
     yield next;
@@ -463,31 +492,15 @@ var MZip = mGenerator(function*(...nodes) {
 
 
 var MLoop = mGenerator(function*(node) {
-  // var cached = [];
-  //
-  // for (var e of node) {
-  //   cached.push(e);
-  // //  console.log("caching",e);
-  // }
-  // console.log("cached",cached);
-  //
-  // while (true) {
-  //   yield* getIterator(cached);
-  // }
-  var cached = null;
-  while (true) {
-    //console.log(""+node);
-    if (isIterable(node)) {
-      // if (cached == null)
-      //   cached = MCache(node);
-      yield * getIterator(node);
-    } else {
-      // this is an optimization
-      //console.warn("using mloop on non-iterable");
-      yield node;
-
-    }
+  if (isIterable(node)) {
+    if (node.length>0)
+      node = Array.from(node);
+    while(true)
+      yield* getIterator(node);
   }
+  else
+    while(true)
+      yield node;
 }, "loop");
 
 
@@ -496,7 +509,7 @@ var MLoop = mGenerator(function*(node) {
 
 
 
-var simpleMap = mGenerator(function*(mapFunc, node) {
+var simpleMap = mGenerator(function* simpleMap(mapFunc, node) {
   for (var n of node) {
     yield mapFunc(n);
   }
@@ -504,7 +517,7 @@ var simpleMap = mGenerator(function*(mapFunc, node) {
 
 
 
-var MCombine = mGenerator(function*(combineNode, node) {
+var MCombine = mGenerator(function* combine(combineNode, node) {
   var combineFunc = (me, previousOther, nextOther) => addObjectProps(me, {
     other: {
       previous: previousOther,
@@ -578,7 +591,7 @@ var MCombineMap = mGenerator(function*(combineFunc, combineNode, node) {
 // },"combine",3);
 
 
-var MCompose = mGenerator(function*(...nodes) {
+var MCompose = mGenerator(function* compose(...nodes) {
   for (var node of nodes) {
     yield * getIterator(node);
   }
@@ -586,7 +599,7 @@ var MCompose = mGenerator(function*(...nodes) {
 
 
 
-var MLoopFixedLength = mGenerator(function*(loopLength, node) {
+var MLoopFixedLength = mGenerator(function* loopLength(loopLength, node) {
   var time = 0;
   while (true) {
     for (var n of node) {
@@ -600,7 +613,7 @@ var MLoopFixedLength = mGenerator(function*(loopLength, node) {
 var convertToObject = (externalVal) => Object(externalVal);
 
 
-var MSimpleMap = mGenerator(function*(mapFunc, node) {
+var MSimpleMap = mGenerator(function* simpleMap(mapFunc, node) {
   for (var e of node) {
     // console.log("mapping",e);
     yield mapFunc(e);
@@ -610,18 +623,30 @@ var MSimpleMap = mGenerator(function*(mapFunc, node) {
 }, "simpleMap");
 
 
-var MFlattenAndSchedule = mGenerator(function*(node) {
+var MFlattenAndSchedule = mGenerator(function* flattenAndSchedule(node) {
   var scheduled = new SortedMap();
+  var passedInStartTime = null;
   for (var n of node) {
     //console.log(n);
     if (n.hasOwnProperty("time")) {
       var scheduledNow = _.take(scheduled.entries(), (s) => s[0] < n.time);
+      // if (passedInStartTime != null)
+      //   scheduledNow = _.filter(scheduledNow, s[0] >= startTime);
       //console.log(scheduledNow);
       for (var scheduledEvents of scheduledNow) {
 
         for (var scheduledEvent of scheduledEvents[1]) {
-          yield scheduledEvent;
+          passedInStartTime =
+            yield scheduledEvent;
         }
+        // if (passedInStartTime)
+        //   for (let [key,evt] of scheduledNow)
+        //     if (key < passedInStartTime) {
+        //       scheduled.delete(key);
+        //       console.log("deleting ",key,"passedInTime",passedInStartTime);
+        //     }
+        //     else
+        //       break;
         scheduled.delete(scheduledEvents[0]);
       }
     } else
@@ -631,6 +656,8 @@ var MFlattenAndSchedule = mGenerator(function*(node) {
     for (var nFlat of n.events) {
       //    console.log(nFlat);
       if (nFlat.hasOwnProperty("time")) {
+        // if (passedInStartTime && nFlat.time < passedInStartTime)
+        //   continue;
         if (nFlat.time <= n.time)
           yield nFlat;
         else {
@@ -1003,49 +1030,10 @@ var MLog = mGenerator(function*(name, node) {
   }
 }, "log");
 
-// var MPlay = function(sequencer,node) {
-//   // console.log("playing, showing first five notes here",""+node);
-//   // for (var e of node.take(5)) {
-//   //   console.log("note",e);
-//   // }
-//   //console.log("converting to noteOnOff");
-//   //var noteOnOff = node.toNoteOnOff();
-//   //console.log("converted to noteOnOff");
-//   console.log();
-//   console.log();
-//   console.log("playing, showing first five notes here");
-//   console.log("--------------------------------------")
-//   console.log(""+node);
-//   console.log("--------------------------------------")
-//   for (var e of node.take(4)) {
-//     console.log("note",e);
-//   }
-//   var s = sequencer(node);
-//
-//   console.log("returning sequencer");
-//   return s;
-// }
-//
-//
-// var nextLooping = wu.curryable(function(generator,iterator) {
-//   var next = iterator.next();
-//   var newIterator = iterator;
-//   if (next.done) {
-//     newIterator = getIterator(generator);
-//     next = newIterator.next();
-//     if (next.done)
-//       console.error("it seems like we are trying to loop an iterator that doesn't yield any values");
-//   }
-//   return {newIterator, next}
-// });
-
-
-
-
 var MBjorklund = mGenerator(function*(steps, pulses, rotation, node) {
   var pattern = bjorklund(steps, pulses);
   var counter = rotation;
-  console.log(pattern, steps, pulses);
+  // console.log(pattern, steps, pulses);
   if (pattern.length == 0)
     pattern = [1];
   for (var n of node) {
@@ -1117,13 +1105,17 @@ var Rx = require("Rx");
 
 var MToRx = (node) => Rx.Observable.from(node);
 
-var wait=require('wait.for-es6');
+var wait = require('wait.for-es6');
 
 var MfromRx = function*(rxObservable) {
   return {
     next: function*() {
-      var nextVal = yield wait.for(rxObservable.onValue);
-      return {value: nextVal, done: false};
+      var nextVal =
+        yield wait.for(rxObservable.onValue);
+      return {
+        value: nextVal,
+        done: false
+      };
     }
   }
 }
@@ -1137,6 +1129,7 @@ var makeChainable = function(lib, name, funcToChain) {
         var res = lib[origFunctionName](...chainedArgs);
         return res;
       };
+      result[origFunctionName].displayName = name;
     });
     return result;
   }
@@ -1252,13 +1245,14 @@ export var tom = m.evt({
 }).metro(0.2).bjorklund(16, 9, 2);
 
 
-var rxified = tom.take(100).toRx();
+// var rxified = tom.take(100).toRx();
+//
+// rxified.subscribe((v) => console.log("rx",v));
 
-rxified.subscribe((v) => console.log("rx",v));
+// var mified = m.fromRx(rxified);
 
-var mified = m.fromRx(rxified);
+// console.log(mified.toArray());
 
-console.log(mified.toArray());
 
 export var hat = m.evt({
   pitch: [48, 60],
@@ -1281,6 +1275,7 @@ var profileSamples = 2000;
 
 var startTime = microtime.nowDouble();
 
+// console.log(kick.toPlayable()[wu.iteratorSymbol]);
 
 for (var n of kick.toPlayable().take(profileSamples))
   var x = ({
@@ -1330,7 +1325,7 @@ console.log("time2:", timeTaken);
 
 
 for (var n of tom.toPlayable().take(profileSamples))
-  var x= ({
+  var x = ({
     time: n.time,
     pitch: n.pitch,
     veloctiy: n.velocity

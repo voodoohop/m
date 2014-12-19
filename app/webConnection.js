@@ -124,8 +124,7 @@ remoteLogger.onValue((v) => {
 var count=0;
 var sequenceFeedback = new Bacon.Bus();
 sequenceFeedback.filter((v) => v.type=="noteOn" && !v.automationVal).skipDuplicates(_.isEqual).onValue((v) => {
-  // console.log(v);
-
+  // console.log("emitting",{count:count, device:v.device, pitch:v.pitch, time:v.time, name:v.name,seqName:v.seqName, velocity:v.velocity, automationVal: v.automationVal});
   io.sockets.emit("sequenceEvent",{count:count++, device:v.device, pitch:v.pitch, time:v.time, name:v.name,seqName:v.seqName, velocity:v.velocity, automationVal: v.automationVal});
 })
 

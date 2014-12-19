@@ -3,12 +3,12 @@ function run(m, t, baconParam, teoria) {
   var chordProg = "E7 F#7 E7 F#7 Cmaj9 A7 D9 Gmaj9 Cmaj9 F#7 b5 B7".split(" ");
   var chordProgMap = (function(n) {
     var barNo = Math.floor(n.time / t.bars(1));
-    var currentChord = teoria.chord(chordProg[barNo % chordProg.length]);
+    var currentChord = teoria.chord(chordProg[$traceurRuntime.toProperty(barNo % chordProg.length)]);
     var chordNotes = currentChord.notes().map((function(note) {
       return note.key();
     }));
     var prevNote = n.pitch;
-    var transformedNote = chordNotes[(prevNote - 64 + (chordNotes.length * 1000)) % chordNotes.length] + 12 * Math.floor((prevNote - 64) / chordNotes.length);
+    var transformedNote = chordNotes[$traceurRuntime.toProperty((prevNote - 64 + (chordNotes.length * 1000)) % chordNotes.length)] + 12 * Math.floor((prevNote - 64) / chordNotes.length);
     return {pitch: transformedNote};
   });
   var cSeq = m.value((function(time, e) {

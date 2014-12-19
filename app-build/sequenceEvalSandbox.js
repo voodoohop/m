@@ -25,10 +25,11 @@ var _ = require("lodash");
 var $__5 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
     abletonReceiver = $__5.abletonReceiver,
     abletonSender = $__5.abletonSender;
+var vm = require("vm");
 var remoteLog = function() {
   for (var m = [],
       $__6 = 0; $__6 < arguments.length; $__6++)
-    m[$__6] = arguments[$__6];
+    m[$traceurRuntime.toProperty($__6)] = arguments[$traceurRuntime.toProperty($__6)];
   console.log("seqLog".bgYellow, m);
   try {
     webServer.remoteLogger.push("" + m);
@@ -42,7 +43,7 @@ function getSandBox(loadedSequences) {
       var evaluated = loadedSequences.getIn([m, "evaluated"]);
       console.log("seqLoader: sending evaluated", evaluated);
       if (!evaluated)
-        throw "evaluated sequences falsy", m;
+        throw new Error("evaluated sequences falsy" + m);
       return evaluated;
     })};
   var sandbox = {
@@ -58,12 +59,8 @@ function getSandBox(loadedSequences) {
     "easer": (function() {
       return new Easer();
     }),
-    "console": {
-      log: remoteLog,
-      warn: remoteLog,
-      error: remoteLog
-    }
+    "Symbol": Symbol
   };
-  return Object.freeze(sandbox);
+  return sandbox;
 }
 var $__default = getSandBox;

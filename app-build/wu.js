@@ -27,7 +27,7 @@ var wu = null;
               symbol = name;
               throw Error();
             })});
-          for (var $__0 = proxy[$traceurRuntime.toProperty(Symbol.iterator)](),
+          for (var $__0 = proxy[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
               $__1; !($__1 = $__0.next()).done; ) {
             let _ = $__1.value;
             {
@@ -39,40 +39,40 @@ var wu = null;
           return symbol;
         }
       }
-      if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+      if (typeof Symbol === "function" && $traceurRuntime.typeof(Symbol.iterator) === "symbol") {
         return Symbol.iterator;
       }
       throw new Error("Cannot find iterator symbol.");
     }())});
-  wu.prototype[wu.iteratorSymbol] = function() {
+  wu.prototype[$traceurRuntime.toProperty(wu.iteratorSymbol)] = function() {
     return this;
   };
   const MISSING = {};
   const isIterable = (function(thing) {
-    return thing && typeof thing[wu.iteratorSymbol] === "function";
+    return thing && typeof thing[$traceurRuntime.toProperty(wu.iteratorSymbol)] === "function";
   });
   const getIterator = (function(thing) {
     if (isIterable(thing)) {
-      return thing[wu.iteratorSymbol]();
+      return thing[$traceurRuntime.toProperty(wu.iteratorSymbol)]();
     }
     throw new TypeError("Not iterable: " + thing);
   });
   const staticMethod = (function(name, fn) {
     fn.prototype = Wu.prototype;
-    wu[name] = fn;
+    wu[$traceurRuntime.toProperty(name)] = fn;
   });
   const prototypeAndStatic = (function(name, fn) {
     var expectedArgs = arguments[2] !== (void 0) ? arguments[2] : fn.length;
     fn.prototype = Wu.prototype;
-    Wu.prototype[name] = fn;
+    Wu.prototype[$traceurRuntime.toProperty(name)] = fn;
     expectedArgs += 1;
-    wu[name] = wu.curryable((function() {
+    wu[$traceurRuntime.toProperty(name)] = wu.curryable((function() {
       var $__11;
       for (var args = [],
           $__4 = 0; $__4 < arguments.length; $__4++)
-        args[$__4] = arguments[$__4];
+        args[$traceurRuntime.toProperty($__4)] = arguments[$traceurRuntime.toProperty($__4)];
       const iterable = args.pop();
-      return ($__11 = wu(iterable))[name].apply($__11, $traceurRuntime.spread(args));
+      return ($__11 = wu(iterable))[$traceurRuntime.toProperty(name)].apply($__11, $traceurRuntime.spread(args));
     }), expectedArgs);
   });
   const rewrap = (function(fn) {
@@ -80,7 +80,7 @@ var wu = null;
       var $__11;
       for (var args = [],
           $__4 = 0; $__4 < arguments.length; $__4++)
-        args[$__4] = arguments[$__4];
+        args[$traceurRuntime.toProperty($__4)] = arguments[$traceurRuntime.toProperty($__4)];
       return wu(($__11 = fn).call.apply($__11, $traceurRuntime.spread([this], args)));
     };
   });
@@ -95,7 +95,7 @@ var wu = null;
       var $__11;
       for (var moreArgs = [],
           $__4 = 0; $__4 < arguments.length; $__4++)
-        moreArgs[$__4] = arguments[$__4];
+        moreArgs[$traceurRuntime.toProperty($__4)] = arguments[$traceurRuntime.toProperty($__4)];
       return ($__11 = fn).call.apply($__11, $traceurRuntime.spread([this], args, moreArgs));
     };
   }
@@ -104,16 +104,16 @@ var wu = null;
     return function f() {
       for (var args = [],
           $__4 = 0; $__4 < arguments.length; $__4++)
-        args[$__4] = arguments[$__4];
+        args[$traceurRuntime.toProperty($__4)] = arguments[$traceurRuntime.toProperty($__4)];
       return args.length >= expected ? fn.apply(this, args) : curry(f, args);
     };
   }));
   rewrapStaticMethod("entries", function*(obj) {
-    for (var $__0 = Object.keys(obj)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = Object.keys(obj)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let k = $__1.value;
       {
-        yield [k, obj[k]];
+        yield [k, obj[$traceurRuntime.toProperty(k)]];
       }
     }
   });
@@ -121,17 +121,17 @@ var wu = null;
     yield* Object.keys(obj);
   });
   rewrapStaticMethod("values", function*(obj) {
-    for (var $__0 = Object.keys(obj)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = Object.keys(obj)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let k = $__1.value;
       {
-        yield obj[k];
+        yield obj[$traceurRuntime.toProperty(k)];
       }
     }
   });
   rewrapPrototypeAndStatic("cycle", function*() {
     const saved = [];
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -167,8 +167,8 @@ var wu = null;
   rewrapStaticMethod("chain", function*() {
     for (var iterables = [],
         $__4 = 0; $__4 < arguments.length; $__4++)
-      iterables[$__4] = arguments[$__4];
-    for (var $__0 = iterables[$traceurRuntime.toProperty(Symbol.iterator)](),
+      iterables[$traceurRuntime.toProperty($__4)] = arguments[$traceurRuntime.toProperty($__4)];
+    for (var $__0 = iterables[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let it = $__1.value;
       {
@@ -180,11 +180,11 @@ var wu = null;
     var n = arguments[0] !== (void 0) ? arguments[0] : 2;
     let items = [];
     let index = 0;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let item = $__1.value;
       {
-        items[index++] = item;
+        items[$traceurRuntime.toProperty(index++)] = item;
         if (index === n) {
           yield items;
           items = [];
@@ -197,7 +197,7 @@ var wu = null;
     }
   }, 1);
   rewrapPrototypeAndStatic("concatMap", function*(fn) {
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -207,7 +207,7 @@ var wu = null;
   });
   rewrapPrototypeAndStatic("drop", function*(n) {
     let i = 0;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -222,7 +222,7 @@ var wu = null;
   });
   rewrapPrototypeAndStatic("dropWhile", function*() {
     var fn = arguments[0] !== (void 0) ? arguments[0] : Boolean;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -240,7 +240,7 @@ var wu = null;
   });
   rewrapPrototypeAndStatic("filter", function*() {
     var fn = arguments[0] !== (void 0) ? arguments[0] : Boolean;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -252,7 +252,7 @@ var wu = null;
   }, 1);
   rewrapPrototypeAndStatic("flatten", function*() {
     var shallow = arguments[0] !== (void 0) ? arguments[0] : false;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -268,17 +268,17 @@ var wu = null;
     var $__11;
     for (var args = [],
         $__5 = 1; $__5 < arguments.length; $__5++)
-      args[$__5 - 1] = arguments[$__5];
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+      args[$traceurRuntime.toProperty($__5 - 1)] = arguments[$traceurRuntime.toProperty($__5)];
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
-        yield ($__11 = x)[name].apply($__11, $traceurRuntime.spread(args));
+        yield ($__11 = x)[$traceurRuntime.toProperty(name)].apply($__11, $traceurRuntime.spread(args));
       }
     }
   });
   rewrapPrototypeAndStatic("map", function*(fn) {
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -287,11 +287,11 @@ var wu = null;
     }
   });
   rewrapPrototypeAndStatic("pluck", function*(name) {
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
-        yield x[name];
+        yield x[$traceurRuntime.toProperty(name)];
       }
     }
   });
@@ -299,7 +299,7 @@ var wu = null;
     var initial = arguments[1];
     let val = initial;
     if (val === undefined) {
-      for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+      for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
           $__1; !($__1 = $__0.next()).done; ) {
         let x = $__1.value;
         {
@@ -309,7 +309,7 @@ var wu = null;
       }
     }
     yield val;
-    for (var $__2 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__2 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__3; !($__3 = $__2.next()).done; ) {
       let x = $__3.value;
       {
@@ -320,7 +320,7 @@ var wu = null;
   }, 2);
   rewrapPrototypeAndStatic("reject", function*() {
     var fn = arguments[0] !== (void 0) ? arguments[0] : Boolean;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -336,7 +336,7 @@ var wu = null;
     if (stop < start) {
       throw new RangeError("parameter `stop` (= " + stop + ") must be >= `start` (= " + start + ")");
     }
-    for (var $__0 = this.enumerate()[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this.enumerate()[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let $__9 = $__1.value,
           x = $__9[0],
@@ -353,7 +353,7 @@ var wu = null;
     }
   }, 2);
   rewrapPrototypeAndStatic("spreadMap", function*(fn) {
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -366,7 +366,7 @@ var wu = null;
       return;
     }
     let i = 0;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -379,7 +379,7 @@ var wu = null;
   });
   rewrapPrototypeAndStatic("takeWhile", function*() {
     var fn = arguments[0] !== (void 0) ? arguments[0] : Boolean;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -392,7 +392,7 @@ var wu = null;
   }, 1);
   rewrapPrototypeAndStatic("tap", function*() {
     var fn = arguments[0] !== (void 0) ? arguments[0] : console.log.bind(console);
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -403,7 +403,7 @@ var wu = null;
   }, 1);
   rewrapPrototypeAndStatic("unique", function*() {
     const seen = new Set();
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -426,7 +426,7 @@ var wu = null;
     let finished = false;
     while (!finished) {
       let zipped = [];
-      for (var $__0 = iters[$traceurRuntime.toProperty(Symbol.iterator)](),
+      for (var $__0 = iters[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
           $__1; !($__1 = $__0.next()).done; ) {
         let it = $__1.value;
         {
@@ -454,19 +454,19 @@ var wu = null;
   rewrapStaticMethod("zip", function*() {
     for (var iterables = [],
         $__6 = 0; $__6 < arguments.length; $__6++)
-      iterables[$__6] = arguments[$__6];
+      iterables[$traceurRuntime.toProperty($__6)] = arguments[$traceurRuntime.toProperty($__6)];
     yield* _zip(iterables);
   });
   rewrapStaticMethod("zipLongest", function*() {
     for (var iterables = [],
         $__7 = 0; $__7 < arguments.length; $__7++)
-      iterables[$__7] = arguments[$__7];
+      iterables[$traceurRuntime.toProperty($__7)] = arguments[$traceurRuntime.toProperty($__7)];
     yield* _zip(iterables, true);
   });
   rewrapStaticMethod("zipWith", function*(fn) {
     for (var iterables = [],
         $__8 = 1; $__8 < arguments.length; $__8++)
-      iterables[$__8 - 1] = arguments[$__8];
+      iterables[$traceurRuntime.toProperty($__8 - 1)] = arguments[$traceurRuntime.toProperty($__8)];
     yield* _zip(iterables).spreadMap(fn);
   });
   wu.MAX_BLOCK = 15;
@@ -478,7 +478,7 @@ var wu = null;
     return new Promise((function(resolve, reject) {
       (function loop() {
         const start = Date.now();
-        for (var $__0 = iter[$traceurRuntime.toProperty(Symbol.iterator)](),
+        for (var $__0 = iter[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
             $__1; !($__1 = $__0.next()).done; ) {
           let x = $__1.value;
           {
@@ -500,7 +500,7 @@ var wu = null;
   }, 3);
   prototypeAndStatic("every", function() {
     var fn = arguments[0] !== (void 0) ? arguments[0] : Boolean;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -512,7 +512,7 @@ var wu = null;
     return true;
   }, 1);
   prototypeAndStatic("find", function(fn) {
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -523,7 +523,7 @@ var wu = null;
     }
   });
   prototypeAndStatic("forEach", function(fn) {
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -540,7 +540,7 @@ var wu = null;
     var initial = arguments[1];
     let val = initial;
     if (val === undefined) {
-      for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+      for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
           $__1; !($__1 = $__0.next()).done; ) {
         let x = $__1.value;
         {
@@ -549,7 +549,7 @@ var wu = null;
         }
       }
     }
-    for (var $__2 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__2 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__3; !($__3 = $__2.next()).done; ) {
       let x = $__3.value;
       {
@@ -560,7 +560,7 @@ var wu = null;
   }, 2);
   prototypeAndStatic("some", function() {
     var fn = arguments[0] !== (void 0) ? arguments[0] : Boolean;
-    for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__0 = this[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
@@ -589,20 +589,20 @@ var wu = null;
           }
           break;
         }
-        yield items[index++] = value;
+        yield items[$traceurRuntime.toProperty(index++)] = value;
       } else if (index === cache.tail) {
-        let value = items[index];
+        let value = items[$traceurRuntime.toProperty(index)];
         if (index === MAX_CACHE) {
           items = cache.items = items.slice(index);
           index = 0;
           cache.tail = 0;
         } else {
-          items[index] = undefined;
+          items[$traceurRuntime.toProperty(index)] = undefined;
           cache.tail = ++index;
         }
         yield value;
       } else {
-        yield items[index++];
+        yield items[$traceurRuntime.toProperty(index++)];
       }
     }
     if (cache.tail === index) {
@@ -620,7 +620,7 @@ var wu = null;
       returned: MISSING
     };
     while (n--) {
-      iterables[n] = _tee(this, cache);
+      iterables[$traceurRuntime.toProperty(n)] = _tee(this, cache);
     }
     return iterables;
   }, 1);

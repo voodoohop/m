@@ -72,7 +72,12 @@ var AbletonReceiver = function(inPort) {
 
   // TODO: use scan instead of onValue
   var sequencePlayRequests = oscMessageIn.filter((message) => message.address == "/requestSequence")
-    .map((v) => {return {sequenceName: v.args[0], port: v.args[1]}})
+    .map((v) => {
+      var seqPath = v.args[0];
+      console.log("got subscribe request from ableton", seqPath);
+      return {
+        name: seqPath.split("/")[1], device:seqPath.split("/")[0], path:seqPath, port: v.args[1]}
+      })
 
 
   var baconParam = (name) => oscMessageIn
@@ -117,11 +122,11 @@ var AbletonSender = function(outPort) {
   //   }
   // });
 
-  var noteOn = wu.curryable(function(seqName,outPort,pitch,velocity,time) {
-    // console.log("noteOn",pitch,time*t.beats(1));
+  var noteOn = wu.curryable(function(seqPath,outPort,pitch,velocity,time) {
+    console.log("noteOn",pitch,time*t.beats(1));
     udpPort.send({
         address: "/midiNote",
-        args: [seqName, pitch, Math.floor(velocity*127), 1,time*t.beats(1)]
+        args: [seqPath, pitch, Math.floor(velocity*127), 1,time*t.beats(1)]
     }, "127.0.0.1", outPort);
     // udpPort.send({
     //   address: "/codeUpdate",
@@ -130,20 +135,20 @@ var AbletonSender = function(outPort) {
   });
 
 
-  var noteOff = wu.curryable(function(seqName,outPort,pitch,time) {
-  //console.log("noteOff",pitch,time*t.beats(1));
+  var noteOff = wu.curryable(function(seqPath,outPort,pitch,time) {
+    console.log("noteOff",pitch,time*t.beats(1));
 
     udpPort.send({
       address: "/midiNote",
-      args: [seqName,pitch, 0, 0,time*t.beats(1)]
+      args: [seqPath,pitch, 0, 0,time*t.beats(1)]
     }, "127.0.0.1", outPort);
   });
 
-  var param=wu.curryable(function(seqName,outPort,name,val,time) {
+  var param=wu.curryable(function(seqPath,outPort,name,val,time) {
     // console.log("automation",seqName,name,val,outPort);
     udpPort.send({
       address: "/param",
-      args:[seqName,name, name== "pitchBend" ? Math.floor(val*127) :val,time*t.beats(1)]
+      args:[seqPath,name, name== "pitchBend" ? Math.floor(val*127) :val,time*t.beats(1)]
     },"127.0.0.1", outPort);
   });
 
@@ -159,23 +164,23 @@ var AbletonSender = function(outPort) {
     console.log("sending generatorUpdate to Ableton".bold, (generatorList.map(g => g.device+"/"+g.name)).yellow);
     udpPort.send({
       address:"/generatorList",
-      args: generatorList.map(g => g.name)
+      args: generatorList.map(g => g.device+"/"+g.name)
     }, "127.0.0.1", outPort);
   };
 
   return {
-    instrument: function(seqName) {
+    instrument: function(seqPath) {
       return {
-        noteOn: noteOn(seqName,outPort),
-        noteOff: noteOff(seqName,outPort),
-        param: param(seqName,outPort)
+        noteOn: noteOn(seqPath,outPort),
+        noteOff: noteOff(seqPath,outPort),
+        param: param(seqPath,outPort)
       }
     },
-    subscribeInstrument: function(seqName, listenerPort) {
+    subscribeInstrument: function(seqPath, listenerPort) {
       return {
-        noteOn: noteOn(seqName,listenerPort),
-        noteOff: noteOff(seqName,listenerPort),
-        param: param(seqName,listenerPort)
+        noteOn: noteOn(seqPath,listenerPort),
+        noteOff: noteOff(seqPath,listenerPort),
+        param: param(seqPath,listenerPort)
       }
     },
     noteOn: noteOn,

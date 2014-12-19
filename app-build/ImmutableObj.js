@@ -12,7 +12,7 @@ function factory(input) {
     return ImmutableObject();
   } else if (Array.isArray(input)) {
     return Object.freeze(input.map(factory));
-  } else if (typeof input === "object" && input != null) {
+  } else if ((typeof input === 'undefined' ? 'undefined' : $traceurRuntime.typeof(input)) === "object" && input != null) {
     return ImmutableObject(input);
   } else {
     return input;
@@ -22,7 +22,7 @@ var ImmutableObject = function(props) {
   if (typeof props === "undefined") {
     return empty;
   }
-  if (typeof props !== "object") {
+  if ((typeof props === 'undefined' ? 'undefined' : $traceurRuntime.typeof(props)) !== "object") {
     throw new TypeError("ImmutableObject property source must be an object.");
   }
   if (props.__isImmutableObject__) {
@@ -37,7 +37,7 @@ ImmutableObject.prototype.set = function(props) {
   }
   if (typeof props === "string") {
     var propsObj = {};
-    propsObj[props] = arguments[1];
+    propsObj[$traceurRuntime.toProperty(props)] = arguments[1];
     return this.set(propsObj);
   }
   var keys = allKeys(props);
@@ -57,8 +57,8 @@ ImmutableObject.prototype.set = function(props) {
   props = _.extend({}, this, props);
   keys = allKeys(props);
   keys.forEach(function(key) {
-    var value = props[key];
-    propertyDefs[key] = {
+    var value = props[$traceurRuntime.toProperty(key)];
+    propertyDefs[$traceurRuntime.toProperty(key)] = {
       value: value,
       enumerable: true
     };
@@ -70,7 +70,7 @@ ImmutableObject.prototype.set = function(props) {
 ImmutableObject.prototype.unset = function(keyToExclude) {
   var props = {};
   var includeKey = function(key) {
-    props[key] = this[key];
+    props[$traceurRuntime.toProperty(key)] = this[$traceurRuntime.toProperty(key)];
   }.bind(this);
   function notExcluded(key) {
     return key !== keyToExclude;
@@ -93,8 +93,8 @@ ImmutableObject.prototype.unset = function(keyToExclude) {
 ImmutableObject.prototype.toJSON = function() {
   var json = {};
   ImmutableObject.keys(this).forEach(function(key) {
-    var value = this[key];
-    json[key] = (value && typeof value.toJSON === "function") ? value.toJSON() : value;
+    var value = this[$traceurRuntime.toProperty(key)];
+    json[$traceurRuntime.toProperty(key)] = (value && typeof value.toJSON === "function") ? value.toJSON() : value;
   }, this);
   return json;
 };
@@ -112,7 +112,7 @@ ImmutableObject.keys = function(obj) {
   var seen = {};
   function notSeen(key) {
     if (!seen.hasOwnProperty(key)) {
-      seen[key] = true;
+      seen[$traceurRuntime.toProperty(key)] = true;
       return true;
     } else {
       return false;

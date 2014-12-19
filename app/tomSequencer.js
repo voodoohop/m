@@ -27,10 +27,14 @@ var eventPlayer = function(evtWithOffset) {
 
 export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
   console.log("sequencer",sequence);
+  if (sequence == null ||sequence.error || sequence.evaluatedError)
+    return [new Bacon.Error(sequence.error ||sequence.evaluatedError ||sequence)]
+
+
   var seqIterator = null;
   var next=null;
   return baconTime.take(1).flatMap((firstTime) => baconTime.diff(firstTime,(prevDecoded,timeDecoded) => {
-
+    try {
     // TODO: do backwards time jump here
     var prevTime = prevDecoded.time;
     if (Number.isNaN(prevTime))
@@ -42,7 +46,7 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
       seqIterator = getIterator(sequence
         .skipWhile((n) => n.time < prevTime)
         .toPlayable());
-      next = seqIterator.next();
+      next = seqIterator.next(prevTime);
     //   console.log("Rx",Rx.Observable);
     //   var seqStream = Rx.Observable.from(sequence.skipWhile((n) => n.time < prevTime)
     //   .toPlayable());
@@ -64,7 +68,7 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
     // console.log("timeDecoded", timeDecoded);
     var count=0;
     while (next.value.time < prevTime) {
-      next = seqIterator.next();
+      next = seqIterator.next(prevTime);
       console.warn("time lag:",prevTime-next.value.time+"".bgRed);
       if (count++ > 5) { // low limit for too many events may need to change for other environments!!!
          console.log("event overflow, yielding to bacon",time.toFixed(2));
@@ -75,12 +79,17 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
       return [];
     var eventsNow = [];
     while (next.value.time <= time) {
-      eventsNow.push({evt: next.value, firstTime:firstTime});
-      next = seqIterator.next();
+      eventsNow.push({evt: next.value, firstTime: {offset:0} /*firstTime*/});
+      next = seqIterator.next(prevTime);
       if (count++ > 5)
         return eventsNow;
     }
 
+    }
+    catch (exception) {
+      console.error(exception)
+      return [new Bacon.Error(exception)];
+    }
     //console.log(eventsNow.length);
     return eventsNow;
   })).flatMap((v) => Bacon.fromArray(v))

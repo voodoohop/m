@@ -35,8 +35,10 @@ processed.onError((function(e) {
 }));
 var loadedSequenceStream = new Bacon.Bus();
 var evalStreamEntry = function(loadedSequences, newSequence) {
+  console.log("evaluating new Sequence:".underline, newSequence);
   var newSeqIm = Immutable.fromJS(newSequence);
-  console.log("evaluating new Sequence:".underline, newSeqIm);
+  if (newSeqIm.get("error"))
+    return newSeqIm;
   var allExports = loadedSequences.valueSeq().map((function(v) {
     return v.get("exports");
   })).flatten();
@@ -60,7 +62,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
       imports: unsatisfiedImports
     }));
   }
-  var $__3 = evalSequences(newSequence.processedCode, loadedSequences),
+  var $__3 = evalSequences(newSequence, loadedSequences),
       evaluated = $__3[0],
       details = $__3[1],
       error = $__3[2];
@@ -71,12 +73,14 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
   } else
     evaluatedRes = Immutable.fromJS(newSequence).merge({
       evaluated: evaluated,
-      evaluatedDetails: details
+      evaluatedDetails: details,
+      evaluatedError: error,
+      error: error
     });
   return evaluatedRes;
 };
 var processedAndReEval = new Bacon.Bus();
-processedAndReEval.plug(processed.skipErrors());
+processedAndReEval.plug(processed);
 var markForReEval = function(loadedSequences, device) {
   loadedSequences.entrySeq().forEach((function(s) {
     var $__3 = s,
@@ -93,22 +97,33 @@ var evaluated = Bacon.zipAsArray(loadedSequenceStream, processedAndReEval).map((
   var res = evalStreamEntry.apply(null, $traceurRuntime.spread(s));
   var loadedSequences = s[0];
   var newSequence = s[1];
-  if (!res.get("evaluatedError"))
-    markForReEval(loadedSequences, newSequence.device);
+  markForReEval(loadedSequences, newSequence.device);
   return res;
 }));
-var evaluatedSequenceStream = evaluated.skipErrors().scan(Immutable.Map(), (function(prev, next) {
+var stackTrace = require('stack-trace');
+var evaluatedSequenceStream = evaluated.scan(Immutable.Map(), (function(prev, next) {
   return prev.set(next.get("device"), next);
 }));
 loadedSequenceStream.plug(evaluatedSequenceStream);
 var loadedSequences = evaluatedSequenceStream;
-var processedSequences = evaluated.flatMap((function(n) {
+var processedSequences_noStack = evaluated.flatMap((function(n) {
+  if (!n.toJS)
+    console.log("nnn", n);
   var n = n.toJS();
   return Bacon.fromArray(n.exports.map((function(seqName) {
     return _.extend({
-      sequence: n.evaluated ? n.evaluated[seqName] : null,
+      sequence: n.evaluated ? n.evaluated[$traceurRuntime.toProperty(seqName)] : null,
       device: n.device,
       name: seqName
     }, n);
   })));
+}));
+var processedSequences = processedSequences_noStack.map((function(s) {
+  var error = s.error || s.evaluatedError;
+  if (error && error instanceof Error) {
+    console.log("generating stacktrace for error", error);
+    s.error = error;
+    s.error.stackTrace = stackTrace.parse(error);
+  }
+  return s;
 }));

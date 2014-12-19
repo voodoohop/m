@@ -2,54 +2,32 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="78c84acf-5344-4b8a-9704-d46298d9f046" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/ImmutableObj.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/codeStore.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/consoleReplacement.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/functionalMonads.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/functionalMonads_tried_optimizing.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/generatorModuleManager.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCodeRunner.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCoding.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/m4lapp.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/main.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/module.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/oscAbleton.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/patchConsoleLog.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/repl.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sequenceCodeProcessor.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sequenceEvalSandbox.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sequenceEvaluator.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sequencePlayManager.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/sequenceTraceurCompiler.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test2.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/time.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/timeInterpolator.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/tomSequencer.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/utils.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/webConnection.map" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/wu.map" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/ImmutableObj.js" afterPath="$PROJECT_DIR$/app-build/ImmutableObj.js" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCode-build/ableton1.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCode-build/ableton2.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCode-build/ableton3.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCode-build/thomash.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCode/a_thomash2.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCode/a_thomash3.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCode/abletonClip_transChords.js" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/liveCode/abletonClip_transChordsLonger.js" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MusicGen RunGen_external_osc_in_scheduled_timing copy.amxd" afterPath="$PROJECT_DIR$/MusicGen RunGen_external_osc_in_scheduled_timing copy.amxd" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/functionalMonads.js" afterPath="$PROJECT_DIR$/app/functionalMonads.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/functionalMonads.js" afterPath="$PROJECT_DIR$/app-build/functionalMonads.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/generatorModuleManager.js" afterPath="$PROJECT_DIR$/app-build/generatorModuleManager.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/generatorModuleManager.js" afterPath="$PROJECT_DIR$/app/generatorModuleManager.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/index.js" afterPath="$PROJECT_DIR$/index.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/liveCodeRunner.js" afterPath="$PROJECT_DIR$/app-build/liveCodeRunner.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/liveCoding.js" afterPath="$PROJECT_DIR$/app-build/liveCoding.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/m4lapp.js" afterPath="$PROJECT_DIR$/app-build/m4lapp.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/web/resources/js/index.js" afterPath="$PROJECT_DIR$/web/resources/js/index.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/main.js" afterPath="$PROJECT_DIR$/app/main.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/main.js" afterPath="$PROJECT_DIR$/app-build/main.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/oscAbleton.js" afterPath="$PROJECT_DIR$/app/oscAbleton.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/oscAbleton.js" afterPath="$PROJECT_DIR$/app-build/oscAbleton.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/patchConsoleLog.js" afterPath="$PROJECT_DIR$/app-build/patchConsoleLog.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/proxiedImmutable.js" afterPath="$PROJECT_DIR$/app/proxiedImmutable.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/proxiedImmutable.js" afterPath="$PROJECT_DIR$/app-build/proxiedImmutable.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/runHarmony" afterPath="$PROJECT_DIR$/runHarmony" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/sequenceEvalSandbox.js" afterPath="$PROJECT_DIR$/app-build/sequenceEvalSandbox.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/sequenceEvaluator.js" afterPath="$PROJECT_DIR$/app/sequenceEvaluator.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/sequenceEvaluator.js" afterPath="$PROJECT_DIR$/app-build/sequenceEvaluator.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/sequencePlayManager.js" afterPath="$PROJECT_DIR$/app/sequencePlayManager.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/sequencePlayManager.js" afterPath="$PROJECT_DIR$/app-build/sequencePlayManager.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/utils.js" afterPath="$PROJECT_DIR$/app-build/utils.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/webConnection.js" afterPath="$PROJECT_DIR$/app-build/webConnection.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/liveCode/thomash.js" afterPath="$PROJECT_DIR$/liveCode/thomash.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app/tomSequencer.js" afterPath="$PROJECT_DIR$/app/tomSequencer.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/tomSequencer.js" afterPath="$PROJECT_DIR$/app-build/tomSequencer.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/app-build/wu.js" afterPath="$PROJECT_DIR$/app-build/wu.js" />
     </list>
     <ignored path="thomashfreshandclean.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -76,8 +54,8 @@
       <file leaf-file-name="index.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/index.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="52" max-vertical-offset="435">
-              <caret line="22" column="4" selection-start-line="22" selection-start-column="4" selection-end-line="22" selection-end-column="4" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="510">
+              <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -86,18 +64,58 @@
       <file leaf-file-name="main.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/main.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="3292" max-vertical-offset="3855">
-              <caret line="229" column="28" selection-start-line="229" selection-start-column="28" selection-end-line="229" selection-end-column="28" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="3530" max-vertical-offset="3945">
+              <caret line="232" column="22" selection-start-line="232" selection-start-column="22" selection-end-line="232" selection-end-column="22" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="functionalMonads.js" pinned="false" current-in-tab="true">
+      <file leaf-file-name="functionalMonads.js" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/functionalMonads.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.12972973" vertical-offset="16677" max-vertical-offset="19860">
-              <caret line="1115" column="22" selection-start-line="1115" selection-start-column="22" selection-end-line="1115" selection-end-column="22" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="375" max-vertical-offset="22980">
+              <caret line="1306" column="32" selection-start-line="1306" selection-start-column="32" selection-end-line="1306" selection-end-column="32" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sequencePlayManager.js" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/app-build/sequencePlayManager.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.23076923" vertical-offset="80" max-vertical-offset="1220">
+              <caret line="17" column="26" selection-start-line="17" selection-start-column="26" selection-end-line="17" selection-end-column="26" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tomSequencer.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app-build/tomSequencer.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-21.0" vertical-offset="0" max-vertical-offset="1260">
+              <caret line="35" column="31" selection-start-line="35" selection-start-column="31" selection-end-line="35" selection-end-column="31" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sequencePlayManager.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/sequencePlayManager.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="935" max-vertical-offset="1515">
+              <caret line="12" column="33" selection-start-line="12" selection-start-column="33" selection-end-line="12" selection-end-column="33" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tomSequencer.js" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/tomSequencer.js">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="1470">
+              <caret line="30" column="20" selection-start-line="30" selection-start-column="20" selection-end-line="30" selection-end-column="20" />
               <folding />
             </state>
           </provider>
@@ -106,7 +124,7 @@
       <file leaf-file-name="runHarmony" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/runHarmony">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="195">
+            <state vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="195">
               <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
               <folding />
             </state>
@@ -129,6 +147,9 @@
         <option value="$PROJECT_DIR$/app/main.js" />
         <option value="$PROJECT_DIR$/index.js" />
         <option value="$PROJECT_DIR$/app/functionalMonads.js" />
+        <option value="$PROJECT_DIR$/app-build/sequencePlayManager.js" />
+        <option value="$PROJECT_DIR$/app-build/tomSequencer.js" />
+        <option value="$PROJECT_DIR$/app/tomSequencer.js" />
       </list>
     </option>
   </component>
@@ -194,7 +215,6 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -223,47 +243,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="node_modules" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="thomashfreshandclean" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="thomashfreshandclean" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="node_modules" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="traceur" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="thomashfreshandclean" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="thomashfreshandclean" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="node_modules" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="traceur" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="bin" />
+              <option name="myItemId" value="app-build" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -283,6 +263,7 @@
           </PATH>
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -391,19 +372,19 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24947146" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39841688" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24947146" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39841688" sideWeight="0.49964765" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4563492" sideWeight="0.7632135" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4563492" sideWeight="0.23678647" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39841688" sideWeight="0.5003524" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -423,10 +404,88 @@
     </option>
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager />
-    <watches-manager />
+    <breakpoint-manager>
+      <option name="time" value="6" />
+    </breakpoint-manager>
+    <watches-manager>
+      <configuration name="NodeJSConfigurationType">
+        <watch expression="availableSequences" language="JavaScript" />
+      </configuration>
+    </watches-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="52" max-vertical-offset="435">
+          <caret line="22" column="4" selection-start-line="22" selection-start-column="4" selection-end-line="22" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="3262" max-vertical-offset="3840">
+          <caret line="227" column="22" selection-start-line="227" selection-start-column="22" selection-end-line="227" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/functionalMonads.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="19137" max-vertical-offset="22785">
+          <caret line="1292" column="38" selection-start-line="1292" selection-start-column="38" selection-end-line="1292" selection-end-column="38" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app-build/sequencePlayManager.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1845">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runHarmony">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="195">
+          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/index.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="52" max-vertical-offset="435">
+          <caret line="22" column="4" selection-start-line="22" selection-start-column="4" selection-end-line="22" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="3292" max-vertical-offset="3855">
+          <caret line="229" column="28" selection-start-line="229" selection-start-column="28" selection-end-line="229" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/functionalMonads.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="19860">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/runHarmony">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="195">
+          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="105" max-vertical-offset="435">
@@ -495,13 +554,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app-build/tomSequencer.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="2.4476988" vertical-offset="0" max-vertical-offset="1260">
-          <caret line="78" column="0" selection-start-line="78" selection-start-column="0" selection-end-line="78" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app-build/sequenceEvaluator.js">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.3283582" vertical-offset="871" max-vertical-offset="1005">
@@ -537,14 +589,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/main.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="3292" max-vertical-offset="3855">
-          <caret line="229" column="28" selection-start-line="229" selection-start-column="28" selection-end-line="229" selection-end-column="28" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/runHarmony">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="195">
@@ -553,18 +597,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/index.js">
+    <entry file="file://$PROJECT_DIR$/app/functionalMonads.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="52" max-vertical-offset="435">
-          <caret line="22" column="4" selection-start-line="22" selection-start-column="4" selection-end-line="22" selection-end-column="4" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="375" max-vertical-offset="22980">
+          <caret line="1306" column="32" selection-start-line="1306" selection-start-column="32" selection-end-line="1306" selection-end-column="32" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/functionalMonads.js">
+    <entry file="file://$PROJECT_DIR$/index.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.12972973" vertical-offset="16677" max-vertical-offset="19860">
-          <caret line="1115" column="22" selection-start-line="1115" selection-start-column="22" selection-end-line="1115" selection-end-column="22" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="510">
+          <caret line="28" column="0" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/main.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="3530" max-vertical-offset="3945">
+          <caret line="232" column="22" selection-start-line="232" selection-start-column="22" selection-end-line="232" selection-end-column="22" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app-build/tomSequencer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-21.0" vertical-offset="0" max-vertical-offset="1260">
+          <caret line="35" column="31" selection-start-line="35" selection-start-column="31" selection-end-line="35" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/tomSequencer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="270" max-vertical-offset="1470">
+          <caret line="30" column="20" selection-start-line="30" selection-start-column="20" selection-end-line="30" selection-end-column="20" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/sequencePlayManager.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="935" max-vertical-offset="1515">
+          <caret line="12" column="33" selection-start-line="12" selection-start-column="33" selection-end-line="12" selection-end-column="33" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app-build/sequencePlayManager.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.23076923" vertical-offset="80" max-vertical-offset="1220">
+          <caret line="17" column="26" selection-start-line="17" selection-start-column="26" selection-end-line="17" selection-end-column="26" />
           <folding />
         </state>
       </provider>

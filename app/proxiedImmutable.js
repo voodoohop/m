@@ -64,7 +64,7 @@ var wrapNewProps = (target, newProps, deep) => {
             return getFunc(target, newProps, name);
           },
           set: (...args) => {
-            throw ["tried mutating immutableTom", args, "" + target]
+            throw new Error(["tried mutating immutableTom", args, "" + target]);
           },
           has: (t, name) => hasCheck(name),
           hasOwn: (t, name) => hasCheck(name),
@@ -77,12 +77,12 @@ var wrapNewProps = (target, newProps, deep) => {
           getOwnPropertyNames: () => keysFunc(oldKeys, newKeys, newProps),
           getOwnPropertyDescriptor: (t, name) => getPropDescriptor(name),
           getPrototypeOf: () => nothing,
-          setPrototypeOf: () => {throw ["tried deleting from immutableTom", args, target]},
+          setPrototypeOf: () => {throw new Error(["tried deleting from immutableTom", args, target])},
           deleteProperty: (...args) => {
             throw ["tried deleting from immutableTom", args, target]
           },
           defineProperty: (...args) => {
-            throw ["tried defining a property of immutableTom"]
+            throw new Error("tried defining a property of immutableTom")
           },
         };
   const newProxy = new Proxy(target, handler);

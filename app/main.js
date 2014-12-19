@@ -1,7 +1,7 @@
 //require('source-map-support').install();
-require('traceur/bin/traceur-runtime');
+// require('traceur/bin/traceur-runtime');
 
-require('stack-displayname');
+// require('stack-displayname');
 //var traceur = require("traceur");
 //
 // console.log("traceur",traceur);
@@ -91,14 +91,14 @@ var Bacon = require("baconjs");
 var traceur = require("traceur");
 
 
-var liveCodeReset = new Bacon.Bus();
+var timeResetRequest = new Bacon.Bus();
 
 var lastCodeResetNo = -1;
 
 
 var decodedTime = abletonReceiver.time.diff(0,(a,b) => b-a).skip(1).zip(abletonReceiver.time.skip(1),(timeDiff,time) => {return {timeDiff,time}})
   .map((time) => time.timeDiff < -8 ? _.extend({reset:true},time) : time)
-  .combine(liveCodeReset.debounceImmediate(500).toProperty(),
+  .combine(timeResetRequest.debounceImmediate(500).toProperty(),
     function(time, codeReset) {
       if (lastCodeResetNo != codeReset) {
         console.log("RESET",time,codeReset);
@@ -123,7 +123,11 @@ var decodedTime = abletonReceiver.time.diff(0,(a,b) => b-a).skip(1).zip(abletonR
 // TODO: could move all this time stuff to sequencePlayManager or another module
 // TODO: timeThatAccountsForTransportJumps should be a stream of functions that can convert time to global ableton time automatically
 // TODO: make every stream have its own starttime
-var timeThatAccountsForTransportJumps2 = decodedTime.map((t) => {return {time: t.time-t.firstTime, offset: t.firstTime}});
+var timeThatAccountsForTransportJumps2 = decodedTime.map((t) => {
+  // return {time: t.time-t.firstTime, offset: t.firstTime}
+  return {time: t.time, offset: 0}
+
+  });
 
 
 var timeThatAccountsForTransportJumps = timeThatAccountsForTransportJumps2;
@@ -139,9 +143,9 @@ resetMessages.log("RESET");
 
 //var OSCSequencer = TomFRPSequencer(timeThatAccountsForTransportJumps);
 
-//decodedTime.log("decodedTime");
+// decodedTime.log("decodedTime");
 
-
+setTimeout(() => timeResetRequest.push("first time resseeet"), 2000);
 
 import webServer from "./webConnection";
 
@@ -150,8 +154,9 @@ import SequencePlayManager from "./sequencePlayManager";
 
 var sequencePlayManager = SequencePlayManager(timeThatAccountsForTransportJumps.toEventStream(),resetMessages, webServer.sequenceFeedback);
 
-liveCodeReset.plug(sequencePlayManager.resetRequests);
 
+timeThatAccountsForTransportJumps.throttle(1000).onValue(() => console.log("playing Sequences".bgMagenta.white,
+ Object.keys(sequencePlayManager.playingSequences).map(seqPath => seqPath+":"+sequencePlayManager.playingSequences[seqPath].port)));
 
 import {baconStorer, onCodeLoaded, storedSequences} from "./codeStore";
 
@@ -214,25 +219,25 @@ setTimeout(function() {
 
 
 
-
-sequencePlayManager.newSequence.plug(moduleManager.processedSequences);
-
 // var resetNo=0;
-// clipAndCodeSequences.onValue(() => liveCodeReset.push(resetNo++));
+// clipAndCodeSequences.onValue(() => timeResetRequest.push(resetNo++));
 
 var Immutable = require("immutable");
 
 // moduleManager.processedSequences.log("thomashkickshouldbe".bold.bgYellow);
 var generatorList = moduleManager.processedSequences
   .scan({},(prev,next) => {
-    console.log("generating first 500 samples of sequence",next);
+    if (next.evaluatedError) {
+      console.error("ERROR",next.evaluatedError);
+    }
+
     prev[next.device+"/"+next.name] = {
+      evaluatedError: next.evaluatedError,
       device:next.device,
       name: next.name,
       sourceCode: next.code,
       sequenceAsString: next.sequence && next.sequence.toString(),
       eventSample: next.evaluated ? next.evaluatedDetails[next.name].eventSample : [],
-      evaluatedError: next.evaluatedError,
       evaluatedDetails: next.evaluated ? next.evaluatedDetails[next.name] : null
     };
     console.log("generated", next.device+"/"+next.name);
@@ -251,3 +256,5 @@ generatorList.onValue((v) => {
 
 
 moduleManager.evaluated.onValue(v => webServer.individualGeneratorUpdate(v));
+
+// timeResetRequest.plug(moduleManager.processedSequences);

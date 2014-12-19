@@ -32,41 +32,48 @@ var eventPlayer = function(evtWithOffset) {
 };
 var BaconSequencer = wu.curryable(function(baconTime, sequence) {
   console.log("sequencer", sequence);
+  if (sequence == null || sequence.error || sequence.evaluatedError)
+    return [new Bacon.Error(sequence.error || sequence.evaluatedError || sequence)];
   var seqIterator = null;
   var next = null;
   return baconTime.take(1).flatMap((function(firstTime) {
     return baconTime.diff(firstTime, (function(prevDecoded, timeDecoded) {
-      var prevTime = prevDecoded.time;
-      if (Number.isNaN(prevTime))
-        prevTime = 0;
-      var time = timeDecoded.time;
-      if (seqIterator == null) {
-        console.log("skipping to", prevTime, "for sequence", sequence);
-        seqIterator = getIterator(sequence.skipWhile((function(n) {
-          return n.time < prevTime;
-        })).toPlayable());
-        next = seqIterator.next();
-      }
-      var count = 0;
-      while (next.value.time < prevTime) {
-        next = seqIterator.next();
-        console.warn("time lag:", prevTime - next.value.time + "".bgRed);
-        if (count++ > 5) {
-          console.log("event overflow, yielding to bacon", time.toFixed(2));
-          return [];
+      try {
+        var prevTime = prevDecoded.time;
+        if (Number.isNaN(prevTime))
+          prevTime = 0;
+        var time = timeDecoded.time;
+        if (seqIterator == null) {
+          console.log("skipping to", prevTime, "for sequence", sequence);
+          seqIterator = getIterator(sequence.skipWhile((function(n) {
+            return n.time < prevTime;
+          })).toPlayable());
+          next = seqIterator.next(prevTime);
         }
-      }
-      if (time - prevTime > 1)
-        return [];
-      var eventsNow = [];
-      while (next.value.time <= time) {
-        eventsNow.push({
-          evt: next.value,
-          firstTime: firstTime
-        });
-        next = seqIterator.next();
-        if (count++ > 5)
-          return eventsNow;
+        var count = 0;
+        while (next.value.time < prevTime) {
+          next = seqIterator.next(prevTime);
+          console.warn("time lag:", prevTime - next.value.time + "".bgRed);
+          if (count++ > 5) {
+            console.log("event overflow, yielding to bacon", time.toFixed(2));
+            return [];
+          }
+        }
+        if (time - prevTime > 1)
+          return [];
+        var eventsNow = [];
+        while (next.value.time <= time) {
+          eventsNow.push({
+            evt: next.value,
+            firstTime: {offset: 0}
+          });
+          next = seqIterator.next(prevTime);
+          if (count++ > 5)
+            return eventsNow;
+        }
+      } catch (exception) {
+        console.error(exception);
+        return [new Bacon.Error(exception)];
       }
       return eventsNow;
     }));
