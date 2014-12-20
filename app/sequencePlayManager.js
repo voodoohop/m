@@ -4,7 +4,7 @@ import {BaconSequencer} from "./tomSequencer";
 var _ = require("lodash");
 
 
-import {immutableTom} from "./nodeProxiedImmutable";
+import {immutableTom} from "./immutable/nodeProxiedImmutable";
 
 import {abletonReceiver, abletonSender} from "./oscAbleton";
 

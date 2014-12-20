@@ -24,7 +24,7 @@ export var generatorize = function(fn) {
 
 // Return whether a thing is iterable.
 export const isIterable = thing => {
-  return thing && typeof thing[Symbol.iterator] === "function" && typeof thing != "string";
+  return thing && typeof thing[wu.iteratorSymbol] === "function" && typeof thing != "string";
 };
 
 // Get the iterator for the thing or throw an error.

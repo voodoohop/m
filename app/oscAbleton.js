@@ -2,7 +2,7 @@ import {t} from "./time";
 
 // import timeInterpolator from "./timeInterpolator";
 
-import {wu} from "./wu";
+import {wu} from "./lib/wu";
 
 var osc = require("osc");
 

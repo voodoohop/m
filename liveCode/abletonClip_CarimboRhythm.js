@@ -1,4 +1,4 @@
-export var CarimboRhythm = m.data([
+export var CarimboRhythm = m().data([
   {
     "pitch": 36,
     "duration": 0.2942435145378113,

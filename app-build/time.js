@@ -5,8 +5,8 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__utils__;
-var generatorize = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}).generatorize;
+var $__lib_47_utils__;
+var generatorize = ($__lib_47_utils__ = require("./lib/utils"), $__lib_47_utils__ && $__lib_47_utils__.__esModule && $__lib_47_utils__ || {default: $__lib_47_utils__}).generatorize;
 var Bacon = require("baconjs");
 var t = {
   beatsPerBar: 4,

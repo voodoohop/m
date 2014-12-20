@@ -27,8 +27,11 @@ const convertFuncToVal = function(val, target) {
   return ((typeof val === "function" && val.length <= 1) ? val(target) : val);
 };
 var wrapNewProps = (function(target, newProps, deep) {
+  const delFunc = (function(name) {
+    return setFunc(name, deleteMe);
+  });
   const setFunc = (function(name) {
-    var val = arguments[1] !== (void 0) ? arguments[1] : deleteMe;
+    var val = arguments[1] !== (void 0) ? arguments[1] : nothing;
     var $__0;
     return wrapNewProps(newProxy, val != nothing ? ($__0 = {}, Object.defineProperty($__0, name, {
       value: val,
@@ -68,7 +71,7 @@ var wrapNewProps = (function(target, newProps, deep) {
       if (name === "set")
         return setFunc;
       if (name === "delete")
-        return setFunc;
+        return delFunc;
       return getFunc(target, newProps, name);
     }),
     has: (function(name) {
@@ -123,8 +126,8 @@ var deletedProp = test1.delete("bla");
 assert.equal(deletedProp.bla, undefined);
 assert.equal(deletedProp.hasOwnProperty("bla"), false);
 console.log("immutableTom Test1", test1, test1.test, deletedProp, Object.keys(test1));
-var addObjectProp = (function(obj, name, val, enumerable) {
-  return obj.set(name, val);
+var addObjectProp = (function(obj, name, value, enumerable) {
+  return obj.set(name, value);
 });
 var addObjectProps = (function(obj, props, enumerable) {
   props = _.mapValues(props, (function(value) {

@@ -24,8 +24,9 @@ var wrapNewProps = (target, newProps, deep) => {
   // console.log("adding ",newProps,"to",target)
 
 
+  const delFunc = (name) => setFunc(name, deleteMe);
 
-  const setFunc = (name, val = deleteMe) => wrapNewProps(newProxy,
+  const setFunc = (name, val = nothing) => wrapNewProps(newProxy,
     val != nothing ?
     { [name]: val} : name,
   deep);
@@ -62,7 +63,7 @@ var wrapNewProps = (target, newProps, deep) => {
       if (name === "set")
         return setFunc;
       if (name === "delete")
-        return setFunc;
+        return delFunc;
       // if (name === "isImmutable")
       //   return true;
       // if (name === "toString")
@@ -113,9 +114,16 @@ console.log("immutableTom Test1", test1, test1.test, deletedProp, Object.keys(te
 
 
 
-export var addObjectProp = (obj, name, val, enumerable) => obj.set(name, val);
+export var addObjectProp = (obj, name, value, enumerable) => {
+  // if (typeof value === "function" && value.length <= 1)
+  //   value = value(obj);
+  return obj.set(name, value);
+}
 export var addObjectProps = (obj, props, enumerable) => {
   // console.log("adding to immuuutable",obj,props,obj.set);
   props = _.mapValues(props, (value) => (typeof value === "function" && value.length <= 1) ? value(obj) : value);
+  // console.log("ppppppp");
+  // console.log("props after",props,obj);
+
   return obj.set(props, nothing);
 }

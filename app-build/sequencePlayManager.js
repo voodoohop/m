@@ -6,13 +6,13 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $__tomSequencer__,
-    $__nodeProxiedImmutable__,
+    $__immutable_47_nodeProxiedImmutable__,
     $__oscAbleton__,
     $__generatorModuleManager__;
 var Bacon = require("baconjs");
 var BaconSequencer = ($__tomSequencer__ = require("./tomSequencer"), $__tomSequencer__ && $__tomSequencer__.__esModule && $__tomSequencer__ || {default: $__tomSequencer__}).BaconSequencer;
 var _ = require("lodash");
-var immutableTom = ($__nodeProxiedImmutable__ = require("./nodeProxiedImmutable"), $__nodeProxiedImmutable__ && $__nodeProxiedImmutable__.__esModule && $__nodeProxiedImmutable__ || {default: $__nodeProxiedImmutable__}).immutableTom;
+var immutableTom = ($__immutable_47_nodeProxiedImmutable__ = require("./immutable/nodeProxiedImmutable"), $__immutable_47_nodeProxiedImmutable__ && $__immutable_47_nodeProxiedImmutable__.__esModule && $__immutable_47_nodeProxiedImmutable__ || {default: $__immutable_47_nodeProxiedImmutable__}).immutableTom;
 var $__2 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
     abletonReceiver = $__2.abletonReceiver,
     abletonSender = $__2.abletonSender;

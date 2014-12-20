@@ -1,6 +1,6 @@
 
-import {wu} from "./wu";
-import {getIterator} from "./utils";
+import {wu} from "./lib/wu";
+import {getIterator} from "./lib/utils";
 import {t} from "./time";
 
 var Bacon = require("baconjs");

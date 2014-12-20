@@ -27,12 +27,12 @@ import {m} from "./functionalMonads";
 
 import {t} from "./time";
 
-import {wu} from "./wu";
+import {wu} from "./lib/wu";
 
 
 import {abletonReceiver, abletonSender} from "./oscAbleton";
 
-import {isIterable,getIterator,clone} from "./utils";
+import {isIterable,getIterator,clone} from "./lib/utils";
 
 import * as moduleManager from "./generatorModuleManager";
 

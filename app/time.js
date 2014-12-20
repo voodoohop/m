@@ -1,5 +1,5 @@
 
-import {generatorize} from "./utils";
+import {generatorize} from "./lib/utils";
 
 var Bacon = require("baconjs");
 

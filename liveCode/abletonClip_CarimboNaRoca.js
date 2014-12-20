@@ -1,4 +1,4 @@
-export var CarimboNaRoca = m.data([
+export var CarimboNaRoca = m().data([
   {
     "pitch": 57,
     "duration": 7.99,

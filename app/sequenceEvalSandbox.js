@@ -6,11 +6,11 @@ import {m} from "./functionalMonads";
 
 import {t} from "./time";
 
-import {wu} from "./wu";
+import {wu} from "./lib/wu";
 
 import webServer from "./webConnection";
 
-import {isIterable,getIterator,clone} from "./utils";
+import {isIterable,getIterator,clone} from "./lib/utils";
 
 var Easer = require('functional-easing').Easer;
 

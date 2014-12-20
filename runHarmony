@@ -1,5 +1,5 @@
 #!/bin/sh
-rm app-build/*
+rm -r app-build/*
 
 traceur --symbols=false --arrow-functions=true --unicode-expressions=true --numeric-literals=parse --unicode-escape-sequences=true --block-binding=parse --generators=parse --default-parameters=true --for-of=true --rest-parameters=true --spread=true --destructuring=true --classes=parse --computed-property-names=true --dir app app-build --modules=commonjs
 #--source-maps

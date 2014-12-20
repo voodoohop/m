@@ -14,12 +14,12 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
-var $__utils__,
+var $__lib_47_utils__,
     $__sequenceEvaluator__,
     $__sequenceCodeProcessor__;
 var Bacon = require("baconjs");
 var Immutable = require("immutable");
-var $__0 = ($__utils__ = require("./utils"), $__utils__ && $__utils__.__esModule && $__utils__ || {default: $__utils__}),
+var $__0 = ($__lib_47_utils__ = require("./lib/utils"), $__lib_47_utils__ && $__lib_47_utils__.__esModule && $__lib_47_utils__ || {default: $__lib_47_utils__}),
     isIterable = $__0.isIterable,
     getIterator = $__0.getIterator,
     clone = $__0.clone;

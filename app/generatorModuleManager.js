@@ -6,7 +6,7 @@ var Immutable = require("immutable");
 
 
 
-import {isIterable,getIterator,clone} from "./utils";
+import {isIterable,getIterator,clone} from "./lib/utils";
 
 
 

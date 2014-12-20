@@ -1,4 +1,4 @@
-export var DiscosFGCRoda08CarimboNaRoca_192kb = m.data([
+export var DiscosFGCRoda08CarimboNaRoca_192kb = m().data([
   {
     "pitch": 36,
     "duration": 0.2942435145378113,

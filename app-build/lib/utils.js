@@ -57,7 +57,7 @@ var generatorize = function(fn) {
   };
 };
 const isIterable = (function(thing) {
-  return thing && typeof thing[$traceurRuntime.toProperty(Symbol.iterator)] === "function" && typeof thing != "string";
+  return thing && typeof thing[$traceurRuntime.toProperty(wu.iteratorSymbol)] === "function" && typeof thing != "string";
 });
 const getIterator = (function(thing) {
   if (isIterable(thing))

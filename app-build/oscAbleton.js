@@ -9,9 +9,9 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $__time__,
-    $__wu__;
+    $__lib_47_wu__;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
-var wu = ($__wu__ = require("./wu"), $__wu__ && $__wu__.__esModule && $__wu__ || {default: $__wu__}).wu;
+var wu = ($__lib_47_wu__ = require("./lib/wu"), $__lib_47_wu__ && $__lib_47_wu__.__esModule && $__lib_47_wu__ || {default: $__lib_47_wu__}).wu;
 var osc = require("osc");
 var Bacon = require("baconjs");
 var oscToBaconStream = function(udpPort) {
