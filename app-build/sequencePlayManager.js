@@ -60,8 +60,9 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     resetRequests.plug(Bacon.fromArray(needToPlay));
   }
   sequenceSubscribe.onValue((function(sub) {
-    if (!availableSequences[$traceurRuntime.toProperty(sub.path)] || !availableSequences[$traceurRuntime.toProperty(sub.path)].playable || !availableSequences[$traceurRuntime.toProperty(sub.path)].evaluatedDetails.playable) {
-      console.warn("tried subscribing to " + sub.sequenceName + " but not available or playable");
+    console.log("subscribeRequest", sub);
+    if (!availableSequences[$traceurRuntime.toProperty(sub.path)] || !availableSequences[$traceurRuntime.toProperty(sub.path)].evaluatedDetails || !availableSequences[$traceurRuntime.toProperty(sub.path)].evaluatedDetails[$traceurRuntime.toProperty(sub.name)] || !availableSequences[$traceurRuntime.toProperty(sub.path)].evaluatedDetails[$traceurRuntime.toProperty(sub.name)].playable) {
+      console.warn("tried subscribing to " + sub.name + " but not available or playable", availableSequences[$traceurRuntime.toProperty(sub.path)]);
       return;
     }
     console.log("subscribing", sub.path);

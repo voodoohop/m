@@ -297,13 +297,11 @@ addGenerator(function* map(mapFunc, node) {
     // console.log("merging",orig,"mappedRes", mappedRes);
     var res = {
       events: mappedRes.simpleMap(m => addObjectProps(orig, m))
-    };
-
+    }
     if (orig.hasOwnProperty("time")) {
       res.time = orig.time;
       timed = true;
     };
-
     return immutableObj(res);
   });
 
@@ -524,7 +522,8 @@ addGenerator(function* merge(mergeNode, node) {
 
 
 addGenerator(function* swing(timeGrid, amount, node) {
-  yield * getIterator(node.time((e) => {
+  console.log("swinging",timeGrid, amount, node);
+  yield * getIterator(m(node).time((e) => {
     // console.log("swing, mapping,",e);
     var diff = (e.time % (timeGrid * 2)) / timeGrid - 1;
 

@@ -67,6 +67,7 @@ assert.equal(eventCount.prop("color", "turquoise").skip(3).takeWhile((function(e
 })).toArray()[0].count, 3);
 var test4 = m().evt({pitch: 30}).duration(20);
 console.log(test4.take(10).toArray());
+console.log("---tests---");
 var kickGrid = 2;
 var kick = m().evt({
   pitch: [54, 60, 65],

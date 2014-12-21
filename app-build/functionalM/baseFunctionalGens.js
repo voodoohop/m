@@ -38,6 +38,9 @@ addGenerator(function* data(data) {
         type: "value",
         valueOf: (function() {
           return data;
+        }),
+        toString: (function() {
+          return "" + data;
         })
       });
       console.log("created dataObj from value", dataObj);

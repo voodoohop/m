@@ -1,4 +1,5 @@
 "use strict";
+var $__0;
 Object.defineProperties(exports, {
   immutableTom: {get: function() {
       return immutableTom;
@@ -14,6 +15,7 @@ Object.defineProperties(exports, {
 var _ = require("lodash");
 const nothing = Object.freeze({});
 const deleteMe = {DELETED: true};
+const isImmutable = Symbol("isImmutableTom");
 const getFunc = ((function(target, newProps, name) {
   const res = newProps && newProps.hasOwnProperty(name) ? newProps[$traceurRuntime.toProperty(name)] : target[$traceurRuntime.toProperty(name)];
   return res === deleteMe ? undefined : res;
@@ -26,7 +28,7 @@ const keysFunc = ((function(oldKeys, newKeys, newProps) {
 const convertFuncToVal = function(val, target) {
   return ((typeof val === "function" && val.length <= 1) ? val(target) : val);
 };
-var wrapNewProps = (function(target, newProps, deep) {
+var wrapNewProps = (function(target, newProps) {
   const delFunc = (function(name) {
     return setFunc(name, deleteMe);
   });
@@ -38,7 +40,7 @@ var wrapNewProps = (function(target, newProps, deep) {
       configurable: true,
       enumerable: true,
       writable: true
-    }), $__0) : name, deep);
+    }), $__0) : name);
   });
   const hasCheck = _.memoize((function(name) {
     return (newProps.hasOwnProperty(name) && newProps[$traceurRuntime.toProperty(name)] != deleteMe) || (!newProps.hasOwnProperty(name) && target.hasOwnProperty(name));
@@ -107,10 +109,19 @@ var wrapNewProps = (function(target, newProps, deep) {
   const newProxy = Proxy.create(handler);
   return newProxy;
 });
+const empty = ($__0 = {}, Object.defineProperty($__0, isImmutable, {
+  value: true,
+  configurable: true,
+  enumerable: true,
+  writable: true
+}), $__0);
 const immutableTom = function() {
-  var initial = arguments[0] !== (void 0) ? arguments[0] : {};
-  var deep = arguments[1] !== (void 0) ? arguments[1] : false;
-  return wrapNewProps(initial, nothing, deep);
+  var initial = arguments[0] !== (void 0) ? arguments[0] : nothing;
+  if (!(initial instanceof Object))
+    return initial;
+  if (initial[$traceurRuntime.toProperty(isImmutable)])
+    return initial;
+  return wrapNewProps(empty, initial);
 };
 var assert = require("assert");
 var test1 = immutableTom({bla: 2}).set("test", 5);

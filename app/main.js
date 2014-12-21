@@ -183,7 +183,7 @@ webServer.beatFeedback(timeThatAccountsForTransportJumps.toEventStream().map((t)
 
 var newClipSequences = abletonReceiver.clipNotes.map(function(v) {
   var notes = _.sortBy(v.notes, (n) => n.time);
-  var seq=m.data(notes.map((n) => {
+  var seq=m().data(notes.map((n) => {
     return {
       pitch: n.pitch,
       duration: n.duration,

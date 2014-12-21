@@ -23,7 +23,7 @@ module.exports = {
   module: {
     loaders: [
       {
-        test: /\.js$/,
+        test: /\.js.?$/,
         loaders: [
         //  '6to5-loader',
           'jsx-loader?harmony',

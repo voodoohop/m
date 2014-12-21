@@ -52,8 +52,11 @@ export default function(time, resetMessages, sequenceFeedback) {
   }
 
   sequenceSubscribe.onValue((sub) => {
-    if (!availableSequences[sub.path] || !availableSequences[sub.path].playable || !availableSequences[sub.path].evaluatedDetails.playable){
-      console.warn("tried subscribing to "+sub.sequenceName+" but not available or playable");
+    // console.log(availableSequences[sub.path]);
+    //TODO: change this insanity
+    console.log("subscribeRequest",sub);
+    if (!availableSequences[sub.path] || !availableSequences[sub.path].evaluatedDetails || !availableSequences[sub.path].evaluatedDetails[sub.name]|| !availableSequences[sub.path].evaluatedDetails[sub.name].playable){
+      console.warn("tried subscribing to "+sub.name+" but not available or playable", availableSequences[sub.path]);
       return;
     }
     console.log("subscribing",sub.path);//, "subscribed", subscribedSequences);

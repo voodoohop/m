@@ -131,25 +131,25 @@ var mGeneratorUnCached = function(generator, options = {}) {
   return getIterable.length > 0 ? wu.curryable(getIterable) : getIterable;
 }
 
-
-function Chainable(wrapObject = null) {
-  this.wrap = wrapObject;
-}
-
 var nothing = Object.freeze({});
 
+var wrappedSymbol = Symbol("M wrapped Object");
 
 
 
 function M(wrapObject = nothing) {
   // this.MLibrary = "version_0.2";
-  this.wrapObject=wrapObject;
 
   if (isIterable(wrapObject)) {
+    this[wrappedSymbol] = wrapObject;
     this[wu.iteratorSymbol] = wrapObject[wu.iteratorSymbol];
     this.name = wrapObject.name;
     this.toString = wrapObject.toString;
     this.isTom = wrapObject.isTom;
+  } else {
+    if (wrapObject != nothing)
+      wrapObject = immutableObj(wrapObject);
+    this[wrappedSymbol] = wrapObject;
   }
 }
 
@@ -165,9 +165,9 @@ var addFunction = function(name, func, options=nothing) {
   M.prototype[name] = function(...args) {
     // console.log("this in prototype",this);
     if (options.notChainable)
-      return func(this.wrapObject);
+      return func(this[wrappedSymbol]);
 
-    var callArgs = (this.wrapObject != nothing && !options.noInputChain) ? [...args, this.wrapObject] : args;
+    var callArgs = (this[wrappedSymbol] != nothing && !options.noInputChain) ? [...args, this[wrappedSymbol]] : args;
     // if (logDetails)
     //   console.log("call".bold,name, "being called on", callArgs);
     var res = func(...callArgs);

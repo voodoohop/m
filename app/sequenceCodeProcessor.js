@@ -15,11 +15,12 @@ import wrapError from "./wrapSequenceError";
 
 export default function(seq) {
 
+  try {
     var dependencies = depGraph(seq.code,{
       includeBindings: true
     });
     var compiled;
-    try {
+
     compiled = traceur.compile(seq.code,{
       sourceMaps:"inline",
       modules:"register",

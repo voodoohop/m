@@ -14,9 +14,9 @@ var sourceMapper = require('source-map');
 var _ = require("lodash");
 var wrapError = ($__wrapSequenceError__ = require("./wrapSequenceError"), $__wrapSequenceError__ && $__wrapSequenceError__.__esModule && $__wrapSequenceError__ || {default: $__wrapSequenceError__}).default;
 var $__default = function(seq) {
-  var dependencies = depGraph(seq.code, {includeBindings: true});
-  var compiled;
   try {
+    var dependencies = depGraph(seq.code, {includeBindings: true});
+    var compiled;
     compiled = traceur.compile(seq.code, {
       sourceMaps: "inline",
       modules: "register",

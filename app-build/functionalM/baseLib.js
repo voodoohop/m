@@ -113,19 +113,20 @@ var mGeneratorUnCached = function(generator) {
   getIterable.displayName = name;
   return getIterable.length > 0 ? wu.curryable(getIterable) : getIterable;
 };
-function Chainable() {
-  var wrapObject = arguments[0] !== (void 0) ? arguments[0] : null;
-  this.wrap = wrapObject;
-}
 var nothing = Object.freeze({});
+var wrappedSymbol = Symbol("M wrapped Object");
 function M() {
   var wrapObject = arguments[0] !== (void 0) ? arguments[0] : nothing;
-  this.wrapObject = wrapObject;
   if (isIterable(wrapObject)) {
+    this[$traceurRuntime.toProperty(wrappedSymbol)] = wrapObject;
     this[$traceurRuntime.toProperty(wu.iteratorSymbol)] = wrapObject[$traceurRuntime.toProperty(wu.iteratorSymbol)];
     this.name = wrapObject.name;
     this.toString = wrapObject.toString;
     this.isTom = wrapObject.isTom;
+  } else {
+    if (wrapObject != nothing)
+      wrapObject = immutableObj(wrapObject);
+    this[$traceurRuntime.toProperty(wrappedSymbol)] = wrapObject;
   }
 }
 var m = function() {
@@ -141,8 +142,8 @@ var addFunction = function(name, func) {
         $__3 = 0; $__3 < arguments.length; $__3++)
       args[$traceurRuntime.toProperty($__3)] = arguments[$traceurRuntime.toProperty($__3)];
     if (options.notChainable)
-      return func(this.wrapObject);
-    var callArgs = (this.wrapObject != nothing && !options.noInputChain) ? $traceurRuntime.spread(args, [this.wrapObject]) : args;
+      return func(this[$traceurRuntime.toProperty(wrappedSymbol)]);
+    var callArgs = (this[$traceurRuntime.toProperty(wrappedSymbol)] != nothing && !options.noInputChain) ? $traceurRuntime.spread(args, [this[$traceurRuntime.toProperty(wrappedSymbol)]]) : args;
     var res = func.apply(null, $traceurRuntime.spread(callArgs));
     var wrapped = m(res);
     return wrapped;

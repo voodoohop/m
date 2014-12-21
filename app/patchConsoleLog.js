@@ -4,6 +4,8 @@ var colors = require('colors');
 
 var oldLog= console.log;
 
+
+
 var lengthLimit = 20000;
 var limitStringLength = (s) => s.length>lengthLimit ? (s.substring(0,lengthLimit)).yellow+"...".bold.underline : s;
 

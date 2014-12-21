@@ -6,6 +6,7 @@ const deleteMe = {
   DELETED: true
 };
 
+const isImmutable = Symbol("isImmutableTom");
 
 const getFunc = ((target, newProps, name) => {
   const res = newProps && newProps.hasOwnProperty(name) ? newProps[name] : target[name];
@@ -19,17 +20,19 @@ const convertFuncToVal = function(val,target) {
   return ((typeof val === "function" && val.length <= 1) ? val(target) : val);
 }
 
-var wrapNewProps = (target, newProps, deep) => {
+var wrapNewProps = (target, newProps) => {
   // console.log("wrapping",target," with newProps",newProps);
   // console.log("adding ",newProps,"to",target)
 
+  // console.log("newProps", newProps, Object.keys(newProps));
+  // if (Object.keys(newProps).length > 0 && Object.keys(newProps)[0] == "undefined")
+  //   console.trace();
 
   const delFunc = (name) => setFunc(name, deleteMe);
 
   const setFunc = (name, val = nothing) => wrapNewProps(newProxy,
     val != nothing ?
-    { [name]: val} : name,
-  deep);
+    { [name]: val} : name);
 
   const hasCheck = _.memoize((name) =>
     (newProps.hasOwnProperty(name) && newProps[name] != deleteMe) || (!newProps.hasOwnProperty(name) && target.hasOwnProperty(name)));
@@ -84,10 +87,16 @@ var wrapNewProps = (target, newProps, deep) => {
   return newProxy;
 }
 
-// TODO: not using deep yet
-export const immutableTom = function(initial = {}, deep = false) {
+const empty={[isImmutable]:true};
 
-  return wrapNewProps(initial, nothing, deep);
+// TODO: not using deep yet
+export const immutableTom = function(initial=nothing) {
+  if (! (initial instanceof Object))
+    return initial;
+  if (initial[isImmutable])
+    return initial;
+    // throw new Error("can't create immutable from non-object");
+  return wrapNewProps(empty, initial);
 }
 
 var assert = require("assert");

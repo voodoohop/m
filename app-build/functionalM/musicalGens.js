@@ -425,7 +425,8 @@ addGenerator(function* merge(mergeNode, node) {
   yield* nodeIterator;
 });
 addGenerator(function* swing(timeGrid, amount, node) {
-  yield* getIterator(node.time((function(e) {
+  console.log("swinging", timeGrid, amount, node);
+  yield* getIterator(m(node).time((function(e) {
     var diff = (e.time % (timeGrid * 2)) / timeGrid - 1;
     var dist = diff * diff;
     return fixFloat(e.time + amount * (1 - dist) * timeGrid);

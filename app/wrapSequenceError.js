@@ -20,8 +20,12 @@ export default function wrapSequenceError(error, deviceStruct) {
   var errorPos = undefined;
   if (userCodeErrors.length>0) {
     var s = userCodeErrors[0];
-    var transformed = deviceStruct.sourcePos(s.lineNumber, s.columnNumber);
-    errorPos = [transformed.line, transformed.column];
+    if (typeof deviceStruct.sourcePos === "function") {
+      var transformed = deviceStruct.sourcePos(s.lineNumber, s.columnNumber);
+      errorPos = [transformed.line, transformed.column];
+    }
+    else
+      console.error("couldn't find sourceMap error transformer");
   }
   //  process.exit(1);
   // repl.start({

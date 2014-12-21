@@ -57,12 +57,18 @@ var gridLine = component("gridLines", function(props) {
     return <g>{gridLines}</g>;
 });
 
-// var Inspector = require('react-json-inspector');
+var Inspector = require('react-json-inspector');
+
+// var Charts = require('d3rrc');
+// var TimeSeries2Chart = Charts.TimeSeries2Chart;
+
+console.log(Inspector);
 
 module.exports = component("generatorPreview", function(gens) {
   console.log("genPreview",gens);
   if (gens.evaluatedError){
     var errorStyle = {color:"red", fontWeight:"bold"};
+    //<Inspector data={gens} />
     return <div style={errorStyle}>{gens}</div>
   }
   var evts = gens.eventSample;

@@ -88,7 +88,7 @@ var newClipSequences = abletonReceiver.clipNotes.map(function(v) {
   var notes = _.sortBy(v.notes, (function(n) {
     return n.time;
   }));
-  var seq = m.data(notes.map((function(n) {
+  var seq = m().data(notes.map((function(n) {
     return {
       pitch: n.pitch,
       duration: n.duration,

@@ -52,6 +52,11 @@ var test4=m().evt({pitch:30}).duration(20);
 
 console.log(test4.take(10).toArray());
 
+console.log("---tests---");
+
+
+
+
 // throw "bye";
 
 

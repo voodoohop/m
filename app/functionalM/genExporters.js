@@ -4,6 +4,7 @@ import {addChainEndFunction,addGenerator} from "./baseLib";
 
 addChainEndFunction(function toArray(node) {
   var res = [];
+  // console.log("iterating",node);
   for (var n of node) {
     // console.log(typeof n);
     res.push(n);

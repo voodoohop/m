@@ -29,7 +29,8 @@ addGenerator(function* data(data) {
     } else {
       dataObj = immutableObj({
         type: "value",
-        valueOf: () => data
+        valueOf: () => data,
+        toString: () => ""+data
       });
       console.log("created dataObj from value", dataObj);
     }
