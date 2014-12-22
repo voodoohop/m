@@ -37,12 +37,12 @@ var createCache = function() {
   var caches = {};
   return function(key, disable) {
     if (disable) {
-      caches[$traceurRuntime.toProperty(key)] = cache_disabled;
+      caches[key] = cache_disabled;
       return undefined;
     }
-    if (!caches[$traceurRuntime.toProperty(key)])
-      caches[$traceurRuntime.toProperty(key)] = [];
-    return caches[$traceurRuntime.toProperty(key)];
+    if (!caches[key])
+      caches[key] = [];
+    return caches[key];
   };
 };
 var cache = createCache();
@@ -51,7 +51,7 @@ var mGenerator = function(generatorFunc) {
   var origGenerator = mGeneratorUnCached(generatorFunc, options);
   ;
   if (origGenerator.isTom)
-    origGenerator[$traceurRuntime.toProperty(wu.iteratorSymbol)] = doCache(origGenerator)[$traceurRuntime.toProperty(wu.iteratorSymbol)];
+    origGenerator[wu.iteratorSymbol] = doCache(origGenerator)[wu.iteratorSymbol];
   return origGenerator;
 };
 function* doCache(node) {
@@ -83,7 +83,7 @@ function* doCache(node) {
       }
       cached.push(n.value);
     }
-    yield cached[$traceurRuntime.toProperty(count++)];
+    yield cached[count++];
   }
 }
 ;
@@ -95,19 +95,20 @@ var mGeneratorUnCached = function(generator) {
   var getIterable = function() {
     for (var args = [],
         $__3 = 0; $__3 < arguments.length; $__3++)
-      args[$traceurRuntime.toProperty($__3)] = arguments[$traceurRuntime.toProperty($__3)];
-    var res = Object.create(M.prototype);
+      args[$__3] = arguments[$__3];
+    var res = new M();
     res.isTom = true;
     res.name = name;
-    res[$traceurRuntime.toProperty(wu.iteratorSymbol)] = (function() {
+    res[wu.iteratorSymbol] = (function() {
       return generator.apply(null, $traceurRuntime.spread(args));
     });
     if (options.toStringOverride)
       res.toString = (function() {
         return options.toStringOverride;
       });
-    else
+    else {
       prettyToString(name, args, res);
+    }
     return res;
   };
   getIterable.displayName = name;
@@ -117,16 +118,19 @@ var nothing = Object.freeze({});
 var wrappedSymbol = Symbol("M wrapped Object");
 function M() {
   var wrapObject = arguments[0] !== (void 0) ? arguments[0] : nothing;
+  if (!isIterable(wrapObject) && wrapObject != nothing)
+    wrapObject = M.prototype.data(wrapObject);
   if (isIterable(wrapObject)) {
-    this[$traceurRuntime.toProperty(wrappedSymbol)] = wrapObject;
-    this[$traceurRuntime.toProperty(wu.iteratorSymbol)] = wrapObject[$traceurRuntime.toProperty(wu.iteratorSymbol)];
+    this[wrappedSymbol] = wrapObject;
+    this[wu.iteratorSymbol] = wrapObject[wu.iteratorSymbol];
     this.name = wrapObject.name;
     this.toString = wrapObject.toString;
     this.isTom = wrapObject.isTom;
   } else {
-    if (wrapObject != nothing)
+    if (wrapObject != nothing && wrapObject instanceof Object) {
       wrapObject = immutableObj(wrapObject);
-    this[$traceurRuntime.toProperty(wrappedSymbol)] = wrapObject;
+    }
+    this[wrappedSymbol] = wrapObject;
   }
 }
 var m = function() {
@@ -137,13 +141,13 @@ m.prototype = M.prototype;
 console.log(m.prototype);
 var addFunction = function(name, func) {
   var options = arguments[2] !== (void 0) ? arguments[2] : nothing;
-  M.prototype[$traceurRuntime.toProperty(name)] = function() {
+  M.prototype[name] = function() {
     for (var args = [],
         $__3 = 0; $__3 < arguments.length; $__3++)
-      args[$traceurRuntime.toProperty($__3)] = arguments[$traceurRuntime.toProperty($__3)];
+      args[$__3] = arguments[$__3];
     if (options.notChainable)
-      return func(this[$traceurRuntime.toProperty(wrappedSymbol)]);
-    var callArgs = (this[$traceurRuntime.toProperty(wrappedSymbol)] != nothing && !options.noInputChain) ? $traceurRuntime.spread(args, [this[$traceurRuntime.toProperty(wrappedSymbol)]]) : args;
+      return func(this[wrappedSymbol]);
+    var callArgs = (this[wrappedSymbol] != nothing && !options.noInputChain) ? $traceurRuntime.spread(args, [this[wrappedSymbol]]) : args;
     var res = func.apply(null, $traceurRuntime.spread(callArgs));
     var wrapped = m(res);
     return wrapped;

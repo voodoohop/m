@@ -46,7 +46,7 @@ var countRes = test3.skip(10).take(10).simpleMap((function(n) {
   return n / 4;
 })).toArray();
 console.log("countRes", countRes);
-assert.equal(countRes[$traceurRuntime.toProperty(countRes.length - 1)], 4.75);
+assert.equal(countRes[countRes.length - 1], 4.75);
 var eventCount = m().evt({
   pitch: 60,
   velocity: [20, 30]
@@ -68,13 +68,25 @@ assert.equal(eventCount.prop("color", "turquoise").skip(3).takeWhile((function(e
 var test4 = m().evt({pitch: 30}).duration(20);
 console.log(test4.take(10).toArray());
 console.log("---tests---");
+var testMap = m().evt({
+  pitch: 60,
+  duration: 0.3,
+  velocity: 1
+}).metro(4).automate("param1", (function(n) {
+  console.log("automationMap".red.bold, n);
+  return 0.5;
+})).automate("param2", (function(n) {
+  return 0.2;
+})).take(10);
+console.log(testMap.take(10).toArray());
 var kickGrid = 2;
 var kick = m().evt({
   pitch: [54, 60, 65],
   velocity: 0.9,
   duration: kickGrid - 0.5
 }).metro(kickGrid).automate("pitchBend", (function(n) {
-  return Math.sin((n.time + n.evt.time) * Math.PI / 1) / 4 + 0.5;
+  console.log("automate called", n);
+  return Math.sin((n.time + n.target.time) * Math.PI / 1) / 4 + 0.5;
 }));
 var tom = m().evt({
   pitch: 60,
@@ -82,6 +94,7 @@ var tom = m().evt({
   duration: 0.1,
   color: "yellow"
 }).metro(0.2).bjorklund(16, 9, 2);
+var log = console.log;
 var hat = m().evt({
   pitch: [48, 60],
   velocity: [0.3, 0.5, 0.7, 0.3, 0.6],
@@ -94,9 +107,9 @@ var kick_real = m().evt({
 }).metro(1);
 var microtime = require("microtime");
 var profilerDataStore = [];
-var profileSamples = 2000;
+var profileSamples = 200;
 var startTime = microtime.nowDouble();
-for (var $__1 = kick.take(5).toPlayable().take(profileSamples)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+for (var $__1 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__2; !($__2 = $__1.next()).done; ) {
   var n = $__2.value;
   {
@@ -106,11 +119,14 @@ for (var $__1 = kick.take(5).toPlayable().take(profileSamples)[$traceurRuntime.t
       veloctiy: n.velocity,
       type: n.type
     });
+    console.log(n);
   }
 }
 var timeTaken = microtime.nowDouble() - startTime;
-console.log("time:", timeTaken);
-for (var $__3 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+log("time:", timeTaken);
+log("-------------".bgRed);
+console.log(kick.toPlayable().take(50).toArray()[49]);
+for (var $__3 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__4; !($__4 = $__3.next()).done; ) {
   var n = $__4.value;
   {
@@ -122,8 +138,8 @@ for (var $__3 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
   }
 }
 timeTaken = microtime.nowDouble() - startTime;
-console.log("time:", timeTaken);
-for (var $__5 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+log("time:", timeTaken);
+for (var $__5 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__6; !($__6 = $__5.next()).done; ) {
   var n = $__6.value;
   {
@@ -148,8 +164,8 @@ for (var $__5 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
   }
 }
 timeTaken = microtime.nowDouble() - startTime;
-console.log("time2:", timeTaken);
-for (var $__7 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+log("time2:", timeTaken);
+for (var $__7 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__8; !($__8 = $__7.next()).done; ) {
   var n = $__8.value;
   var x = ({
@@ -159,4 +175,4 @@ for (var $__7 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
   });
 }
 timeTaken = microtime.nowDouble() - startTime;
-console.log("time:", timeTaken);
+log("time:", timeTaken);

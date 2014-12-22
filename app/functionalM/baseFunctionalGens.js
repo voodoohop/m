@@ -14,6 +14,7 @@ import {
 } from "../immutable/nodeProxiedImmutable";
 
 
+
 addGenerator(function* data(data) {
   if (isIterable(data)) {
     for (var d of data) {
@@ -27,16 +28,19 @@ addGenerator(function* data(data) {
       if (isIterable(data))
         throw new Error("data shouldn't be iterable");
     } else {
-      dataObj = immutableObj({
-        type: "value",
-        valueOf: () => data,
-        toString: () => ""+data
-      });
-      console.log("created dataObj from value", dataObj);
+      dataObj = data;
+      // dataObj = immutableObj({
+      //   type: "value",
+      //   valueOf: () => data,
+      //   toString: () => ""+data
+      // });
+      // console.log("created dataObj from value", dataObj);
     }
     yield dataObj;
   }
 });
+
+
 
 
 // TODO: remove this data generator nonsense? if it's not used later yes!
@@ -48,7 +52,7 @@ addGenerator(function* loopData(dataNode) {
       yield * getIterator(m(dataNode).loop());
       return;
     }
-    for (var props of m().zip(..._.values(data))) {
+    for (var props of m().zipLooping(..._.values(data))) {
       //console.log(zippedProps);
       var resData = props.reduce(function(prev, val, i) {
         // console.log("reduceLoopData",prev,keys[i]+":"+val,i);
@@ -68,7 +72,7 @@ addGenerator(function* zipMerge(node) {
 
 
 addGenerator(function* simpleMerge(node1, node2) {
-  //console.log("node1,2",node1,"---",node2);
+  // console.log("node1,2",node2,"---",node1);
   var iterators = [node1, node2].map((node) => getIterator(node));
   while (true) {
     var next = iterators.map((i) => i.next().value);
@@ -97,8 +101,11 @@ addGenerator(function* evt(data) {
 
 
 addGenerator(function* prop(name, tomValue, children) {
-  // console.log("children",children);
-  yield * getIterator(m(children).set({[name]: tomValue}));
+  // console.log("name, tomval",name,""+tomValue);
+  if (!isIterable(tomValue) && typeof tomValue === "function")
+    yield* getIterator(m(children).simpleMap(n => n.set("name",tomValue)));
+  else
+    yield * getIterator(m(children).set({[name]: tomValue}));
 });
 
 
@@ -155,8 +162,17 @@ addGenerator(function* take(n, node) {
   }
 });
 
-
 addGenerator(function* zip(...nodes) {
+  var iterators = nodes.map(node => getIterator(m(node)));
+  while (true) {
+    var next = iterators.map((i) => i.next().value);
+    if (_.every(next, (n) => n != undefined))
+      yield next;
+  }
+});
+
+
+addGenerator(function* zipLooping(...nodes) {
   var loopedIterators = nodes.map((node) => {
     // console.log(node.length,MLoop(node),MLoop(node).length)
     return getIterator(m(node).loop())
@@ -171,12 +187,15 @@ addGenerator(function* zip(...nodes) {
 
 
 addGenerator(function* simpleMap(mapFunc, node) {
-  // console.log("simpleMap",mapFunc,node);
+  // console.log("simpleMap",""+mapFunc,node);
   for (var n of node) {
     // console.log("simpleMap",""+(typeof mapFunc),node);
     var mapRes=mapFunc(n);
     // console.log("mapRes",mapRes);
-    yield mapRes;
+    if (!isIterable(mapRes))
+      yield immutableObj(mapRes);
+    else
+      yield mapRes;
   }
 });
 

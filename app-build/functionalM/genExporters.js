@@ -5,7 +5,7 @@ var $__0 = ($__baseLib__ = require("./baseLib"), $__baseLib__ && $__baseLib__.__
     addGenerator = $__0.addGenerator;
 addChainEndFunction(function toArray(node) {
   var res = [];
-  for (var $__1 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__1 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__2; !($__2 = $__1.next()).done; ) {
     var n = $__2.value;
     {
@@ -15,7 +15,7 @@ addChainEndFunction(function toArray(node) {
   return res;
 });
 addGenerator(function* log(name, node) {
-  for (var $__1 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__1 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__2; !($__2 = $__1.next()).done; ) {
     var e = $__2.value;
     {

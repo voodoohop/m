@@ -25,7 +25,7 @@ var $__default = function(seq) {
       numericLiterals: "parse",
       forOf: true,
       classes: "parse",
-      symbols: false
+      symbols: "parse"
     });
   } catch (exception) {
     console.log("code compile error".bold.red, seq, exception, exception.trace);

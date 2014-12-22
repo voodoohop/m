@@ -46,7 +46,10 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
       seqIterator = getIterator(sequence
         .skipWhile((n) => n.time < prevTime)
         .toPlayable());
-      next = seqIterator.next(prevTime);
+
+      next = seqIterator.next();
+      if (!next)
+        return;
     //   console.log("Rx",Rx.Observable);
     //   var seqStream = Rx.Observable.from(sequence.skipWhile((n) => n.time < prevTime)
     //   .toPlayable());
@@ -87,7 +90,7 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
 
     }
     catch (exception) {
-      console.error(exception)
+      console.error(exception, exception.stack);
       return [new Bacon.Error(exception)];
     }
     //console.log(eventsNow.length);

@@ -1,8 +1,14 @@
 "use strict";
-var $__0;
+var $__1;
 Object.defineProperties(exports, {
   immutableTom: {get: function() {
       return immutableTom;
+    }},
+  isLazy: {get: function() {
+      return isLazy;
+    }},
+  addLazyProp: {get: function() {
+      return addLazyProp;
     }},
   addObjectProp: {get: function() {
       return addObjectProp;
@@ -12,17 +18,26 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
+var $___46__46__47_lib_47_utils__;
 var _ = require("lodash");
+var isIterable = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46__47_lib_47_utils__ && $___46__46__47_lib_47_utils__.__esModule && $___46__46__47_lib_47_utils__ || {default: $___46__46__47_lib_47_utils__}).isIterable;
 const nothing = Object.freeze({});
 const deleteMe = {DELETED: true};
 const isImmutable = Symbol("isImmutableTom");
+var undefinedToNull = (function(val) {
+  return (val === undefined) ? null : val;
+});
 const getFunc = ((function(target, newProps, name) {
-  const res = newProps && newProps.hasOwnProperty(name) ? newProps[$traceurRuntime.toProperty(name)] : target[$traceurRuntime.toProperty(name)];
+  var res;
+  if (newProps && newProps.hasOwnProperty(name))
+    res = newProps[name];
+  else
+    res = target[name];
   return res === deleteMe ? undefined : res;
 }));
 const keysFunc = ((function(oldKeys, newKeys, newProps) {
   return _.filter(_.union(oldKeys(), newKeys()), (function(k) {
-    return !(newProps[$traceurRuntime.toProperty(k)] == deleteMe);
+    return !(newProps[k] == deleteMe);
   }));
 }));
 const convertFuncToVal = function(val, target) {
@@ -34,16 +49,16 @@ var wrapNewProps = (function(target, newProps) {
   });
   const setFunc = (function(name) {
     var val = arguments[1] !== (void 0) ? arguments[1] : nothing;
-    var $__0;
-    return wrapNewProps(newProxy, val != nothing ? ($__0 = {}, Object.defineProperty($__0, name, {
+    var $__1;
+    return wrapNewProps(newProxy, val != nothing ? ($__1 = {}, Object.defineProperty($__1, name, {
       value: val,
       configurable: true,
       enumerable: true,
       writable: true
-    }), $__0) : name);
+    }), $__1) : name);
   });
   const hasCheck = _.memoize((function(name) {
-    return (newProps.hasOwnProperty(name) && newProps[$traceurRuntime.toProperty(name)] != deleteMe) || (!newProps.hasOwnProperty(name) && target.hasOwnProperty(name));
+    return (newProps.hasOwnProperty(name) && newProps[name] != deleteMe) || (!newProps.hasOwnProperty(name) && target.hasOwnProperty(name));
   }));
   const getPropDescriptor = _.memoize((function(name) {
     return name === "set" ? {
@@ -109,20 +124,45 @@ var wrapNewProps = (function(target, newProps) {
   const newProxy = Proxy.create(handler);
   return newProxy;
 });
-const empty = ($__0 = {}, Object.defineProperty($__0, isImmutable, {
+const empty = ($__1 = {}, Object.defineProperty($__1, isImmutable, {
   value: true,
   configurable: true,
   enumerable: true,
   writable: true
-}), $__0);
+}), $__1);
 const immutableTom = function() {
   var initial = arguments[0] !== (void 0) ? arguments[0] : nothing;
   if (!(initial instanceof Object))
     return initial;
-  if (initial[$traceurRuntime.toProperty(isImmutable)])
+  if (initial[isImmutable])
     return initial;
+  if (isIterable(initial))
+    console.warn("initial is iterable, making an immutable object may mean we lose the Symbol.iterator", initial);
   return wrapNewProps(empty, initial);
 };
+var isLazy = Symbol("Lazy Resolving Function");
+var addLazyProp = (function(obj, name, resolveFunc) {
+  resolveFunc.isLazy = true;
+  return obj.set(name, resolveFunc);
+});
+var processVal = (function(name, value) {
+  return (typeof value === "function" && value.length <= 1 && name.length > 0 && name != "toString" && name != "toJSON" && name != "valueOf") ? value(obj) : value;
+});
+var addObjectProp = (function(obj, name, value) {
+  return obj.set(name, processVal(name, value));
+});
+var addObjectProps = (function(obj, props) {
+  if (typeof props.time == "object") {
+    throw Error("time shouldn't be object");
+  }
+  var propsNew = {};
+  for (var $__2 = Object.keys(props)[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__3; !($__3 = $__2.next()).done; ) {
+    let k = $__3.value;
+    propsNew[k] = processVal(k, props[k]);
+  }
+  return obj.set(propsNew, nothing);
+});
 var assert = require("assert");
 var test1 = immutableTom({bla: 2}).set("test", 5);
 assert.equal(test1.bla, 2);
@@ -136,13 +176,3 @@ assert.throws((function() {
 var deletedProp = test1.delete("bla");
 assert.equal(deletedProp.bla, undefined);
 assert.equal(deletedProp.hasOwnProperty("bla"), false);
-console.log("immutableTom Test1", test1, test1.test, deletedProp, Object.keys(test1));
-var addObjectProp = (function(obj, name, value, enumerable) {
-  return obj.set(name, value);
-});
-var addObjectProps = (function(obj, props, enumerable) {
-  props = _.mapValues(props, (function(value) {
-    return (typeof value === "function" && value.length <= 1) ? value(obj) : value;
-  }));
-  return obj.set(props, nothing);
-});

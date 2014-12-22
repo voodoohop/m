@@ -18,7 +18,7 @@ var util = require("util");
 var _ = require("lodash");
 
 
-var logDetails = true;
+  var logDetails = true;
 
 
 // // TODO: work in progress
@@ -116,15 +116,17 @@ var mGeneratorUnCached = function(generator, options = {}) {
     // console.log(path);
     // console.log(trace.map(t => t.toString().replace(path,"")).filter(t => t.indexOf("evalmachine")>=0));
 
-    var res = Object.create(M.prototype);
+    var res = new M();
     res.isTom = true;
     res.name = name;
 
     res[wu.iteratorSymbol] = () => generator(...args);
     if (options.toStringOverride)
       res.toString = () => options.toStringOverride;
-    else
-      prettyToString(name, args, res);
+    else {
+      // console.log(name,args,res);
+        prettyToString(name, args, res);
+    }
     return res;
   }
   getIterable.displayName = name;
@@ -139,7 +141,8 @@ var wrappedSymbol = Symbol("M wrapped Object");
 
 function M(wrapObject = nothing) {
   // this.MLibrary = "version_0.2";
-
+  if (!isIterable(wrapObject) && wrapObject != nothing)
+    wrapObject = M.prototype.data(wrapObject);
   if (isIterable(wrapObject)) {
     this[wrappedSymbol] = wrapObject;
     this[wu.iteratorSymbol] = wrapObject[wu.iteratorSymbol];
@@ -147,13 +150,16 @@ function M(wrapObject = nothing) {
     this.toString = wrapObject.toString;
     this.isTom = wrapObject.isTom;
   } else {
-    if (wrapObject != nothing)
+    if (wrapObject != nothing && wrapObject instanceof Object) {
+      // console.log("typeof",typeof wrapObject,wrapObject);
       wrapObject = immutableObj(wrapObject);
+    }
     this[wrappedSymbol] = wrapObject;
   }
 }
 
 export var m = function(wrapObject = nothing) {
+
   return new M(wrapObject);
 }
 
@@ -161,12 +167,14 @@ m.prototype = M.prototype;
 
 console.log(m.prototype);
 
+
 var addFunction = function(name, func, options=nothing) {
   M.prototype[name] = function(...args) {
     // console.log("this in prototype",this);
     if (options.notChainable)
       return func(this[wrappedSymbol]);
 
+    // var argument = isIterable(this) ? this : this[wrappedSymbol];
     var callArgs = (this[wrappedSymbol] != nothing && !options.noInputChain) ? [...args, this[wrappedSymbol]] : args;
     // if (logDetails)
     //   console.log("call".bold,name, "being called on", callArgs);

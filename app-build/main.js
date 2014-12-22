@@ -73,7 +73,7 @@ var SequencePlayManager = ($__sequencePlayManager__ = require("./sequencePlayMan
 var sequencePlayManager = SequencePlayManager(timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
 timeThatAccountsForTransportJumps.throttle(1000).onValue((function() {
   return console.log("playing Sequences".bgMagenta.white, Object.keys(sequencePlayManager.playingSequences).map((function(seqPath) {
-    return seqPath + ":" + sequencePlayManager.playingSequences[$traceurRuntime.toProperty(seqPath)].port;
+    return seqPath + ":" + sequencePlayManager.playingSequences[seqPath].port;
   })));
 }));
 var $__7 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
@@ -111,7 +111,7 @@ moduleManager.newSequenceCode.plug(newClipSequences);
 moduleManager.newSequenceCode.plug(webServer.liveCode);
 setTimeout(function() {
   console.log("CODE LOADED", storedSequences);
-  for (var $__8 = storedSequences[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__8 = storedSequences[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__9; !($__9 = $__8.next()).done; ) {
     var seq = $__9.value;
     {
@@ -127,14 +127,14 @@ var generatorList = moduleManager.processedSequences.scan({}, (function(prev, ne
   if (next.evaluatedError) {
     console.error("ERROR", next.evaluatedError);
   }
-  prev[$traceurRuntime.toProperty(next.device + "/" + next.name)] = {
+  prev[next.device + "/" + next.name] = {
     evaluatedError: next.evaluatedError,
     device: next.device,
     name: next.name,
     sourceCode: next.code,
     sequenceAsString: next.sequence && next.sequence.toString(),
-    eventSample: next.evaluated ? next.evaluatedDetails[$traceurRuntime.toProperty(next.name)].eventSample : [],
-    evaluatedDetails: next.evaluated ? next.evaluatedDetails[$traceurRuntime.toProperty(next.name)] : null
+    eventSample: next.evaluated ? next.evaluatedDetails[next.name].eventSample : [],
+    evaluatedDetails: next.evaluated ? next.evaluatedDetails[next.name] : null
   };
   console.log("generated", next.device + "/" + next.name);
   return prev;

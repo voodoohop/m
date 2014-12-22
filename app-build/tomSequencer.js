@@ -48,7 +48,9 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
           seqIterator = getIterator(sequence.skipWhile((function(n) {
             return n.time < prevTime;
           })).toPlayable());
-          next = seqIterator.next(prevTime);
+          next = seqIterator.next();
+          if (!next)
+            return;
         }
         var count = 0;
         while (next.value.time < prevTime) {
@@ -72,7 +74,7 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
             return eventsNow;
         }
       } catch (exception) {
-        console.error(exception);
+        console.error(exception, exception.stack);
         return [new Bacon.Error(exception)];
       }
       return eventsNow;

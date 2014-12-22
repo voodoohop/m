@@ -20,7 +20,7 @@ var immutableObj = function() {
     value: (function() {
       for (var args = [],
           $__5 = 0; $__5 < arguments.length; $__5++)
-        args[$traceurRuntime.toProperty($__5)] = arguments[$traceurRuntime.toProperty($__5)];
+        args[$__5] = arguments[$__5];
       var $__0;
       var val = args[0];
       if (args.length > 1) {
@@ -37,19 +37,19 @@ var immutableObj = function() {
     enumerable: true,
     writable: true
   }), $__0));
-  for (var $__1 = Object.keys(initial)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__1 = Object.keys(initial)[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__2; !($__2 = $__1.next()).done; ) {
     let k = $__2.value;
     {
-      me[$traceurRuntime.toProperty(k)] = initial[$traceurRuntime.toProperty(k)];
+      me[k] = initial[k];
     }
   }
   if (extendWith)
-    for (var $__3 = Object.keys(extendWith)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__3 = Object.keys(extendWith)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__4; !($__4 = $__3.next()).done; ) {
       let k = $__4.value;
       {
-        me[$traceurRuntime.toProperty(k)] = extendWith[$traceurRuntime.toProperty(k)];
+        me[k] = extendWith[k];
       }
     }
   return Object.freeze(me);

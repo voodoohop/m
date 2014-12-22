@@ -112,7 +112,7 @@ var processedSequences_noStack = evaluated.flatMap((function(n) {
   var n = n.toJS();
   return Bacon.fromArray(n.exports.map((function(seqName) {
     return _.extend({
-      sequence: n.evaluated ? n.evaluated[$traceurRuntime.toProperty(seqName)] : null,
+      sequence: n.evaluated ? n.evaluated[seqName] : null,
       device: n.device,
       name: seqName
     }, n);

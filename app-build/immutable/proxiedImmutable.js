@@ -16,12 +16,12 @@ var Proxy = require('harmony-proxy');
 const nothing = {};
 const deleteMe = {DELETED: true};
 const getFunc = ((function(target, newProps, name) {
-  var res = newProps && newProps.hasOwnProperty(name) && newProps.hasOwnProperty(name) ? newProps[$traceurRuntime.toProperty(name)] : target[$traceurRuntime.toProperty(name)];
+  var res = newProps && newProps.hasOwnProperty(name) && newProps.hasOwnProperty(name) ? newProps[name] : target[name];
   return res === deleteMe ? undefined : res;
 }));
 const keysFunc = ((function(oldKeys, newKeys, newProps) {
   return _.filter(_.union(oldKeys(), newKeys()), (function(k) {
-    return !(newProps[$traceurRuntime.toProperty(k)] == deleteMe);
+    return !(newProps[k] == deleteMe);
   }));
 }));
 var wrapNewProps = (function(target, newProps, deep) {
@@ -36,7 +36,7 @@ var wrapNewProps = (function(target, newProps, deep) {
     }), $__0) : name, deep);
   });
   const hasCheck = _.memoize((function(name) {
-    return (newProps.hasOwnProperty(name) && newProps[$traceurRuntime.toProperty(name)] != deleteMe) || (!newProps.hasOwnProperty(name) && target.hasOwnProperty(name) && target[$traceurRuntime.toProperty(name)] != deleteMe);
+    return (newProps.hasOwnProperty(name) && newProps[name] != deleteMe) || (!newProps.hasOwnProperty(name) && target.hasOwnProperty(name) && target[name] != deleteMe);
   }));
   const getPropDescriptor = _.memoize((function(name) {
     return name === "set" ? {
@@ -74,7 +74,7 @@ var wrapNewProps = (function(target, newProps, deep) {
     set: (function() {
       for (var args = [],
           $__1 = 0; $__1 < arguments.length; $__1++)
-        args[$traceurRuntime.toProperty($__1)] = arguments[$traceurRuntime.toProperty($__1)];
+        args[$__1] = arguments[$__1];
       throw new Error(["tried mutating immutableTom", args, "" + target]);
     }),
     has: (function(t, name) {
@@ -118,13 +118,13 @@ var wrapNewProps = (function(target, newProps, deep) {
     deleteProperty: (function() {
       for (var args = [],
           $__2 = 0; $__2 < arguments.length; $__2++)
-        args[$traceurRuntime.toProperty($__2)] = arguments[$traceurRuntime.toProperty($__2)];
+        args[$__2] = arguments[$__2];
       throw ["tried deleting from immutableTom", args, target];
     }),
     defineProperty: (function() {
       for (var args = [],
           $__3 = 0; $__3 < arguments.length; $__3++)
-        args[$traceurRuntime.toProperty($__3)] = arguments[$traceurRuntime.toProperty($__3)];
+        args[$__3] = arguments[$__3];
       throw new Error("tried defining a property of immutableTom");
     })
   };

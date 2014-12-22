@@ -1,5 +1,7 @@
 var _ = require("lodash");
 
+import {isIterable} from "../lib/utils";
+
 const nothing = Object.freeze({});
 
 const deleteMe = {
@@ -8,8 +10,20 @@ const deleteMe = {
 
 const isImmutable = Symbol("isImmutableTom");
 
+
+var undefinedToNull = (val) => (val === undefined) ? null:val;
+
 const getFunc = ((target, newProps, name) => {
-  const res = newProps && newProps.hasOwnProperty(name) ? newProps[name] : target[name];
+  var res;
+
+  if (newProps && newProps.hasOwnProperty(name))
+    res = newProps[name];
+  else
+    res = target[name];
+
+  // if (res && res[isLazy])
+  //   return () => target[name] ? res.func(target.set(name,undefinedToNull(target[name]()))) : res.func(target);
+
   // console.log("res", name, res && res.length, ""+res);
   return res === deleteMe ? undefined : res;//;
 });
@@ -63,6 +77,8 @@ var wrapNewProps = (target, newProps) => {
   }
   const handler = {
     get: (t, name) => {
+      // if (name == parentGetter)
+      //   return getFunc(target,{}, name);
       if (name === "set")
         return setFunc;
       if (name === "delete")
@@ -95,9 +111,54 @@ export const immutableTom = function(initial=nothing) {
     return initial;
   if (initial[isImmutable])
     return initial;
+  if (isIterable(initial))
+    console.warn("initial is iterable, making an immutable object may mean we lose the Symbol.iterator", initial);
     // throw new Error("can't create immutable from non-object");
   return wrapNewProps(empty, initial);
 }
+
+
+// throw "bye";
+
+export var isLazy = Symbol("Lazy Resolving Function");
+
+export var addLazyProp = (obj, name, resolveFunc) => {
+  // console.log("add lazy", obj,name,resolveFunc);
+  resolveFunc.isLazy=true;
+  // console.log(typeof obj.set(name,resolveFunc)[name]);
+  return obj.set(name,resolveFunc);
+  // return addObjectProp(obj, name, lazy);
+};
+
+
+var processVal = (name,value) => (typeof value === "function" && value.length <= 1 && name.length>0 && name != "toString" && name != "toJSON" && name != "valueOf") ? value(obj) : value
+
+export var addObjectProp = (obj, name, value) => {
+  // console.log("proxy adding prop1", name,value);
+  //
+  // console.log("proxy adding prop2", obj,name,value);
+  return obj.set(name, processVal(name,value));
+}
+
+export var addObjectProps = (obj, props) => {
+  // console.log("proxy adding prop1", props,obj);
+  if (typeof props.time =="object" ) {
+    // debugger;
+    throw Error("time shouldn't be object")
+  }
+  // console.log("adding to immuuutable",obj,props,obj.set);
+  // props = _.mapValues(props, (value,name) => processVal(name,value));
+  var propsNew = {}
+  for (let k of Object.keys(props))
+    propsNew[k] = processVal(k,props[k]);
+  // console.log("ppppppp");
+  // console.log("props after",propsNew,obj);
+
+  return obj.set(propsNew, nothing);
+}
+
+
+
 
 var assert = require("assert");
 
@@ -117,22 +178,19 @@ var deletedProp = test1.delete("bla");
 assert.equal(deletedProp.bla, undefined);
 assert.equal(deletedProp.hasOwnProperty("bla"), false);
 
-console.log("immutableTom Test1", test1, test1.test, deletedProp, Object.keys(test1));
-
-// throw "bye";
 
 
-
-export var addObjectProp = (obj, name, value, enumerable) => {
-  // if (typeof value === "function" && value.length <= 1)
-  //   value = value(obj);
-  return obj.set(name, value);
-}
-export var addObjectProps = (obj, props, enumerable) => {
-  // console.log("adding to immuuutable",obj,props,obj.set);
-  props = _.mapValues(props, (value) => (typeof value === "function" && value.length <= 1) ? value(obj) : value);
-  // console.log("ppppppp");
-  // console.log("props after",props,obj);
-
-  return obj.set(props, nothing);
-}
+// console.log("immutableTom Test1", test1, test1.test, deletedProp, Object.keys(test1));
+//
+//
+// console.log("test lazyness");
+//
+// var lazyTest1 = immutableTom({bla:2});
+//
+// lazyTest1 = addLazyProp(lazyTest1, "lazyAccess", (obj) =>  { console.log("heeey",obj); return "manno"});
+// lazyTest1 = lazyTest1.set({tom:3});
+// lazyTest1 = addLazyProp(lazyTest1, "lazyAccess", (obj) => { console.log("heeey2",obj); return obj; });
+//
+// console.log(lazyTest1);
+// console.log(lazyTest1.lazyAccess());
+// // assert.equal(lazyTest1.lazyAccess().lazyAccess,"manno");

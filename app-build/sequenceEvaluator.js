@@ -19,16 +19,16 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     res.isSequenceGenerator = seq.isTom;
     if (!res.isSequenceGenerator)
       return res;
-    var sampleSize = 500;
-    var playableSequence = seq.toPlayable().take(500);
+    var sampleSize = 100;
+    var playableSequence = seq.toPlayable().take(100);
     var testerCode = "result = sequence.toArray();";
     var globalBack = {};
-    for (var $__2 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__2 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__3; !($__3 = $__2.next()).done; ) {
       let key = $__3.value;
       {
-        globalBack[$traceurRuntime.toProperty(key)] = global[$traceurRuntime.toProperty(key)];
-        global[$traceurRuntime.toProperty(key)] = sequenceSandbox[$traceurRuntime.toProperty(key)];
+        globalBack[key] = global[key];
+        global[key] = sequenceSandbox[key];
       }
     }
     globalBack.sequence = global.sequence;
@@ -44,13 +44,13 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
       res.playable = false;
       res.evaluatedError = wrapError(e, sequenceContext, seq.name);
     }
-    for (var $__4 = Object.keys(globalBack)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__4 = Object.keys(globalBack)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
       let key = $__5.value;
-      global[$traceurRuntime.toProperty(key)] = globalBack[$traceurRuntime.toProperty(key)];
+      global[key] = globalBack[key];
     }
     if (!res.evaluatedError && testSeqResult && testSeqResult.length > 0) {
-      var lastBeatTime = testSeqResult[$traceurRuntime.toProperty(testSeqResult.length - 1)].time;
+      var lastBeatTime = testSeqResult[testSeqResult.length - 1].time;
       console.log("testSeqResult", lastBeatTime, timeTaken);
       res.playable = true;
       res.eventSample = testSeqResult;
@@ -68,12 +68,12 @@ function evalSequences(seqContext, loadedSequences) {
   var passedTests = false;
   var error = null;
   var globalBack = {};
-  for (var $__2 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__2 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__3; !($__3 = $__2.next()).done; ) {
     let key = $__3.value;
     {
-      globalBack[$traceurRuntime.toProperty(key)] = global[$traceurRuntime.toProperty(key)];
-      global[$traceurRuntime.toProperty(key)] = sequenceSandbox[$traceurRuntime.toProperty(key)];
+      globalBack[key] = global[key];
+      global[key] = sequenceSandbox[key];
     }
   }
   try {
@@ -82,10 +82,10 @@ function evalSequences(seqContext, loadedSequences) {
     console.log("exception in live code", e.stack);
     error = wrapError(e, seqContext);
   }
-  for (var $__4 = Object.keys(globalBack)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = Object.keys(globalBack)[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     let key = $__5.value;
-    global[$traceurRuntime.toProperty(key)] = globalBack[$traceurRuntime.toProperty(key)];
+    global[key] = globalBack[key];
   }
   console.log("testing if sequences emit events", Object.keys(sequences));
   var testedSequences = testIfSeqEmitsNotes(sequences, sequenceSandbox, seqContext);

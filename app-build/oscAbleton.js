@@ -29,7 +29,7 @@ var noteOffTracker = function(seqName, outPort, baconReset, notePlayer) {
   var noteOff = notePlayer.noteOff;
   var currentOn = {};
   baconReset.take(1).onValue((function() {
-    for (var $__2 = Object.keys(currentOn)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__2 = Object.keys(currentOn)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__3; !($__3 = $__2.next()).done; ) {
       let n = $__3.value;
       notePlayer.noteOff(seqName, outPort, n);
@@ -38,11 +38,11 @@ var noteOffTracker = function(seqName, outPort, baconReset, notePlayer) {
   }));
   return {
     noteOn: wu.curryable(function(pitch, velocity, time) {
-      currentOn[$traceurRuntime.toProperty(pitch)] = true;
+      currentOn[pitch] = true;
       return notePlayer.noteOn(seqName, outPort, pitch, velocity, time);
     }),
     noteOff: wu.curryable(function(pitch, time) {
-      delete currentOn[$traceurRuntime.toProperty(pitch)];
+      delete currentOn[pitch];
       return notePlayer.noteOff(seqName, outPort, pitch, time);
     }),
     param: notePlayer.param

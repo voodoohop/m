@@ -30,8 +30,8 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
 
     if (!res.isSequenceGenerator)
       return res;
-    var sampleSize = 500;
-    var playableSequence = seq.toPlayable().take(500);
+    var sampleSize = 100;
+    var playableSequence = seq.toPlayable().take(100);
     var testerCode = "result = sequence.toArray();";
     // console.log("testing playableSequence:".bgYellow,seq, playableSequence);
 

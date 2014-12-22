@@ -38,31 +38,31 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
         $__9;
     console.log("subscribedSequences", subscribedSequences);
     var needToBeStopped = ($__8 = _).without.apply($__8, $traceurRuntime.spread([Object.keys(playingSequences)], _.pluck(subscribedSequences, "path")));
-    for (var $__4 = needToBeStopped[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__4 = needToBeStopped[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
       let seqPath = $__5.value;
       {
-        playingSequences[$traceurRuntime.toProperty(seqPath)].stop();
-        delete playingSequences[$traceurRuntime.toProperty(seqPath)];
+        playingSequences[seqPath].stop();
+        delete playingSequences[seqPath];
       }
     }
     var needToPlay = ($__9 = _).without.apply($__9, $traceurRuntime.spread([_.pluck(subscribedSequences, "path")], Object.keys(playingSequences)));
     console.log("availableSequences", availableSequences);
     console.log("needToPlay", needToPlay);
-    for (var $__6 = needToPlay[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__6 = needToPlay[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__7; !($__7 = $__6.next()).done; ) {
       let seqPath = $__7.value;
       {
-        if (availableSequences[$traceurRuntime.toProperty(seqPath)])
-          instrumentPlayer(availableSequences[$traceurRuntime.toProperty(seqPath)]);
+        if (availableSequences[seqPath])
+          instrumentPlayer(availableSequences[seqPath]);
       }
     }
     resetRequests.plug(Bacon.fromArray(needToPlay));
   }
   sequenceSubscribe.onValue((function(sub) {
     console.log("subscribeRequest", sub);
-    if (!availableSequences[$traceurRuntime.toProperty(sub.path)] || !availableSequences[$traceurRuntime.toProperty(sub.path)].evaluatedDetails || !availableSequences[$traceurRuntime.toProperty(sub.path)].evaluatedDetails[$traceurRuntime.toProperty(sub.name)] || !availableSequences[$traceurRuntime.toProperty(sub.path)].evaluatedDetails[$traceurRuntime.toProperty(sub.name)].playable) {
-      console.warn("tried subscribing to " + sub.name + " but not available or playable", availableSequences[$traceurRuntime.toProperty(sub.path)]);
+    if (!availableSequences[sub.path] || !availableSequences[sub.path].evaluatedDetails || !availableSequences[sub.path].evaluatedDetails[sub.name] || !availableSequences[sub.path].evaluatedDetails[sub.name].playable) {
+      console.warn("tried subscribing to " + sub.name + " but not available or playable", availableSequences[sub.path]);
       return;
     }
     console.log("subscribing", sub.path);
@@ -82,7 +82,7 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     })).port;
     console.log("creating instrument for", seq.device + "/" + seq.name, port);
     var seqInst = abletonSender.subscribeInstrument(seq.device + "/" + seq.name, port);
-    playingSequences[$traceurRuntime.toProperty(seq.device + "/" + seq.name)] = {
+    playingSequences[seq.device + "/" + seq.name] = {
       stop: playSequencer(Sequencer(seq.sequence, seq.device + "/" + seq.name), seqInst, seq.name, seq.device),
       sequence: seq.sequence,
       name: seq.name,
@@ -92,13 +92,13 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     };
   };
   resetMessages.onValue((function() {
-    for (var $__4 = Object.keys(playingSequences)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__4 = Object.keys(playingSequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
       let seqPath = $__5.value;
       {
-        playingSequences[$traceurRuntime.toProperty(seqPath)].stop();
-        console.log("after reset recreating instrumentPlayer for ", seqPath, playingSequences[$traceurRuntime.toProperty(seqPath)]);
-        instrumentPlayer(playingSequences[$traceurRuntime.toProperty(seqPath)]);
+        playingSequences[seqPath].stop();
+        console.log("after reset recreating instrumentPlayer for ", seqPath, playingSequences[seqPath]);
+        instrumentPlayer(playingSequences[seqPath]);
       }
     }
   }));
@@ -107,10 +107,10 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
       console.error("not processing", seq.device, "due to error", seq.evaluatedError);
       return;
     }
-    availableSequences[$traceurRuntime.toProperty(seq.device + "/" + seq.name)] = seq;
+    availableSequences[seq.device + "/" + seq.name] = seq;
     console.log("terminating ", seq.device + "/" + seq.name, "in playingSequences", playingSequences);
-    if (playingSequences[$traceurRuntime.toProperty(seq.device + "/" + seq.name)]) {
-      playingSequences[$traceurRuntime.toProperty(seq.device + "/" + seq.name)].stop();
+    if (playingSequences[seq.device + "/" + seq.name]) {
+      playingSequences[seq.device + "/" + seq.name].stop();
       instrumentPlayer(seq);
     }
   }));

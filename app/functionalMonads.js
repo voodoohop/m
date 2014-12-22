@@ -54,8 +54,25 @@ console.log(test4.take(10).toArray());
 
 console.log("---tests---");
 
+var testMap = m().evt({pitch: 60, duration: 0.3, velocity: 1}).metro(4)
+// .map(n => [n.set("duration", 0.2),n.set("time", n.time + 2)])
+.automate("param1", (n) => {
+  console.log("automationMap".red.bold,n);
+  return 0.5;
+})
+.automate("param2", (n) => {
+  // console.log("automationMap".red.bold,n);
+  return 0.2;
+})
+.take(10)
+// .lazyResolve()
+// .toPlayable()
+// .toPlayable();
 
 
+// var x =testMap.take(10).toArray();
+console.log(testMap.take(10).toArray());
+// console.log(""+x[0]["$lazy"]);
 
 // throw "bye";
 
@@ -1167,10 +1184,10 @@ export var kick = m().evt({
     velocity: 0.9,
     duration: kickGrid - 0.5
   }).metro(kickGrid)
-  .automate("pitchBend", n => {
-  // console.log(n);
-  return Math.sin((n.time + n.evt.time) * Math.PI / 1) / 4 + 0.5
-});
+  .automate("pitchBend", (n) => {
+  console.log("automate called",n);
+  return Math.sin((n.time + n.target.time) * Math.PI / 1) / 4 + 0.5
+  });
 
 
 export var tom = m().evt({
@@ -1189,6 +1206,8 @@ export var tom = m().evt({
 
 // console.log(mified.toArray());
 
+var log=console.log;
+// console.log = () => ({});
 
 export var hat = m().evt({
   pitch: [48, 60],
@@ -1207,13 +1226,14 @@ var microtime = require("microtime");
 
 
 var profilerDataStore = [];
-var profileSamples = 2000;
+var profileSamples = 200;
+
 
 var startTime = microtime.nowDouble();
 
 // console.log(kick.toPlayable()[wu.iteratorSymbol]);
 
-for (var n of kick.take(5)
+for (var n of kick
   .toPlayable()
   .take(profileSamples)) {
   var x = ({
@@ -1222,12 +1242,14 @@ for (var n of kick.take(5)
     veloctiy: n.velocity,
     type: n.type
   });
+  console.log(n);
 }
 
 var timeTaken = microtime.nowDouble() - startTime;
-console.log("time:", timeTaken);
-
-
+log("time:", timeTaken);
+log("-------------".bgRed);
+console.log(kick.toPlayable().take(50).toArray()[49]);
+// throw "bye";
 
 for (var n of tom
   .toPlayable()
@@ -1242,7 +1264,7 @@ for (var n of tom
 
 // startTime = microtime.nowDouble();
 timeTaken = microtime.nowDouble() - startTime;
-console.log("time:", timeTaken);
+log("time:", timeTaken);
 
 for (var n of tom
   .toPlayable()
@@ -1268,7 +1290,7 @@ for (var n of tom
 }
 
 timeTaken = microtime.nowDouble() - startTime;
-console.log("time2:", timeTaken);
+log("time2:", timeTaken);
 
 
 for (var n of tom
@@ -1281,9 +1303,12 @@ for (var n of tom
   });
 
 timeTaken = microtime.nowDouble() - startTime;
-console.log("time:", timeTaken);
+log("time:", timeTaken);
+
+// throw "bye";
 
 
+// console.log = col;
 // throw "bye";
 
 

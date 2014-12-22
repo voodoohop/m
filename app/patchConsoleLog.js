@@ -2,11 +2,13 @@ var util = require('util');
 
 var colors = require('colors');
 
+// return;
+
 var oldLog= console.log;
 
 
 
-var lengthLimit = 20000;
+var lengthLimit = 400;
 var limitStringLength = (s) => s.length>lengthLimit ? (s.substring(0,lengthLimit)).yellow+"...".bold.underline : s;
 
 var toStringForLog =  (a, depth=1) => {

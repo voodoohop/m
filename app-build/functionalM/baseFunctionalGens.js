@@ -20,7 +20,7 @@ var $__2 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../imm
     addObjectProps = $__2.addObjectProps;
 addGenerator(function* data(data) {
   if (isIterable(data)) {
-    for (var $__4 = data[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__4 = data[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
       var d = $__5.value;
       {
@@ -34,23 +34,14 @@ addGenerator(function* data(data) {
       if (isIterable(data))
         throw new Error("data shouldn't be iterable");
     } else {
-      dataObj = immutableObj({
-        type: "value",
-        valueOf: (function() {
-          return data;
-        }),
-        toString: (function() {
-          return "" + data;
-        })
-      });
-      console.log("created dataObj from value", dataObj);
+      dataObj = data;
     }
     yield dataObj;
   }
 });
 addGenerator(function* loopData(dataNode) {
-  var $__10;
-  for (var $__6 = dataNode[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  var $__11;
+  for (var $__6 = dataNode[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__7; !($__7 = $__6.next()).done; ) {
     var data = $__7.value;
     {
@@ -59,12 +50,12 @@ addGenerator(function* loopData(dataNode) {
         yield* getIterator(m(dataNode).loop());
         return;
       }
-      for (var $__4 = ($__10 = m()).zip.apply($__10, $traceurRuntime.spread(_.values(data)))[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+      for (var $__4 = ($__11 = m()).zipLooping.apply($__11, $traceurRuntime.spread(_.values(data)))[$traceurRuntime.toProperty(Symbol.iterator)](),
           $__5; !($__5 = $__4.next()).done; ) {
         var props = $__5.value;
         {
           var resData = props.reduce(function(prev, val, i) {
-            return prev.set(keys[$traceurRuntime.toProperty(i)], val);
+            return prev.set(keys[i], val);
           }, immutableObj());
           yield immutableObj(resData);
         }
@@ -73,7 +64,7 @@ addGenerator(function* loopData(dataNode) {
   }
 });
 addGenerator(function* zipMerge(node) {
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var n = $__5.value;
     yield addObjectProps(n[0], n[1]);
@@ -97,7 +88,7 @@ addGenerator(function* set(data, node) {
 });
 addGenerator(function* evt(data) {
   if (isIterable(data)) {
-    for (var $__4 = m().loop(data)[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+    for (var $__4 = m().loop(data)[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
       var e = $__5.value;
       yield* getIterator(MData(e));
@@ -107,12 +98,17 @@ addGenerator(function* evt(data) {
 });
 addGenerator(function* prop(name, tomValue, children) {
   var $__3;
-  yield* getIterator(m(children).set(($__3 = {}, Object.defineProperty($__3, name, {
-    value: tomValue,
-    configurable: true,
-    enumerable: true,
-    writable: true
-  }), $__3)));
+  if (!isIterable(tomValue) && typeof tomValue === "function")
+    yield* getIterator(m(children).simpleMap((function(n) {
+      return n.set("name", tomValue);
+    })));
+  else
+    yield* getIterator(m(children).set(($__3 = {}, Object.defineProperty($__3, name, {
+      value: tomValue,
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), $__3)));
 });
 addGenerator(function* loop(node) {
   if (isIterable(node)) {
@@ -125,7 +121,7 @@ addGenerator(function* loop(node) {
       yield node;
 });
 addGenerator(function* filter(filterFunc, node) {
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var e = $__5.value;
     {
@@ -135,7 +131,7 @@ addGenerator(function* filter(filterFunc, node) {
   }
 });
 addGenerator(function* takeWhile(filterFunc, node) {
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var e = $__5.value;
     {
@@ -147,7 +143,7 @@ addGenerator(function* takeWhile(filterFunc, node) {
 });
 addGenerator(function* skipWhile(skipFunc, node) {
   var skipNo = 0;
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var e = $__5.value;
     {
@@ -160,7 +156,7 @@ addGenerator(function* skipWhile(skipFunc, node) {
 });
 addGenerator(function* take(n, node) {
   var count = n;
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var e = $__5.value;
     {
@@ -173,7 +169,24 @@ addGenerator(function* take(n, node) {
 addGenerator(function* zip() {
   for (var nodes = [],
       $__8 = 0; $__8 < arguments.length; $__8++)
-    nodes[$traceurRuntime.toProperty($__8)] = arguments[$traceurRuntime.toProperty($__8)];
+    nodes[$__8] = arguments[$__8];
+  var iterators = nodes.map((function(node) {
+    return getIterator(m(node));
+  }));
+  while (true) {
+    var next = iterators.map((function(i) {
+      return i.next().value;
+    }));
+    if (_.every(next, (function(n) {
+      return n != undefined;
+    })))
+      yield next;
+  }
+});
+addGenerator(function* zipLooping() {
+  for (var nodes = [],
+      $__9 = 0; $__9 < arguments.length; $__9++)
+    nodes[$__9] = arguments[$__9];
   var loopedIterators = nodes.map((function(node) {
     return getIterator(m(node).loop());
   }));
@@ -185,12 +198,15 @@ addGenerator(function* zip() {
   }
 });
 addGenerator(function* simpleMap(mapFunc, node) {
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var n = $__5.value;
     {
       var mapRes = mapFunc(n);
-      yield mapRes;
+      if (!isIterable(mapRes))
+        yield immutableObj(mapRes);
+      else
+        yield mapRes;
     }
   }
 });
@@ -198,7 +214,7 @@ addGenerator(function* repeat(n, node) {
   yield* getIterator(m(node).loop().take(n));
 });
 addGenerator(function* flattenShallow(node) {
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var n = $__5.value;
     {
@@ -211,9 +227,9 @@ addGenerator(function* flattenShallow(node) {
 });
 addGenerator(function* compose() {
   for (var nodes = [],
-      $__9 = 0; $__9 < arguments.length; $__9++)
-    nodes[$traceurRuntime.toProperty($__9)] = arguments[$traceurRuntime.toProperty($__9)];
-  for (var $__4 = nodes[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+      $__10 = 0; $__10 < arguments.length; $__10++)
+    nodes[$__10] = arguments[$__10];
+  for (var $__4 = nodes[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var node = $__5.value;
     {
@@ -222,7 +238,7 @@ addGenerator(function* compose() {
   }
 });
 addGenerator(function* flatten(node) {
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var e = $__5.value;
     if (isIterable(e))
@@ -233,7 +249,7 @@ addGenerator(function* flatten(node) {
 });
 addGenerator(function* skip(n, node) {
   var count = n;
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var e = $__5.value;
     {
@@ -255,7 +271,7 @@ addGenerator(function* count() {
 }, {noInputChain: true});
 addGenerator(function* reduce(reduceFunc, startValue, node) {
   var current = startValue;
-  for (var $__4 = node[$traceurRuntime.toProperty($traceurRuntime.toProperty(Symbol.iterator))](),
+  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var e = $__5.value;
     {

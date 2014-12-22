@@ -29,7 +29,7 @@ export default function(seq) {
       numericLiterals:"parse",
       forOf:true,
       classes:"parse",
-      symbols:false
+      symbols:"parse"
       });
       // --numeric-literals=parse --block-binding=parse --generators=parse --for-of=parse --classes=parse
     } catch (exception) {

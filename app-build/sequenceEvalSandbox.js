@@ -29,7 +29,7 @@ var vm = require("vm");
 var remoteLog = function() {
   for (var m = [],
       $__6 = 0; $__6 < arguments.length; $__6++)
-    m[$traceurRuntime.toProperty($__6)] = arguments[$traceurRuntime.toProperty($__6)];
+    m[$__6] = arguments[$__6];
   console.log("seqLog".bgYellow, m);
   try {
     webServer.remoteLogger.push("" + m);
