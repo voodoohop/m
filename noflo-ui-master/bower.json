@@ -1,0 +1,31 @@
+{
+  "name": "noflo-ui",
+  "main": "index.js",
+  "version": "0.7.3",
+  "homepage": "https://github.com/noflo/noflo-ui",
+  "authors": [
+    "Henri Bergius <henri.bergius@iki.fi>"
+  ],
+  "description": "User interface for Flow-Based Programming",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "components",
+    "Gruntfile.coffee",
+    "spec"
+  ],
+  "dependencies": {
+    "polymer": "0.5.2",
+    "the-graph": "0.3.8",
+    "font-awesome": "~4.2.0",
+    "codemirror": "~4.5.0",
+    "coffee-script": "*",
+    "requirejs": "~2.1.11",
+    "rtc": "rtc-io/rtc#3.1.1"
+  },
+  "devDependencies": {
+    "syn": "~0.0.3"
+  }
+}

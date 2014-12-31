@@ -1,0 +1,208 @@
+<link rel="import" href="noflo-type-selector.html">
+<script src="../bower_components/codemirror/lib/codemirror.js"></script>
+<script src="../bower_components/codemirror/mode/xml/xml.js"></script>
+<script src="../bower_components/codemirror/mode/javascript/javascript.js"></script>
+<script src="../bower_components/codemirror/mode/css/css.js"></script>
+<script src="../bower_components/codemirror/mode/vbscript/vbscript.js"></script>
+<script src="../bower_components/codemirror/mode/coffeescript/coffeescript.js"></script>
+<script src="../bower_components/codemirror/mode/clike/clike.js"></script>
+<script src="../bower_components/codemirror/mode/htmlmixed/htmlmixed.js"></script>
+
+<polymer-element name="noflo-graph-inspector" attributes="graph" class="modal-content" on-click="{{ close }}">
+  <template>
+    <style>
+      textarea {
+        height: 144px;
+      }
+      p {
+        font-size: 13px;
+        line-height: 18px;
+      }
+      p a, label a {
+        color: rgb(0, 127, 153);
+        text-decoration: none;
+      }
+      a#download {
+        position: absolute;
+        right: 36px;
+        top: 36px;
+        width: 36px;
+        display: block;
+        height: 36px;
+        line-height: 36px;
+        background-color: rgb(0, 127, 153);
+        text-align: center;
+        border-radius: 6px;
+        color: white;
+      }
+      button.delete {
+        position: absolute;
+        right: 36px;
+        border: 0px solid hsla( 0, 98%, 46%, .8) !important;
+        color: hsla( 0, 98%, 46%, .8) !important;
+      }
+    </style>
+    <link rel="stylesheet" href="../bower_components/codemirror/lib/codemirror.css">
+    <link rel="stylesheet" href="../bower_components/codemirror/theme/mdn-like.css">
+    <link rel="stylesheet" href="../css/codemirror-noflo.css">
+
+    <div class="modal-container" on-click="{{ bgClick }}">
+      <h1 on-keydown="{{ checkUpdateName }}" on-blur="{{ updateName }}" contenteditable>{{ graph.name }}</h1>
+      <template if="{{ downloadUrl }}">
+        <a href="{{ downloadUrl }}" id="download" download="{{ graph.name }}.json"><i class="fa fa-download"></i></a>
+      </template>
+      <template if="{{ isMain }}">
+      <p>Main graph of project {{ project.name }}.</p>
+      </template>
+      <template if="{{ inGraph.length }}">
+      <p>Used as subgraph in
+      <template repeat="{{ parent in inGraph }}">
+        <a href="#project/{{ project.id }}/{{ parent.properties.id }}">
+          {{ parent.name }}
+        </a>
+      </template>
+      .</p>
+      </template>
+      <label>
+        <span>Type</span>
+        <noflo-type-selector type="{{ type }}" runtimes="{{ runtimes }}"></noflo-type-selector>
+      </label>
+      <label>
+        <span>Description</span>
+        <input type="text" value="{{ description }}">
+      </label>
+      <label>
+        <span>Icon <a href="http://fontawesome.io/icons/" target="_blank"><i class="fa fa-question-circle"></i></a></span>
+        <input type="text" value="{{ icon }}">
+      </label>
+      <label id="content">
+        <template if="{{ type == 'noflo-browser' }}">
+        <span>Preview contents</span>
+        </template>
+      </label>
+      <div class="toolbar">
+        <button on-click="{{ save }}">Save</button>
+        <a on-click="{{ close }}">Cancel</a>
+        <button class="delete" on-click="{{ delete }}">Delete</button>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer('noflo-graph-inspector', {
+      description: '',
+      icon: '',
+      type: '',
+      preview: '',
+      graph: null,
+      project: null,
+      runtimes: [],
+      isMain: false,
+      inGraph: [],
+      downloadUrl: '',
+      checkUpdateName: function (event, detail, sender) {
+        if (event.keyCode===13) { // Enter
+          event.preventDefault();
+          this.updateName(event, detail, sender);
+        }
+      },
+      updateName: function (event, detail, sender) {
+        this.graph.name = sender.textContent;
+      },
+      attached: function () {
+        document.getElementById('container').classList.add('blur');
+        if (!this.graph) {
+          return;
+        }
+
+        this.description = this.graph.properties.description;
+        this.icon = this.graph.properties.icon || '';
+        this.type = this.graph.properties.environment.type;
+
+        this.inGraph = [];
+        this.isMain = false;
+        if (this.project) {
+          if (this.graph.properties.id === this.project.main) {
+            this.isMain = true;
+          } else {
+            this.project.graphs.forEach(function (graph) {
+              graph.nodes.forEach(function (node) {
+                if (node.component === this.graph.name || node.component === this.project.id + '/' + this.graph.name) {
+                  this.inGraph.push(graph);
+                }
+              }.bind(this));
+            }.bind(this));
+          }
+        }
+        this.prepareDownload();
+      },
+      prepareDownload: function () {
+        if (!window.Blob || !window.URL) {
+          return;
+        }
+        var blob = new Blob([JSON.stringify(this.graph, null, 4)], {
+          type: "application/json"
+        });
+        try {
+          this.downloadUrl = URL.createObjectURL(blob);
+        } catch (e) {
+          return;
+        }
+      },
+      detached: function () {
+        document.getElementById('container').classList.remove('blur');
+      },
+      typeChanged: function () {
+        if (this.type == 'noflo-browser') {
+          this.prepareEditor();
+        } else {
+          this.$.content.innerHTML = '';
+          this.previewEditor = null;
+        }
+      },
+      prepareEditor: function () {
+        this.previewEditor = CodeMirror(this.$.content, {
+          lineNumbers: true,
+          value: this.graph.properties.environment.content || '',
+          language: 'htmlmixed',
+          theme: 'mdn-like'
+        });
+        this.previewEditor.setSize(576, 144);
+      },
+      save: function () {
+        if (typeof ga === 'function') {
+          ga('send', 'event', 'button', 'click', 'saveGraphProperties');
+        }
+        var env = JSON.parse(JSON.stringify(this.graph.properties.environment));
+        if (this.previewEditor) {
+            this.preview = this.previewEditor.getValue();
+            env.content = this.preview;
+        }
+        env.type = this.type;
+        this.graph.setProperties({
+          environment: env,
+          description: this.description,
+          icon: this.icon
+        });
+        this.close();
+      },
+      delete: function (event) {
+        event.preventDefault();
+        if (typeof ga === 'function') {
+          ga('send', 'event', 'button', 'click', 'deleteGraph');
+        }
+        this.fire('delete', this.graph);
+        this.close();
+      },
+      bgClick: function (event) {
+        // Don't close if clicking within container
+        event.stopPropagation();
+      },
+      close: function () {
+        if (!this.parentNode) {
+          return;
+        }
+        this.parentNode.removeChild(this);
+      }
+    });
+  </script>
+</polymer-element>
