@@ -13,7 +13,8 @@ Object.defineProperties(exports, {
 });
 var $___46__46__47_lib_47_wu__,
     $___46__46__47_lib_47_utils__,
-    $___46__46__47_immutable_47_nodeProxiedImmutable__;
+    $___46__46__47_immutable_47_nodeProxiedImmutable__,
+    $___46__46__47_lib_47_findSourceStackPos__;
 var wu = ($___46__46__47_lib_47_wu__ = require("../lib/wu"), $___46__46__47_lib_47_wu__ && $___46__46__47_lib_47_wu__.__esModule && $___46__46__47_lib_47_wu__ || {default: $___46__46__47_lib_47_wu__}).wu;
 var $__1 = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46__47_lib_47_utils__ && $___46__46__47_lib_47_utils__.__esModule && $___46__46__47_lib_47_utils__ || {default: $___46__46__47_lib_47_utils__}),
     prettyToString = $__1.prettyToString,
@@ -46,17 +47,8 @@ var createCache = function() {
   };
 };
 var cache = createCache();
-var mGenerator = function(generatorFunc) {
-  var options = arguments[1] !== (void 0) ? arguments[1] : {};
-  var origGenerator = mGeneratorUnCached(generatorFunc, options);
-  ;
-  if (origGenerator.isTom)
-    origGenerator[wu.iteratorSymbol] = doCache(origGenerator)[wu.iteratorSymbol];
-  return origGenerator;
-};
 function* doCache(node) {
   var cacheKey = "" + node;
-  console.log(cacheKey);
   var cached = cache(cacheKey);
   if (cached === cache_disabled) {
     yield* getIterator(node);
@@ -87,70 +79,109 @@ function* doCache(node) {
   }
 }
 ;
+var stackTrace = require("stack-trace");
+var findSourcePos = ($___46__46__47_lib_47_findSourceStackPos__ = require("../lib/findSourceStackPos"), $___46__46__47_lib_47_findSourceStackPos__ && $___46__46__47_lib_47_findSourceStackPos__.__esModule && $___46__46__47_lib_47_findSourceStackPos__ || {default: $___46__46__47_lib_47_findSourceStackPos__}).default;
+function* runGenFeedback(generator, name, args) {
+  var $__4;
+  for (var $__5 = ($__4 = {}, Object.defineProperty($__4, wu.iteratorSymbol, {
+    value: (function() {
+      return generator.apply(null, $traceurRuntime.spread(args));
+    }),
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), $__4)[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    let e = $__6.value;
+    {
+      if (e && e.appendStackTrace) {
+        var sTrace = stackTrace.get().map((function(s) {
+          return s.getFileName() + ":" + s.getLineNumber() + ":" + s.getColumnNumber;
+        }));
+        e = e.set({
+          stack: sTrace.join("\n"),
+          appendStackTrace: false
+        });
+      }
+      var spos = findSourcePos();
+      if (spos !== undefined)
+        console.warn(name, spos);
+      yield e;
+    }
+  }
+  ;
+}
 var stackTrace = require('stack-trace');
 var path = process.cwd();
-var mGeneratorUnCached = function(generator) {
+var mGenerator = function(generator) {
   var options = arguments[1] !== (void 0) ? arguments[1] : {};
   var name = options.nameOverride || generator.name;
   var getIterable = function() {
     for (var args = [],
-        $__3 = 0; $__3 < arguments.length; $__3++)
-      args[$__3] = arguments[$__3];
-    var res = new M();
+        $__7 = 0; $__7 < arguments.length; $__7++)
+      args[$__7] = arguments[$__7];
+    var res = {};
     res.isTom = true;
     res.name = name;
     res[wu.iteratorSymbol] = (function() {
-      return generator.apply(null, $traceurRuntime.spread(args));
+      return runGenFeedback(generator, name, args);
     });
     if (options.toStringOverride)
       res.toString = (function() {
         return options.toStringOverride;
       });
     else {
-      prettyToString(name, args, res);
+      res.toString = (function() {
+        return prettyToString(name, args);
+      });
     }
-    return res;
+    return new M(res);
   };
-  getIterable.displayName = name;
-  return getIterable.length > 0 ? wu.curryable(getIterable) : getIterable;
+  getIterable.prototype = M.prototype;
+  return getIterable;
 };
-var nothing = Object.freeze({});
+var rootNode = Object.freeze({
+  isTom: true,
+  name: "m()"
+});
 var wrappedSymbol = Symbol("M wrapped Object");
+var typeValidate = require('tcomb-validation').validate;
 function M() {
-  var wrapObject = arguments[0] !== (void 0) ? arguments[0] : nothing;
-  if (!isIterable(wrapObject) && wrapObject != nothing)
-    wrapObject = M.prototype.data(wrapObject);
-  if (isIterable(wrapObject)) {
-    this[wrappedSymbol] = wrapObject;
-    this[wu.iteratorSymbol] = wrapObject[wu.iteratorSymbol];
-    this.name = wrapObject.name;
-    this.toString = wrapObject.toString;
-    this.isTom = wrapObject.isTom;
-  } else {
-    if (wrapObject != nothing && wrapObject instanceof Object) {
-      wrapObject = immutableObj(wrapObject);
-    }
-    this[wrappedSymbol] = wrapObject;
-  }
+  var node = arguments[0] !== (void 0) ? arguments[0] : rootNode;
+  if (!node.isTom)
+    throw TypeError("expecting a node of type isTom in M");
+  this.currentNode = node;
+  this.name = node.name;
+  this.isTom = true;
+  this.parentNode = null;
+  this[wu.iteratorSymbol] = node[wu.iteratorSymbol];
+  Object.seal(this);
+  Object.seal(node);
 }
+M.prototype.toString = function() {
+  return this.currentNode.toString();
+};
 var m = function() {
-  var wrapObject = arguments[0] !== (void 0) ? arguments[0] : nothing;
+  var wrapObject = arguments[0] !== (void 0) ? arguments[0] : rootNode;
+  if (!wrapObject.isTom || (!isIterable(wrapObject) && wrapObject != rootNode)) {
+    return new M(rootNode).data(wrapObject);
+  }
   return new M(wrapObject);
 };
 m.prototype = M.prototype;
 console.log(m.prototype);
 var addFunction = function(name, func) {
-  var options = arguments[2] !== (void 0) ? arguments[2] : nothing;
+  var options = arguments[2] !== (void 0) ? arguments[2] : rootNode;
   M.prototype[name] = function() {
     for (var args = [],
-        $__3 = 0; $__3 < arguments.length; $__3++)
-      args[$__3] = arguments[$__3];
+        $__7 = 0; $__7 < arguments.length; $__7++)
+      args[$__7] = arguments[$__7];
     if (options.notChainable)
-      return func(this[wrappedSymbol]);
-    var callArgs = (this[wrappedSymbol] != nothing && !options.noInputChain) ? $traceurRuntime.spread(args, [this[wrappedSymbol]]) : args;
-    var res = func.apply(null, $traceurRuntime.spread(callArgs));
-    var wrapped = m(res);
-    return wrapped;
+      return func(this.currentNode);
+    var callArgs = (this.currentNode != rootNode && !options.noInputChain) ? $traceurRuntime.spread(args, [this.currentNode]) : args;
+    var newNode = func.apply(null, $traceurRuntime.spread(callArgs));
+    newNode.parentNode = this;
+    return newNode;
   };
 };
 addFunction(doCache);

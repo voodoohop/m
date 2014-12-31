@@ -18,25 +18,23 @@ var $__2 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../imm
     immutableObj = $__2.immutableTom,
     addObjectProp = $__2.addObjectProp,
     addObjectProps = $__2.addObjectProps;
-addGenerator(function* data(data) {
-  if (isIterable(data)) {
-    for (var $__4 = data[$traceurRuntime.toProperty(Symbol.iterator)](),
+addGenerator(function* data(dataInput) {
+  if (isIterable(dataInput)) {
+    for (var $__4 = dataInput[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
       var d = $__5.value;
       {
-        yield* getIterator(m().data(d));
+        yield* data(d);
       }
     }
   } else {
     var dataObj;
-    if (data instanceof Object) {
-      dataObj = immutableObj(data);
-      if (isIterable(data))
-        throw new Error("data shouldn't be iterable");
+    if (dataInput instanceof Object && (typeof dataInput != "function")) {
+      dataObj = immutableObj(dataInput);
     } else {
-      dataObj = data;
+      dataObj = dataInput;
     }
-    yield dataObj;
+    yield* getIterator([dataObj]);
   }
 });
 addGenerator(function* loopData(dataNode) {
@@ -55,9 +53,9 @@ addGenerator(function* loopData(dataNode) {
         var props = $__5.value;
         {
           var resData = props.reduce(function(prev, val, i) {
-            return prev.set(keys[i], val);
+            return addObjectProp(prev, keys[i], val);
           }, immutableObj());
-          yield immutableObj(resData);
+          yield* getIterator(m().data(resData));
         }
       }
     }
@@ -70,7 +68,7 @@ addGenerator(function* zipMerge(node) {
     yield addObjectProps(n[0], n[1]);
   }
 });
-addGenerator(function* simpleMerge(node1, node2) {
+addGenerator(function* simpleMerge(node2, node1) {
   var iterators = [node1, node2].map((function(node) {
     return getIterator(node);
   }));
@@ -84,25 +82,26 @@ addGenerator(function* simpleMerge(node1, node2) {
   }
 });
 addGenerator(function* set(data, node) {
-  yield* getIterator(m().data(data).loopData().simpleMerge(node));
+  yield* getIterator(m(node).simpleMerge(m(data).loopData()));
 });
 addGenerator(function* evt(data) {
   if (isIterable(data)) {
-    for (var $__4 = m().loop(data)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__5; !($__5 = $__4.next()).done; ) {
-      var e = $__5.value;
-      yield* getIterator(MData(e));
-    }
+    yield* getIterator(m(data).loop());
   } else
-    yield* getIterator(m().data(data).loopData());
+    yield* getIterator(m(data).loopData());
 });
 addGenerator(function* prop(name, tomValue, children) {
   var $__3;
-  if (!isIterable(tomValue) && typeof tomValue === "function")
+  if (typeof tomValue === "function" && tomValue.length <= 1) {
     yield* getIterator(m(children).simpleMap((function(n) {
-      return n.set("name", tomValue);
+      var evaluated = tomValue(n);
+      if (evaluated === undefined) {
+        console.error("tomValue undefined", evaluated, n, tomValue, "" + tomValue);
+        throw new TypeError("shouldn't try to set a property to undefined" + n + "/" + tomValue);
+      }
+      return n.set(name, evaluated);
     })));
-  else
+  } else
     yield* getIterator(m(children).set(($__3 = {}, Object.defineProperty($__3, name, {
       value: tomValue,
       configurable: true,
@@ -171,7 +170,7 @@ addGenerator(function* zip() {
       $__8 = 0; $__8 < arguments.length; $__8++)
     nodes[$__8] = arguments[$__8];
   var iterators = nodes.map((function(node) {
-    return getIterator(m(node));
+    return getIterator(node);
   }));
   while (true) {
     var next = iterators.map((function(i) {
@@ -197,12 +196,25 @@ addGenerator(function* zipLooping() {
     yield next;
   }
 });
+addGenerator(function* invoke(func, node) {
+  yield* getIterator(func(m(node)));
+});
 addGenerator(function* simpleMap(mapFunc, node) {
   for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
     var n = $__5.value;
     {
-      var mapRes = mapFunc(n);
+      try {
+        var mapRes = mapFunc(n);
+      } catch (exception) {
+        console.error("simpleMap", "" + (typeof mapFunc), "" + mapFunc, node);
+        console.error("exception", exception, "in simpleMap", exception.stack);
+        throw new Error("exception in simpleMap");
+      }
+      if (mapRes === undefined) {
+        console.error("mapRes undefined, for node:" + n + "func:" + mapFunc);
+        throw new TypeError("simpleMap shouldn't map to undefined");
+      }
       if (!isIterable(mapRes))
         yield immutableObj(mapRes);
       else

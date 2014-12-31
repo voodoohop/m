@@ -21,7 +21,7 @@ Object.defineProperties(exports, {
 var $___46__46__47_lib_47_utils__;
 var _ = require("lodash");
 var isIterable = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46__47_lib_47_utils__ && $___46__46__47_lib_47_utils__.__esModule && $___46__46__47_lib_47_utils__ || {default: $___46__46__47_lib_47_utils__}).isIterable;
-const nothing = Object.freeze({});
+const nothing = Object.freeze({reallyNothing: true});
 const deleteMe = {DELETED: true};
 const isImmutable = Symbol("isImmutableTom");
 var undefinedToNull = (function(val) {
@@ -44,6 +44,13 @@ const convertFuncToVal = function(val, target) {
   return ((typeof val === "function" && val.length <= 1) ? val(target) : val);
 };
 var wrapNewProps = (function(target, newProps) {
+  if (!(newProps instanceof Object)) {
+    console.log("newProps", newProps);
+    console.log("stacktrace", require("stack-trace").get().map((function(s) {
+      return s.getFileName() + ":" + s.getLineNumber() + ":" + s.getFunctionName();
+    })));
+    throw new TypeError("trying to add props that are not object" + newProps);
+  }
   const delFunc = (function(name) {
     return setFunc(name, deleteMe);
   });
@@ -131,7 +138,7 @@ const empty = ($__1 = {}, Object.defineProperty($__1, isImmutable, {
   writable: true
 }), $__1);
 const immutableTom = function() {
-  var initial = arguments[0] !== (void 0) ? arguments[0] : nothing;
+  var initial = arguments[0] !== (void 0) ? arguments[0] : {};
   if (!(initial instanceof Object))
     return initial;
   if (initial[isImmutable])
@@ -145,11 +152,11 @@ var addLazyProp = (function(obj, name, resolveFunc) {
   resolveFunc.isLazy = true;
   return obj.set(name, resolveFunc);
 });
-var processVal = (function(name, value) {
+var processVal = (function(obj, name, value) {
   return (typeof value === "function" && value.length <= 1 && name.length > 0 && name != "toString" && name != "toJSON" && name != "valueOf") ? value(obj) : value;
 });
 var addObjectProp = (function(obj, name, value) {
-  return obj.set(name, processVal(name, value));
+  return obj.set(name, processVal(obj, name, value));
 });
 var addObjectProps = (function(obj, props) {
   if (typeof props.time == "object") {
@@ -159,7 +166,7 @@ var addObjectProps = (function(obj, props) {
   for (var $__2 = Object.keys(props)[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__3; !($__3 = $__2.next()).done; ) {
     let k = $__3.value;
-    propsNew[k] = processVal(k, props[k]);
+    propsNew[k] = processVal(obj, k, props[k]);
   }
   return obj.set(propsNew, nothing);
 });

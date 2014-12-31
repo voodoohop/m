@@ -27,7 +27,7 @@ export default function(seq) {
       generators:"parse",
       blockBinding:"parse",
       numericLiterals:"parse",
-      forOf:true,
+      forOf: true,
       classes:"parse",
       symbols:"parse"
       });
@@ -44,7 +44,7 @@ export default function(seq) {
       var smc = new sourceMapper.SourceMapConsumer(sourceMap.sourcemap);
       mapPosition=(line,column) => {
         // console.log("getting source pos for ",line,column);
-        return smc.originalPositionFor({line:line,column:column});
+        return smc.originalPositionFor({line:Math.max(1,line-2),column:column});
       }
       // console.log("mapPos",mapPosition(3,3));
     }

@@ -68,6 +68,7 @@ sequenceFeedback.filter((function(v) {
   return v.type == "noteOn" && !v.automationVal;
 })).skipDuplicates(_.isEqual).onValue((function(v) {
   io.sockets.emit("sequenceEvent", {
+    stack: v.stack,
     count: count++,
     device: v.device,
     pitch: v.pitch,

@@ -3,6 +3,9 @@ Object.defineProperties(exports, {
   m: {get: function() {
       return m;
     }},
+  CarimboNaRoca: {get: function() {
+      return CarimboNaRoca;
+    }},
   kick: {get: function() {
       return kick;
     }},
@@ -30,7 +33,8 @@ var m = mImported;
 var _ = require("lodash");
 console.log("mprototype", m.prototype);
 var mTest = m({pitch: 10}).loop();
-console.log("------", mTest);
+console.log("------", "" + mTest);
+console.log("------", mTest.take(10).toArray());
 console.log(mTest.take(20).toArray().length);
 console.log(mTest.take(2).toArray());
 console.log(mTest.take(5).toArray());
@@ -73,19 +77,40 @@ var testMap = m().evt({
   duration: 0.3,
   velocity: 1
 }).metro(4).automate("param1", (function(n) {
-  console.log("automationMap".red.bold, n);
   return 0.5;
 })).automate("param2", (function(n) {
   return 0.2;
 })).take(10);
 console.log(testMap.take(10).toArray());
+var CarimboNaRoca = m().data([{
+  "pitch": 57,
+  "duration": 7.99,
+  "velocity": 0.7,
+  "time": 0,
+  "color": "yellow"
+}, {
+  "pitch": 64,
+  "duration": 7.99,
+  "velocity": 0.7,
+  "time": 8,
+  "color": "red"
+}]).loopLength(16);
+console.log("CarimboNaRocaTest", CarimboNaRoca.toPlayable().take(20).toArray());
+var lowerNotes = CarimboNaRoca.groupByTime().simpleMap((function(n) {
+  var meNote = n[0];
+  return meNote;
+})).map((function(n) {
+  return m([n, n, n, n, n]);
+})).pitch((function(n) {
+  return n.pitch;
+})).duration(1).delay([1, 3, 4, 5, 7]);
+console.log("CarimboNaRocaTest2", lowerNotes.take(20).toArray());
 var kickGrid = 2;
 var kick = m().evt({
   pitch: [54, 60, 65],
   velocity: 0.9,
   duration: kickGrid - 0.5
 }).metro(kickGrid).automate("pitchBend", (function(n) {
-  console.log("automate called", n);
   return Math.sin((n.time + n.target.time) * Math.PI / 1) / 4 + 0.5;
 }));
 var tom = m().evt({
@@ -119,7 +144,6 @@ for (var $__1 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toPropert
       veloctiy: n.velocity,
       type: n.type
     });
-    console.log(n);
   }
 }
 var timeTaken = microtime.nowDouble() - startTime;

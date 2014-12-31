@@ -86,7 +86,11 @@ var markForReEval = function(loadedSequences, device) {
     var $__3 = s,
         seqName = $__3[0],
         seq = $__3[1];
-    if (seq.get("imports").get(device)) {
+    if (!seq) {
+      console.error("seq is null at wrong place", seqName, seq);
+      throw (new TypeError("seq is null," + seqName));
+    }
+    if (seq.get("imports") && seq.get("imports").get(device)) {
       console.log("marking ".bgMagenta, ("" + seqName).underline, "for reEvaluation");
       processedAndReEval.push(seq.toJS());
       markForReEval(loadedSequences, seq.get("device"));
@@ -110,6 +114,8 @@ var processedSequences_noStack = evaluated.flatMap((function(n) {
   if (!n.toJS)
     console.log("nnn", n);
   var n = n.toJS();
+  if (!n.exports)
+    return Bacon.never();
   return Bacon.fromArray(n.exports.map((function(seqName) {
     return _.extend({
       sequence: n.evaluated ? n.evaluated[seqName] : null,

@@ -13,14 +13,32 @@ var microtime = require("microtime");
 var stackTrace = require("stack-trace");
 var wrapError = ($__wrapSequenceError__ = require("./wrapSequenceError"), $__wrapSequenceError__ && $__wrapSequenceError__.__esModule && $__wrapSequenceError__ || {default: $__wrapSequenceError__}).default;
 var sandbox = ($__sequenceEvalSandbox__ = require("./sequenceEvalSandbox"), $__sequenceEvalSandbox__ && $__sequenceEvalSandbox__.__esModule && $__sequenceEvalSandbox__ || {default: $__sequenceEvalSandbox__}).default;
+function getSequenceGenerator(code, loadedSequences, seqContext) {
+  var sequenceSandbox = sandbox(loadedSequences, seqContext, false);
+  var availableGlobals = _.keys(sequenceSandbox);
+  var f = new (Function.prototype.bind.apply(Function, $traceurRuntime.spread([null], availableGlobals, ["return " + code])))();
+  console.log("evaluating code:\n" + "return " + code);
+  var globals = availableGlobals.map((function(k) {
+    return sequenceSandbox[k];
+  }));
+  console.log("running sequences on", availableGlobals, globals);
+  return (function() {
+    return f.apply(null, $traceurRuntime.spread(globals));
+  });
+}
 var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) {
+  console.log("seq res".bgYellow, sequences, sequenceContext);
   return _.mapValues(sequences, (function(seq) {
-    var res = {};
+    var res = {playable: false};
+    if (!seq) {
+      res.error = new Error("seq is falsy");
+      return res;
+    }
     res.isSequenceGenerator = seq.isTom;
     if (!res.isSequenceGenerator)
       return res;
     var sampleSize = 100;
-    var playableSequence = seq.toPlayable().take(100);
+    var playableSequence = seq.toPlayable().take(sampleSize);
     var testerCode = "result = sequence.toArray();";
     var globalBack = {};
     for (var $__2 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty(Symbol.iterator)](),
@@ -37,7 +55,8 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     var testSeqResult = null;
     var timeTaken;
     try {
-      testSeqResult = vm.runInThisContext(testerCode, {timeout: 3000});
+      console.log("global m before running code", global["m"]);
+      testSeqResult = vm.runInThisContext(testerCode, {timeout: 5000});
       timeTaken = microtime.nowDouble() - startTime;
     } catch (e) {
       console.log("exception while trying to generate events", e.stack, e, seq);
@@ -63,36 +82,30 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
 };
 function evalSequences(seqContext, loadedSequences) {
   var code = seqContext.processedCode;
-  var sequenceSandbox = sandbox(loadedSequences);
+  var seqGen = getSequenceGenerator(code, loadedSequences, seqContext);
+  var sequenceSandbox = sandbox(loadedSequences, seqContext, console.log);
   var sequences = null;
   var passedTests = false;
   var error = null;
-  var globalBack = {};
-  for (var $__2 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__3; !($__3 = $__2.next()).done; ) {
-    let key = $__3.value;
-    {
-      globalBack[key] = global[key];
-      global[key] = sequenceSandbox[key];
-    }
-  }
   try {
-    sequences = vm.runInThisContext(code, {timeout: 500});
+    console.log("running seqGen");
+    global.seqGen = seqGen;
+    sequences = vm.runInThisContext("seqGen();", {timeout: 5000});
   } catch (e) {
     console.log("exception in live code", e.stack);
     error = wrapError(e, seqContext);
   }
-  for (var $__4 = Object.keys(globalBack)[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    let key = $__5.value;
-    global[key] = globalBack[key];
+  if (error === null) {
+    console.log("testing if sequences emit events", Object.keys(sequences));
+    var testedSequences = testIfSeqEmitsNotes(sequences, sequenceSandbox, seqContext);
+    console.log("testedSequences".bgYellow, testedSequences);
+    passedTests = testedSequences;
   }
-  console.log("testing if sequences emit events", Object.keys(sequences));
-  var testedSequences = testIfSeqEmitsNotes(sequences, sequenceSandbox, seqContext);
-  console.log("testedSequences".bgYellow, testedSequences);
-  passedTests = testedSequences;
+  if (passedTests && error === null)
+    sequences = seqGen();
   if (sequences == null || !passedTests)
     return [null, false, error];
+  console.log("now create sequences using regular new Function becasue it seems like garbage collection is fucking with me");
   return [sequences, passedTests];
 }
 var $__default = evalSequences;

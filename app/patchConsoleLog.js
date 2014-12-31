@@ -8,7 +8,7 @@ var oldLog= console.log;
 
 
 
-var lengthLimit = 400;
+var lengthLimit = 500;
 var limitStringLength = (s) => s.length>lengthLimit ? (s.substring(0,lengthLimit)).yellow+"...".bold.underline : s;
 
 var toStringForLog =  (a, depth=1) => {

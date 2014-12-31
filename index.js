@@ -1,3 +1,10 @@
+// 
+// declare class ErrorStatic {
+//   stackTraceLimit: number;
+// }
+//
+// declare var Error: ErrorStatic;
+
 //var System = require('systemjs');
 
 // require('nodetime').profile({

@@ -10,28 +10,45 @@ import wrapError from "./wrapSequenceError";
 import sandbox from "./sequenceEvalSandbox";
 // var wait=require('wait.for-es6')
 
+function getSequenceGenerator(code, loadedSequences,seqContext) {
+
+  var sequenceSandbox = sandbox(loadedSequences, seqContext, false);
+
+  var availableGlobals = _.keys(sequenceSandbox);
+  var f = new Function(...availableGlobals, "return "+ code);
+  console.log("evaluating code:\n"+"return "+ code);
+  var globals = availableGlobals.map(k => sequenceSandbox[k]);
+  console.log("running sequences on", availableGlobals, globals);
+  return () => f(...globals);
+}
+
 var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) {
 
 
   // var resSequences = vm.runInNewContext(code, sequenceSandbox, {timeout: '1000'});
 
 
-  // console.log("seq res".bgYellow, sequences);
+  console.log("seq res".bgYellow, sequences,sequenceContext);
 
   // console.log("tester:",testerCode);
   return _.mapValues(sequences, seq => {
     // var seq = sequences[seqName];
 
     var res = {
-      // sequence: seq
-    };
+      playable: false
+    }
+
+    if (!seq) {
+      res.error = new Error("seq is falsy");
+      return res;
+    }
 
     res.isSequenceGenerator = seq.isTom;
 
     if (!res.isSequenceGenerator)
       return res;
     var sampleSize = 100;
-    var playableSequence = seq.toPlayable().take(100);
+    var playableSequence = seq.toPlayable().take(sampleSize);
     var testerCode = "result = sequence.toArray();";
     // console.log("testing playableSequence:".bgYellow,seq, playableSequence);
 
@@ -47,8 +64,9 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     var testSeqResult = null;
     var timeTaken;
     try {
+      console.log("global m before running code", global["m"]);
       testSeqResult = vm.runInThisContext(testerCode, {
-        timeout: 3000
+        timeout: 5000
       });
       timeTaken = microtime.nowDouble() - startTime;
 
@@ -83,7 +101,10 @@ export default function evalSequences(seqContext, loadedSequences) {
 
   var code = seqContext.processedCode;
   // console.log("creating sandbox");
-  var sequenceSandbox = sandbox(loadedSequences);
+
+  var seqGen = getSequenceGenerator(code, loadedSequences, seqContext);
+
+  var sequenceSandbox = sandbox(loadedSequences, seqContext, console.log);
   // console.log("created sandbox");
 
   var sequences = null
@@ -97,29 +118,31 @@ export default function evalSequences(seqContext, loadedSequences) {
     // var f = new Function(...availableGlobals, code);
     // console.log("running code",code);
     // var globalBackup = global;
-    var globalBack = {};
-    for (let key of Object.keys(sequenceSandbox)) {
-      globalBack[key] = global[key];
-      global[key] = sequenceSandbox[key];
-    }
+    // var globalBack = {};
+    // for (let key of Object.keys(sequenceSandbox)) {
+    //   globalBack[key] = global[key];
+    //   global[key] = sequenceSandbox[key];
+    // }
     try {
-
-    sequences = vm.runInThisContext(code, {
-      timeout: 500
+      // console.log("global m before running code", global["m"]);
+      console.log("running seqGen");
+      global.seqGen = seqGen;
+    sequences = vm.runInThisContext("seqGen();", {
+      timeout: 5000
     });
   } catch (e) {
     console.log("exception in live code", e.stack);
     error = wrapError(e, seqContext);
   }
-  for (let key of Object.keys(globalBack))
-    global[key] = globalBack[key];
+  // for (let key of Object.keys(globalBack))
+  //   global[key] = globalBack[key];
 
     // global = globalBackup;
     // console.log(testSeqResult);
     // process.exit(1);
     // var globals = _.values(sequenceSandbox);
     // sequences = f(...globals);
-
+  if (error === null) {
     console.log("testing if sequences emit events", Object.keys(sequences));
 
     var testedSequences = testIfSeqEmitsNotes(sequences, sequenceSandbox, seqContext);
@@ -127,10 +150,16 @@ export default function evalSequences(seqContext, loadedSequences) {
 
     passedTests = testedSequences;
 
+  }
 
+  if (passedTests && error===null)
+    sequences = seqGen();
 
   if (sequences == null || !passedTests)
     return [null, false, error];
+
+  console.log("now create sequences using regular new Function becasue it seems like garbage collection is fucking with me");
+
 
   return [sequences, passedTests];
 };

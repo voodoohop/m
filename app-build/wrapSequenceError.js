@@ -5,31 +5,22 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
+var $__lib_47_findSourceStackPos__;
 var stackTrace = require("stack-trace");
 var repl = require("repl");
 var _ = require("lodash");
+var getSourcePos = ($__lib_47_findSourceStackPos__ = require("./lib/findSourceStackPos"), $__lib_47_findSourceStackPos__ && $__lib_47_findSourceStackPos__.__esModule && $__lib_47_findSourceStackPos__ || {default: $__lib_47_findSourceStackPos__}).default;
 function wrapSequenceError(error, deviceStruct) {
   var stack = stackTrace.parse(error);
-  var userCodeErrors = _.filter(stack, (function(s) {
-    return s.lineNumber > 0 && s.fileName.startsWith("evalmachine") && s.fileName.indexOf("Bacon.js") <= 0 && s.fileName.indexOf("node_modules") <= 0;
-  }));
-  userCodeErrors = userCodeErrors.map((function(e) {
-    return _.extend({}, e, {fileName: e.fileName.replace("/Users/thomash/Documents/M4L/thomashfreshandclean/app-build/", "")});
-  }));
-  var errorPos = undefined;
-  if (userCodeErrors.length > 0) {
-    var s = userCodeErrors[0];
-    if (typeof deviceStruct.sourcePos === "function") {
-      var transformed = deviceStruct.sourcePos(s.lineNumber, s.columnNumber);
-      errorPos = [transformed.line, transformed.column];
-    } else
-      console.error("couldn't find sourceMap error transformer");
-  }
+  console.warn("stackArray");
+  console.warn("looking for errorpos", deviceStruct);
+  var errorPos = getSourcePos(deviceStruct.sourcePos);
+  console.warn("found errorPos", errorPos);
   return {
-    stackTrace: stack,
     error: error,
+    errorPos: errorPos,
     description: _.last(error.toString().split("\n")),
-    errorPos: errorPos
+    stackTrace: stack
   };
 }
 var $__default = wrapSequenceError;

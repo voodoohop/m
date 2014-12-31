@@ -2,7 +2,7 @@ var _ = require("lodash");
 
 import {isIterable} from "../lib/utils";
 
-const nothing = Object.freeze({});
+const nothing = Object.freeze({reallyNothing:true});
 
 const deleteMe = {
   DELETED: true
@@ -35,6 +35,11 @@ const convertFuncToVal = function(val,target) {
 }
 
 var wrapNewProps = (target, newProps) => {
+  if (! (newProps instanceof Object)) {
+    console.log("newProps",newProps);
+    console.log("stacktrace", require("stack-trace").get().map(s => s.getFileName()+":"+s.getLineNumber()+":"+s.getFunctionName()));
+    throw new TypeError("trying to add props that are not object"+newProps);
+  }
   // console.log("wrapping",target," with newProps",newProps);
   // console.log("adding ",newProps,"to",target)
 
@@ -106,7 +111,7 @@ var wrapNewProps = (target, newProps) => {
 const empty={[isImmutable]:true};
 
 // TODO: not using deep yet
-export const immutableTom = function(initial=nothing) {
+export const immutableTom = function(initial={}) {
   if (! (initial instanceof Object))
     return initial;
   if (initial[isImmutable])
@@ -131,13 +136,13 @@ export var addLazyProp = (obj, name, resolveFunc) => {
 };
 
 
-var processVal = (name,value) => (typeof value === "function" && value.length <= 1 && name.length>0 && name != "toString" && name != "toJSON" && name != "valueOf") ? value(obj) : value
+var processVal = (obj,name,value) => (typeof value === "function" && value.length <= 1 && name.length>0 && name != "toString" && name != "toJSON" && name != "valueOf") ? value(obj) : value
 
 export var addObjectProp = (obj, name, value) => {
   // console.log("proxy adding prop1", name,value);
   //
   // console.log("proxy adding prop2", obj,name,value);
-  return obj.set(name, processVal(name,value));
+  return obj.set(name, processVal(obj,name,value));
 }
 
 export var addObjectProps = (obj, props) => {
@@ -150,7 +155,7 @@ export var addObjectProps = (obj, props) => {
   // props = _.mapValues(props, (value,name) => processVal(name,value));
   var propsNew = {}
   for (let k of Object.keys(props))
-    propsNew[k] = processVal(k,props[k]);
+    propsNew[k] = processVal(obj,k,props[k]);
   // console.log("ppppppp");
   // console.log("props after",propsNew,obj);
 

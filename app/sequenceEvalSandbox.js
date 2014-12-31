@@ -2,7 +2,7 @@
 
 var teoria = require("teoria");
 
-import {m} from "./functionalMonads";
+import {m} from "./functionalM/baseLib";
 
 import {t} from "./time";
 
@@ -20,18 +20,31 @@ import {abletonReceiver, abletonSender} from "./oscAbleton";
 
 var vm = require("vm");
 
-var remoteLog = function(...m) {
-  console.log("seqLog".bgYellow,m);
-  try {
-    webServer.remoteLogger.push(""+m)
-  } catch (e) {
-    console.error("error sending log",e);
-  }
+var stackTrace = require("stack-trace");
+
+
+import getSourcePos from "./lib/findSourceStackPos";
+
+export default function getSandBox(loadedSequences, deviceStruct=null, loggerOverride = false) {
+
+
+  var remoteLog = function(...m) {
+    console.log("seqLog".bgYellow,m);
+
+    // try {
+      console.log("deviceStruct sourcePos",deviceStruct.sourcePos);
+      webServer.remoteLogger.push(
+      { msg: m,
+        sourcePos: getSourcePos(deviceStruct.sourcePos),
+        device:deviceStruct.device,
+        // allStack:stack,
+        // code: deviceStruct.code,
+        // processedCode: deviceStruct.processedCode
+      });
+  // } catch (e) {
+  //   console.error("error sending log",e);
+  // }
 };
-
-
-export default function getSandBox(loadedSequences) {
-
 
   var seqLoader = {
     get: (m) => {
@@ -56,6 +69,7 @@ export default function getSandBox(loadedSequences) {
     "System": seqLoader,
     "clone":clone,
     "easer":() => new Easer(),
+    "log": loggerOverride ? loggerOverride : remoteLog,
     // "console": {log: remoteLog, warn: remoteLog, error: remoteLog},
     "Symbol": Symbol
   };

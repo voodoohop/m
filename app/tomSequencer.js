@@ -12,7 +12,10 @@ var eventPlayer = function(evtWithOffset) {
   var evt = evtWithOffset.evt;
   var firstTime = evtWithOffset.firstTime.offset;
   // console.log(evtWithOffset)
+
   return {evt: evt, play: function(instrument) {
+
+
    if (evt.type=="noteOn") {
     instrument.noteOn(evt.pitch.valueOf(), evt.velocity.valueOf(), evt.time+firstTime);
    }
@@ -34,10 +37,10 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
   var seqIterator = null;
   var next=null;
   return baconTime.take(1).flatMap((firstTime) => baconTime.diff(firstTime,(prevDecoded,timeDecoded) => {
-    try {
+    // try {
     // TODO: do backwards time jump here
     var prevTime = prevDecoded.time;
-    if (Number.isNaN(prevTime))
+    if (Number.isNaN(prevTime) || !Number.isFinite(prevTime))
       prevTime = 0;
     var time = timeDecoded.time;
 
@@ -48,8 +51,8 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
         .toPlayable());
 
       next = seqIterator.next();
-      if (!next)
-        return;
+      // if (!next)
+      //   return;
     //   console.log("Rx",Rx.Observable);
     //   var seqStream = Rx.Observable.from(sequence.skipWhile((n) => n.time < prevTime)
     //   .toPlayable());
@@ -70,6 +73,10 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
 
     // console.log("timeDecoded", timeDecoded);
     var count=0;
+    if (next == null) {
+      console.warn("next is null",Object.keys(sequence), sequence.currentNode);
+      return [];
+    }
     while (next.value.time < prevTime) {
       next = seqIterator.next(prevTime);
       console.warn("time lag:",prevTime-next.value.time+"".bgRed);
@@ -88,11 +95,11 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
         return eventsNow;
     }
 
-    }
-    catch (exception) {
-      console.error(exception, exception.stack);
-      return [new Bacon.Error(exception)];
-    }
+    // }
+    // catch (exception) {
+    //   console.error(exception, exception.stack);
+    //   return [new Bacon.Error(exception)];
+    // }
     //console.log(eventsNow.length);
     return eventsNow;
   })).flatMap((v) => Bacon.fromArray(v))

@@ -1,3 +1,5 @@
+/* @flow */
+
 //require('source-map-support').install();
 // require('traceur/bin/traceur-runtime');
 

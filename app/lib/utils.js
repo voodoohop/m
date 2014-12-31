@@ -153,7 +153,7 @@ export var toStringObject = function(o) {
   return o;
 }
 
-export var prettyToString = function(name, args, destFunc) {
+export var prettyToString = function(name, args) {
   //destFunc.prototype = _.clone(destFunc.prototype);
   // console.log("tosdetailedtest", args,args.map(toStringDetailed));
 
@@ -171,7 +171,7 @@ export var prettyToString = function(name, args, destFunc) {
   } else
   if (!parentNode.isTom) {
     args=[parentNode];
-    parentNode = "m";
+    parentNode = "m()";
   }
 
   if (parentNode == "[object Object]")
@@ -182,10 +182,10 @@ export var prettyToString = function(name, args, destFunc) {
 
   var stringReperesentation =   ""+parentNode+"."+ name+"("+args.map(toStringDetailed).join(", ")+")";
 
-  Object.defineProperty(destFunc,"toString", {enumerable:false,value: () => stringReperesentation});
+  // Object.defineProperty(destFunc,"toString", {enumerable:false,value: () => stringReperesentation});
 
-  Object.defineProperty(destFunc,"inspect", {enumerable:false,value: () => stringReperesentation});
+  // Object.defineProperty(destFunc,"inspect", {enumerable:false,value: () => stringReperesentation});
   //destFunc.toString = destFunc.prototype.toString;
 //console.log(res.prototype.toString());
-  return destFunc;
+  return stringReperesentation;
 }

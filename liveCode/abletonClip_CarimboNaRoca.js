@@ -25,27 +25,27 @@ export var CarimboNaRoca = m().data([
     "duration": 7.99,
     "velocity": 0.7874015748031497,
     "time": 8,
-    "color": "yellow"
+    "color": "red"
   },
   {
     "pitch": 60,
     "duration": 7.99,
     "velocity": 0.7874015748031497,
     "time": 8,
-    "color": "yellow"
+    "color": "red"
   },
   {
     "pitch": 62,
     "duration": 7.99,
     "velocity": 0.7874015748031497,
     "time": 8,
-    "color": "yellow"
+    "color": "red"
   },
   {
     "pitch": 64,
     "duration": 7.99,
     "velocity": 0.7874015748031497,
     "time": 8,
-    "color": "yellow"
+    "color": "red"
   }
 ]).loopLength(16);

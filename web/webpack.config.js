@@ -7,7 +7,7 @@ module.exports = {
   entry: [
     'webpack-dev-server/client?http://localhost:8000',
     'webpack/hot/dev-server',
-    './web/resources/js/index'
+    './web/js/index'
   ],
 
   output: {
@@ -27,7 +27,7 @@ module.exports = {
         loaders: [
         //  '6to5-loader',
           'jsx-loader?harmony',
-          'omniscient-hot-reload-loader' // when using, change this for 'omniscient-hot-reload-loader' from npm
+          'omniscient-hot-reload-loader'
         ]
       }
     ]

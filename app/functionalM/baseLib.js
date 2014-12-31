@@ -18,7 +18,7 @@ var util = require("util");
 var _ = require("lodash");
 
 
-  var logDetails = true;
+var logDetails = true;
 
 
 // // TODO: work in progress
@@ -47,19 +47,19 @@ var createCache = function() {
 
 var cache = createCache();
 
-var mGenerator = function(generatorFunc, options={}) {
-  var origGenerator = mGeneratorUnCached(generatorFunc, options);;
-  if (origGenerator.isTom)
-    origGenerator[wu.iteratorSymbol] = doCache(origGenerator)[wu.iteratorSymbol];
-  return origGenerator;
-};
+// var mGenerator = function(generatorFunc, options={}) {
+//   var origGenerator = mGeneratorUnCached(generatorFunc, options);;
+//   if (origGenerator.isTom)
+//     origGenerator[wu.iteratorSymbol] = doCache(origGenerator)[wu.iteratorSymbol];
+//   return origGenerator;
+// };
 
 function* doCache(node) {
   // yield * getIterator(node);
   // return;
 
   var cacheKey = "" + node;
-  console.log(cacheKey);
+  // console.log(cacheKey);
   // console.log("cacheKey",cacheKey);
   // if (!caches[cacheKey]) {
   //   // console.log("not yet cashed".bgBlue.white,cacheKey);
@@ -102,63 +102,86 @@ function* doCache(node) {
 
 ;
 
+var stackTrace = require("stack-trace");
+import findSourcePos from "../lib/findSourceStackPos";
 
+
+
+function* runGenFeedback(generator,name,args) {
+  for (let e of {[wu.iteratorSymbol]: () => generator(...args)}) {
+    // console.log(name,e);
+    if (e && e.appendStackTrace) {
+      var sTrace = stackTrace.get().map(s => s.getFileName()+":"+s.getLineNumber()+":"+s.getColumnNumber);
+        e = e.set({stack:sTrace.join("\n"), appendStackTrace:false});
+    }
+
+    var spos = findSourcePos();
+    if (spos !== undefined)
+      console.warn(name,spos);
+
+    yield e;
+  };
+}
 
 var stackTrace = require('stack-trace');
 
 var path = process.cwd();
 
 
-var mGeneratorUnCached = function(generator, options = {}) {
+var mGenerator = function(generator, options = {}) {
   var name = options.nameOverride || generator.name;
   var getIterable = function(...args) {
     // var trace = stackTrace.get();
     // console.log(path);
     // console.log(trace.map(t => t.toString().replace(path,"")).filter(t => t.indexOf("evalmachine")>=0));
-
-    var res = new M();
+    // console.log(args);
+    var res = {};
     res.isTom = true;
     res.name = name;
 
-    res[wu.iteratorSymbol] = () => generator(...args);
+    res[wu.iteratorSymbol] = () => runGenFeedback(generator,name,args);
     if (options.toStringOverride)
       res.toString = () => options.toStringOverride;
     else {
-      // console.log(name,args,res);
-        prettyToString(name, args, res);
+        res.toString= () => prettyToString(name, args);
     }
-    return res;
+    // console.log("res",res);
+    return new M(res);
   }
-  getIterable.displayName = name;
-  return getIterable.length > 0 ? wu.curryable(getIterable) : getIterable;
+  getIterable.prototype = M.prototype;
+
+  return getIterable;
 }
 
-var nothing = Object.freeze({});
+var rootNode = Object.freeze({isTom:true, name: "m()"});
 
 var wrappedSymbol = Symbol("M wrapped Object");
 
+var typeValidate = require('tcomb-validation').validate;
 
 
-function M(wrapObject = nothing) {
-  // this.MLibrary = "version_0.2";
-  if (!isIterable(wrapObject) && wrapObject != nothing)
-    wrapObject = M.prototype.data(wrapObject);
-  if (isIterable(wrapObject)) {
-    this[wrappedSymbol] = wrapObject;
-    this[wu.iteratorSymbol] = wrapObject[wu.iteratorSymbol];
-    this.name = wrapObject.name;
-    this.toString = wrapObject.toString;
-    this.isTom = wrapObject.isTom;
-  } else {
-    if (wrapObject != nothing && wrapObject instanceof Object) {
-      // console.log("typeof",typeof wrapObject,wrapObject);
-      wrapObject = immutableObj(wrapObject);
-    }
-    this[wrappedSymbol] = wrapObject;
-  }
+
+function M(node = rootNode) {
+  if (!node.isTom)
+    throw TypeError("expecting a node of type isTom in M");
+
+  this.currentNode = node;
+  this.name = node.name;
+  this.isTom = true;
+  this.parentNode=null;
+  this[wu.iteratorSymbol] = node[wu.iteratorSymbol];
+  Object.seal(this);
+  Object.seal(node);
 }
 
-export var m = function(wrapObject = nothing) {
+M.prototype.toString  = function() { return this.currentNode.toString()};
+
+export var m = function(wrapObject = rootNode) {
+  // console.log("creating m from ",wrapObject);
+  if (!wrapObject.isTom || (!isIterable(wrapObject) && wrapObject != rootNode) ){
+    return new M(rootNode).data(wrapObject);
+  }
+
 
   return new M(wrapObject);
 }
@@ -168,19 +191,22 @@ m.prototype = M.prototype;
 console.log(m.prototype);
 
 
-var addFunction = function(name, func, options=nothing) {
+var addFunction = function(name, func, options=rootNode) {
   M.prototype[name] = function(...args) {
+    // console.log("called",name);
     // console.log("this in prototype",this);
     if (options.notChainable)
-      return func(this[wrappedSymbol]);
+      return func(this.currentNode);
 
     // var argument = isIterable(this) ? this : this[wrappedSymbol];
-    var callArgs = (this[wrappedSymbol] != nothing && !options.noInputChain) ? [...args, this[wrappedSymbol]] : args;
+    var callArgs = (this.currentNode != rootNode && !options.noInputChain) ? [...args, this.currentNode] : args;
     // if (logDetails)
     //   console.log("call".bold,name, "being called on", callArgs);
-    var res = func(...callArgs);
-    var wrapped = m(res);
-    return wrapped;
+    var newNode = func(...callArgs);
+    // console.log("lineNumber",name,(new Error()).stack);
+    newNode.parentNode = this;
+    // console.log("name",name," returning",newNode);
+    return newNode;
   }
 }
 

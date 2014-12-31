@@ -173,7 +173,7 @@ var toStringObject = function(o) {
   }
   return o;
 };
-var prettyToString = function(name, args, destFunc) {
+var prettyToString = function(name, args) {
   var args = _.clone(args);
   var parentNode = args.pop();
   if (parentNode == undefined) {
@@ -181,22 +181,10 @@ var prettyToString = function(name, args, destFunc) {
     parentNode = "";
   } else if (!parentNode.isTom) {
     args = [parentNode];
-    parentNode = "m";
+    parentNode = "m()";
   }
   if (parentNode == "[object Object]")
     parentNode = JSON.stringify(parentNode);
   var stringReperesentation = "" + parentNode + "." + name + "(" + args.map(toStringDetailed).join(", ") + ")";
-  Object.defineProperty(destFunc, "toString", {
-    enumerable: false,
-    value: (function() {
-      return stringReperesentation;
-    })
-  });
-  Object.defineProperty(destFunc, "inspect", {
-    enumerable: false,
-    value: (function() {
-      return stringReperesentation;
-    })
-  });
-  return destFunc;
+  return stringReperesentation;
 };

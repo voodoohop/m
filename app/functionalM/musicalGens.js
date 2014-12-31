@@ -41,9 +41,11 @@ addGenerator(function* withNext(node) {
 const iterableWithTime=function(grouped, time) {
 
   var res = _.clone(grouped);
-  res.time = time;
+  // res.time = time;
+  // res.events = group;
+  // res.length = grouped.length;
   // console.log("sending event group", res);
-  return res;
+  return grouped;
 }
 
 addGenerator(function* groupByTime(node) {
@@ -60,7 +62,7 @@ addGenerator(function* groupByTime(node) {
         yield iterableWithTime(grouped, currentTime);
         grouped = [];
       }
-      currentTime = fixFloat(n.time);
+      currentTime = n.time;
     }
     grouped.push(n);
   }
@@ -91,7 +93,11 @@ addGenerator(function* lazyMap(name, mapFunc,node) {
 });
 
 
-var lazyProps = (n) => Object.keys(n).filter(k => n[k].isLazy);
+var lazyProps = (n) => Object.keys(n).filter(k => {
+  // console.log("isLazy test",n,k,n[k]);
+
+  return n[k] && n[k].isLazy
+});
 
 addGenerator(function* lazyResolve(node) {
   // // console.log("should be",m(node).take(1).toArray()[0].automation_param1.isLazy);
@@ -104,7 +110,7 @@ addGenerator(function* lazyResolve(node) {
 
     var merged=res.reduce((prev,next) => {
       return m(prev).merge(next);
-    },[n]);
+    },[] /* or [n], to keep previous */);
     // debugger;
     // console.log("----------".bgBlack);
     // console.log("merged", merged.toArray());
@@ -133,7 +139,8 @@ addGenerator(function* notePlay(node) {
         velocity: n.velocity,
         pitch: n.pitch,
         duration: n.duration,
-        time: n.time
+        time: n.time,
+        color: n.color
       }, {
         type: "noteOff",
         pitch: n.pitch,
@@ -148,10 +155,14 @@ addGenerator(function* notePlay(node) {
 //TODO: figure out how to deal with automations of notes that overlap in duration. at the moment automations are overlapping
 addGenerator(function* automate(paramName, valGenerator, node) {
   // // console.log("automate".bgRed,paramName,valGenerator);
+  // if (isIterable(valGenerator)) {
+  //   yield* m(node).
+  // }
+
   yield * getIterator(m(node).filter(isNote).lazyMap("automation_"+paramName,(n) => {
 
     // // console.log("lazymap",paramName, valGenerator, "noteeeee".red.bold+"  ",n);
-    var automation = m().evt({
+    var automation = m().data({
         type: "automation",
         target: n,
         name: paramName,
@@ -206,19 +217,19 @@ addGenerator(function* combine(combineNode, node) {
       other: n
     }
   });
-  var merged = otherMapped.merge(meMapped);
+  var merged = meMapped.merge(otherMapped);
   // for (var test of merged)
   //   // console.log("mergedSeq", test);
   var previousOther = null;
   var nextOther = null;
   var meWaitingForNextOther = [];
-  for (var m of merged) {
-    // // console.log("combining",m);
-    if (m.hasOwnProperty("me"))
-      meWaitingForNextOther.push(m.me);
-    if (m.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
+  for (let n of merged) {
+   console.log("combining",""+m,n);
+    if (n.hasOwnProperty("me"))
+      meWaitingForNextOther.push(n.me);
+    if (n.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
       previousOther = nextOther;
-      nextOther = m.other;
+      nextOther = n.other;
       for (var me of meWaitingForNextOther) {
         yield combineFunc(me, previousOther, nextOther);
       }
@@ -246,11 +257,14 @@ addGenerator(function* combineMap(combineFunc, combineNode, node) {
 
 addGenerator(function* loopLength(loopLength, node) {
   var time = 0;
+  var count=0;
+  console.log("looplength started");
   while (true) {
     for (var n of node) {
-      //  // console.log("looplengtime",time);
+      console.log("looplenghtime",time, count++);
       yield addObjectProp(n, "time", time + n.time);
     }
+
     time += loopLength;
   }
 });
@@ -461,11 +475,29 @@ addGenerator(function* eventCount(node) {
 
 addGenerator(function* delay(amount, node) {
   // console.log("delaying",amount, node);
-  // if (!isIterable(amount))
-  //   amount = [amount];
-  //
+  if (isIterable(amount)) {
+    // if (amount.length>0) {
+    //
+    //   yield* getIterator(m(node).map(n =>  {
+    //     var res = amount.map(a => n.delay(a));
+    //     console.log("delay res", res);
+    //     return res;
+    //   }));
+    //   return;
+    // }
+    // else
+      var zipped =m(amount.map(a => ({delayAmount:a}))).zipLooping(node);
+      yield* getIterator(zipped.simpleMap(n => {
+        console.log("ntomshould delay",n);
+        return n[0].set("time",n[0].time+n[1].delayAmount);
+      }));
+      return;
+  }
+  else
   // for (var a of amount)
-    yield * getIterator(m(node).simpleMap(n => n.set("time",amount+n.time)));
+    yield * getIterator(m(node).map(n => {
+      return n.set("time",amount+n.time)
+    }));
 });
 
 
@@ -512,6 +544,8 @@ addGenerator(function* durationsFromTime(node) {
   }
 });
 
+
+
 // var MInsertWhen = MDirectOp(
 //   function* (nodeIterator, insertCondition, insertNode) {
 //     for (var e of nodeIterator) {
@@ -532,9 +566,9 @@ addGenerator(function* merge(mergeNode, node) {
   if (!isIterable(node))
     retrn;
   var nodeIterator = getIterator(node);
-  console.log("nextNode",nextNode);
+  // console.log("nextNode",nextNode);
   var x=nodeIterator.next();
-  console.log(x);
+  // console.log(x);
   var nextNode = x.value;
   for (var mergeEvent of mergeNode) {
     while (nextNode != undefined && nextNode.time < mergeEvent.time) {
@@ -560,7 +594,7 @@ addGenerator(function* swing(timeGrid, amount, node) {
 
     var dist = diff * diff;
     // // console.log("swing", {time: fixFloat(e.time + amount * (1-dist) * timeGrid)});
-    return fixFloat(e.time + amount * (1 - dist) * timeGrid);
+    return e.time + amount * (1 - dist) * timeGrid;
   } ))
 });
 
@@ -571,7 +605,7 @@ addGenerator(function* quantize(timeGrid, amount, node) {
 
 
     // // console.log("swing", {time: fixFloat(e.time + amount * (1-dist) * timeGrid)});
-    return fixFloat(e.time - amount * diff);
+    return e.time - amount * diff;
   }, node))
 });
 

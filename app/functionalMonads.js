@@ -15,7 +15,8 @@ var _ = require("lodash");
 console.log("mprototype",m.prototype);
 
 var mTest = m({pitch:10}).loop();
-console.log("------",mTest);
+console.log("------",""+mTest);
+console.log("------",mTest.take(10).toArray());
 console.log(mTest.take(20).toArray().length);
 console.log(mTest.take(2).toArray());
 console.log(mTest.take(5).toArray());
@@ -57,7 +58,7 @@ console.log("---tests---");
 var testMap = m().evt({pitch: 60, duration: 0.3, velocity: 1}).metro(4)
 // .map(n => [n.set("duration", 0.2),n.set("time", n.time + 2)])
 .automate("param1", (n) => {
-  console.log("automationMap".red.bold,n);
+  // console.log("automationMap".red.bold,n);
   return 0.5;
 })
 .automate("param2", (n) => {
@@ -75,6 +76,47 @@ console.log(testMap.take(10).toArray());
 // console.log(""+x[0]["$lazy"]);
 
 // throw "bye";
+
+
+
+export var CarimboNaRoca = m().data([
+{
+  "pitch": 57,
+  "duration": 7.99,
+  "velocity": 0.7,
+  "time": 0,
+  "color": "yellow"
+},
+{
+  "pitch": 64,
+  "duration": 7.99,
+  "velocity": 0.7,
+  "time": 8,
+  "color": "red"
+}
+]).loopLength(16);
+
+console.log("CarimboNaRocaTest", CarimboNaRoca.toPlayable().take(20).toArray());
+
+var lowerNotes = CarimboNaRoca
+.groupByTime().simpleMap(n => {
+  var meNote = n[0];
+  return meNote; //m().data([res.set({pitch:res.pitch+12,velocity:0.5}),res.set({pitch:res.pitch, time:res.time+0.5})]).take(2);
+})
+.map(n => m([n,n,n,n,n]))
+.pitch(n =>  n.pitch)
+.duration(1)
+.delay([1,3,4,5,7]);
+
+console.log("CarimboNaRocaTest2", lowerNotes.take(20).toArray());
+
+
+// throw "bye";
+
+
+
+
+
 
 
 // throw "bye";
@@ -1185,7 +1227,7 @@ export var kick = m().evt({
     duration: kickGrid - 0.5
   }).metro(kickGrid)
   .automate("pitchBend", (n) => {
-  console.log("automate called",n);
+  // console.log("automate called",n);
   return Math.sin((n.time + n.target.time) * Math.PI / 1) / 4 + 0.5
   });
 
@@ -1242,7 +1284,7 @@ for (var n of kick
     veloctiy: n.velocity,
     type: n.type
   });
-  console.log(n);
+  // console.log(n);
 }
 
 var timeTaken = microtime.nowDouble() - startTime;

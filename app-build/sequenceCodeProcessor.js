@@ -37,7 +37,7 @@ var $__default = function(seq) {
     var smc = new sourceMapper.SourceMapConsumer(sourceMap.sourcemap);
     mapPosition = (function(line, column) {
       return smc.originalPositionFor({
-        line: line,
+        line: Math.max(1, line - 2),
         column: column
       });
     });
