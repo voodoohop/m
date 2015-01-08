@@ -206,7 +206,7 @@ addGenerator(function* simpleMap(mapFunc, node) {
     catch (exception) {
       console.error("simpleMap",""+(typeof mapFunc),""+mapFunc,node);
       console.error("exception",exception,"in simpleMap", exception.stack);
-      throw new Error("exception in simpleMap");
+      throw new Error("exception in simpleMap"+exception);
     }
 
     if (mapRes === undefined) {
@@ -271,11 +271,27 @@ addGenerator(function* count(start = 0, stepSize = 1) {
   }
 }, {noInputChain:true});
 
+//
+// addGenerator(function* scan(reduceFunc, startValue, node) {
+//   var current = startValue;
+//   for (var e of node) {
+//     current = reduceFunc(current, e);
+//   }
+//   yield current;
+// });
 
-addGenerator(function* reduce(reduceFunc, startValue, node) {
-  var current = startValue;
-  for (var e of node) {
-    current = reduceFunc(current, e);
+
+
+addGenerator(function* scan(func,initial,node=null){
+  if (node===null) {
+    [node,initial] = [initial,undefined];
   }
-  yield current;
+  for (let n of node) {
+    if (initial===undefined) {
+      initial = n;
+      continue;
+    }
+    initial = func(initial, n);
+    yield initial;
+  }
 });

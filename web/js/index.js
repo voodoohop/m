@@ -37,7 +37,7 @@ console.log("device id",myDeviceId);
   // logMessage.log("console");
 
   var sequenceFeedback = Bacon.fromEventTarget(socket, "sequenceEvent");
-  //  sequenceFeedback.log("seqEvent");
+  sequenceFeedback.log("seqEvent");
   // jointGraph.generatorInfo.plug(sequenceFeedback);
 
   var codeReceived = Bacon.fromEventTarget(socket, "code");
@@ -59,6 +59,11 @@ console.log("device id",myDeviceId);
       codePlay.push(codeLoaded);
     },100);
   });
+
+  var bunyanMessage = Bacon.fromEventTarget(socket, "bunyan");
+
+  // bunyanMessage.log("bunyan");
+
 
 
 // var Clicks = require('./clicks').jsx;
@@ -109,6 +114,13 @@ var genData = immstruct({generators: {}, selectedDevice:{id:myDeviceId}, editorS
 
 // console.log("selDeviceCursor",selectedDeviceCursor.toJS());
 
+function markError(error) {
+    if (error.errorPos) {
+      console.log("marking error",error);
+      cursorToSeq.push(error);
+    }
+}
+
 updateGenerator.onValue(function (genUpdate) {
   genData.cursor("generators").update(function(prev) {
     console.log("prev",prev.toJS());
@@ -117,17 +129,17 @@ updateGenerator.onValue(function (genUpdate) {
   console.log("genUpdate",genUpdate);
   if (genUpdate.device != myDeviceId)
     return
-  var myGens = genUpdate.evaluatedDetails;
-  Object.keys(myGens).forEach(function(seqName) {
-    var error;
-    console.log("checking ",seqName,"for errors");
-    if (error = myGens[seqName].evaluatedError) {
-      if (error.errorPos) {
-        console.log("marking error",error);
-        cursorToSeq.push(error);
-      }
-    }
-  })
+
+  if (genUpdate.evaluatedError)
+    markError(genUpdate.evaluatedError);
+  else {
+    var myGens = genUpdate.evaluatedDetails;
+    if (myGens)
+      Object.keys(myGens).forEach(function(seqName) {
+        if (myGens[seqName].evaluatedError)
+          markError(myGens[seqName].evaluatedError);
+      });
+  };
 });
 
 var loadCode = function(path) {
@@ -154,7 +166,7 @@ socket.emit("requestGenerators","yes");
 
 
 var LogView = require("./logFeedback");
-
+var LogWindow = require("./logWindow");
 
 var logProcessor = function(logFeed) {
   logFeed.log("logFeed");
@@ -168,9 +180,12 @@ var logProcessor = function(logFeed) {
   // .map(function (n){
   //   return _.values(n);
   // })
-  .map(n => _.mapValues(n,m => _.extend({timePassed: Date.now()-m.updateTime},m))
-    // .filter(m => m.timePassed<10000)
-  )
+  .map(n => _.mapValues(n,m => {
+    var timePassed = Date.now()-m.updateTime;
+    if (timePassed > 30000)
+      return null;
+    return _.extend({timePassed: timePassed},m)
+  }))
   .log("processedLogFeed")
   .onValue(function(v) {
     // genData.cursor(["generators",v.).update(function(prev) {
@@ -191,6 +206,8 @@ var logProcessor = function(logFeed) {
 logProcessor(logMessage);
 
 var scrollFeedBack = new Bacon.Bus();
+
+// var Grid = require("./grid.js");
 
 scrollFeedBack
 // .debounce(200)
@@ -214,8 +231,10 @@ render= function(data) {
     </div>);
 
 
+
   }
 
+  // React.render(Grid(),document.getElementById("grid"));
 
   React.render(createEditor(),document.getElementById("javascript-editor"));
 
@@ -229,6 +248,8 @@ render= function(data) {
 
   React.render(GeneratorList({cursor: genData.cursor("generators"), statics: {loadCode: loadCode}}),
     document.getElementById("nodeGenListContainer"));
+
+  React.render(LogWindow({statics:{message:bunyanMessage}}),document.getElementById("logWindow"));
 
 }
 

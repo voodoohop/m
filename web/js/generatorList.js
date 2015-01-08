@@ -52,7 +52,7 @@ module.exports = component('GeneratorList', function (props) {
     var floatRight = {position:"absolute", left:"15px"};
     // var keyOuter = generator.device;
     // return <TreeView key=generator.device
-    if (typeof treeNode == "object" && !treeNode.hasOwnProperty("isSequenceGenerator")) {
+    if (typeof treeNode == "object" && treeNode != null && !treeNode.hasOwnProperty("isSequenceGenerator")) {
       var keys=Object.keys(treeNode);
       return keys.map(function (nodeKey) { return <TreeView key={""+nodeKey+"_"+key} defaultCollapsed={root} nodeLabel={nodeKey}>{createItem(treeNode[nodeKey],false,key+"/"+nodeKey)}</TreeView>});
     }
@@ -62,7 +62,7 @@ module.exports = component('GeneratorList', function (props) {
         // console.log("click",key,this,treeNode);
         this.props.statics.loadCode(key);
       }.bind(this);
-      if (treeNode.isSequenceGenerator)
+      if (treeNode && treeNode.isSequenceGenerator)
         return <div onClick={handleClick}>{GenPreview(treeNode)}</div>;
       else
         return <div onClick={handleClick}>{key}</div>
@@ -77,7 +77,7 @@ module.exports = component('GeneratorList', function (props) {
   console.log(props);
   props.cursor.valueSeq().forEach(function(gen) {
     // console.log("genCursor",props.cursor.toJS());
-    tree[gen.device] = gen.evaluatedDetails;
+    tree[gen.device] = gen.evaluatedDetails || gen.evaluatedError;
   }.bind(this));
 
 

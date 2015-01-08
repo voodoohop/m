@@ -5,12 +5,16 @@ Object.defineProperties(exports, {
     }},
   __esModule: {value: true}
 });
+var $__logger__;
 var stackTrace = require("stack-trace");
 var _ = require("lodash");
-function getSourcePos() {
-  var trace = arguments[0] !== (void 0) ? arguments[0] : false;
-  if (trace === false)
+var log = ($__logger__ = require("./logger"), $__logger__ && $__logger__.__esModule && $__logger__ || {default: $__logger__}).default;
+function getSourcePos(sourcePosMapper) {
+  var trace = arguments[1] !== (void 0) ? arguments[1] : false;
+  if (trace === false || !trace)
     trace = stackTrace.get();
+  if (!trace.map)
+    log.error("trace doesn't have map function", trace);
   var stack = trace.map((function(t) {
     return ({
       fileName: t.getFileName(),
@@ -23,7 +27,7 @@ function getSourcePos() {
     return s.fileName === undefined || s.fileName === null || s.fileName.indexOf("node_modules") < 0;
   }));
   var stackEntry = _.find(stack, (function(s) {
-    return s.eval == true;
+    return s.eval === true || s.functionName === "eval";
   }));
   if (stackEntry !== undefined)
     console.log("found stackEntry", stackEntry);
@@ -31,8 +35,9 @@ function getSourcePos() {
   if (!stackEntry)
     return;
   if (typeof sourcePosMapper === "function") {
-    pos = [stackEntry.line, stackEntry.column];
-    console.log("result", transformed);
+    var transformed = sourcePosMapper(stackEntry.line, stackEntry.column);
+    pos = [transformed.line, transformed.column];
+    log.debug("result of transforming error pos", stackEntry, transformed);
     return pos;
   } else {
     console.error("couldn't find sourceMap transformer, returning stack entry", stackEntry);

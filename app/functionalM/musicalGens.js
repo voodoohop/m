@@ -6,6 +6,8 @@ import {wu} from "../lib/wu";
 
 import {addGenerator,m} from "./baseLib";
 
+import log from "../lib/logger";
+
 var SortedMap = require("collections/sorted-map");
 
 import {
@@ -17,7 +19,7 @@ import {
   immutableTom as immutableObj, addObjectProp, addObjectProps, addLazyProp
 } from "../immutable/nodeProxiedImmutable";
 
-
+var Immutable=require("immutable");
 
 
 
@@ -224,7 +226,7 @@ addGenerator(function* combine(combineNode, node) {
   var nextOther = null;
   var meWaitingForNextOther = [];
   for (let n of merged) {
-   console.log("combining",""+m,n);
+   log.debug("combining",""+m,n);
     if (n.hasOwnProperty("me"))
       meWaitingForNextOther.push(n.me);
     if (n.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
@@ -258,10 +260,10 @@ addGenerator(function* combineMap(combineFunc, combineNode, node) {
 addGenerator(function* loopLength(loopLength, node) {
   var time = 0;
   var count=0;
-  console.log("looplength started");
+  log.debug("looplength started");
   while (true) {
     for (var n of node) {
-      console.log("looplenghtime",time, count++);
+      log.debug("looplenghtime",time, count++);
       yield addObjectProp(n, "time", time + n.time);
     }
 
@@ -274,49 +276,53 @@ addGenerator(function* loopLength(loopLength, node) {
 var convertToObject = (externalVal) => immutableObj(externalVal);
 
 
+function getScheduleKey(o) {
+  if (o && o.time !== undefined && o.time !== null && o.time.valueOf)
+    return o.time.valueOf();
+  if (o !== undefined && o.valueOf)
+    return o;
+  return undefined;
+  //  (o.valueOf && o.valueOf()));
+}
 
 addGenerator(function* flattenAndSchedule(node) {
   // var outerIterator = getIterator(node);
-  var scheduled = {};
+  var scheduled = Immutable.OrderedMap();
   for (var n of node) {
     var minTime = Infinity;
     if (isIterable(n)) {
       for (let nFlat of n) {
-        var time = nFlat.time;
+        var time = getScheduleKey(nFlat);//.time;
+        // log.debug("key for flatten",time);
         if (time < minTime)
           minTime = time;
+        // log.debug("minTime", minTime);
+        if (!scheduled.has(time))
+          scheduled = scheduled.set(time,[]);
 
-        // if (!scheduled[time))
-        (scheduled[time] = scheduled[time] || []).push(nFlat);
+        scheduled.get(time).push(nFlat);
 
-        // scheduled.get(time).push(nFlat);
-        // // console.log("nFlat",nFlat,"scheduled",scheduled.entries());
-        // bucket.push(nFlat);
+        // log.debug("scheduled",scheduled);
 
       }
     }
     else {
       yield n;
-      minTime = n.time;
+      minTime = getScheduleKey(n);
     }
-    // // console.log(scheduled);
+    log.debug("minTime2", scheduled.keySeq().sort());
+    for (let k of scheduled.keySeq().sort().takeWhile(x => x < minTime)) {
 
-    // // console.log(minTime, scheduled);
-    // var sIterator = scheduled.iterator();
-    for (let k of _.filter(Object.keys(scheduled), (k) => k < minTime )) {
-      // // console.log(scheduled[k]);
-      // // console.log("k",k);
-      if (k < minTime) {
-        // // console.log("yielding",k,scheduled[k]);
-        yield* getIterator(scheduled[k]);
-        // scheduled.delete(s.time);
-        delete scheduled[k];
-      }
+        // log.debug("yielding");
+        yield* getIterator(scheduled.get(k));
+        scheduled = scheduled.delete(k);
 
     }
+
 
 
   }
+  yield* getIterator(scheduled.keySeq().sort().flatMap(k => scheduled.get(k)));
 });
 
 
@@ -488,7 +494,7 @@ addGenerator(function* delay(amount, node) {
     // else
       var zipped =m(amount.map(a => ({delayAmount:a}))).zipLooping(node);
       yield* getIterator(zipped.simpleMap(n => {
-        console.log("ntomshould delay",n);
+        log.debug("ntomshould delay", n);
         return n[0].set("time",n[0].time+n[1].delayAmount);
       }));
       return;
@@ -522,7 +528,7 @@ addGenerator(function* metro(tickDuration, node) {
 
 
 addGenerator(function* timeFromDurations(node) {
-  console.log("memmap used");
+  log.debug("memmap used");
   var durationSumIterator = node.pluck("duration").memoryMap(0, (current, x) => x + current);
   yield * getIterator(endMarker.compose(node).time(durationSumIterator));
 });

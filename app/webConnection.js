@@ -48,6 +48,7 @@ var baconStream = Bacon.fromBinder(function(sink) {
     console.log('a device connected');
     setInterval(function() {
       socket.emit("ping","ping");
+      //log.error("helloooo");
     }, 30000)
     socket.on("requestGenerators", function() {
       console.log("requestGenerators");
@@ -121,6 +122,10 @@ remoteLogger.onValue((v) => {
   io.sockets.emit("consoleMessage",v);
 })
 
+
+
+
+
 var count=0;
 var sequenceFeedback = new Bacon.Bus();
 sequenceFeedback.filter((v) => v.type=="noteOn" && !v.automationVal).skipDuplicates(_.isEqual).onValue((v) => {
@@ -128,6 +133,6 @@ sequenceFeedback.filter((v) => v.type=="noteOn" && !v.automationVal).skipDuplica
   io.sockets.emit("sequenceEvent",{stack: v.stack, count:count++, device:v.device, pitch:v.pitch, time:v.time, name:v.name,seqName:v.seqName, velocity:v.velocity, automationVal: v.automationVal});
 })
 
-export default {liveCode: baconStream, generatorUpdate: generatorUpdate, beatFeedback:beatFeedback, remoteLogger, sequenceFeedback, individualGeneratorUpdate:individualGenUpdate};
+export default {liveCode: baconStream, generatorUpdate: generatorUpdate, beatFeedback:beatFeedback, remoteLogger, sequenceFeedback, individualGeneratorUpdate:individualGenUpdate, io:io};
 
 console.log("exported");

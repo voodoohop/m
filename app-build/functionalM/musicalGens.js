@@ -1,6 +1,7 @@
 "use strict";
 var $___46__46__47_lib_47_wu__,
     $__baseLib__,
+    $___46__46__47_lib_47_logger__,
     $___46__46__47_lib_47_utils__,
     $___46__46__47_immutable_47_nodeProxiedImmutable__;
 var _ = require("lodash");
@@ -8,25 +9,27 @@ var wu = ($___46__46__47_lib_47_wu__ = require("../lib/wu"), $___46__46__47_lib_
 var $__1 = ($__baseLib__ = require("./baseLib"), $__baseLib__ && $__baseLib__.__esModule && $__baseLib__ || {default: $__baseLib__}),
     addGenerator = $__1.addGenerator,
     m = $__1.m;
+var log = ($___46__46__47_lib_47_logger__ = require("../lib/logger"), $___46__46__47_lib_47_logger__ && $___46__46__47_lib_47_logger__.__esModule && $___46__46__47_lib_47_logger__ || {default: $___46__46__47_lib_47_logger__}).default;
 var SortedMap = require("collections/sorted-map");
-var $__2 = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46__47_lib_47_utils__ && $___46__46__47_lib_47_utils__.__esModule && $___46__46__47_lib_47_utils__ || {default: $___46__46__47_lib_47_utils__}),
-    prettyToString = $__2.prettyToString,
-    toStringObject = $__2.toStringObject,
-    toStringDetailed = $__2.toStringDetailed,
-    addFuncProp = $__2.addFuncProp,
-    isIterable = $__2.isIterable,
-    getIterator = $__2.getIterator,
-    fixFloat = $__2.fixFloat;
-var $__3 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../immutable/nodeProxiedImmutable"), $___46__46__47_immutable_47_nodeProxiedImmutable__ && $___46__46__47_immutable_47_nodeProxiedImmutable__.__esModule && $___46__46__47_immutable_47_nodeProxiedImmutable__ || {default: $___46__46__47_immutable_47_nodeProxiedImmutable__}),
-    immutableObj = $__3.immutableTom,
-    addObjectProp = $__3.addObjectProp,
-    addObjectProps = $__3.addObjectProps,
-    addLazyProp = $__3.addLazyProp;
+var $__3 = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46__47_lib_47_utils__ && $___46__46__47_lib_47_utils__.__esModule && $___46__46__47_lib_47_utils__ || {default: $___46__46__47_lib_47_utils__}),
+    prettyToString = $__3.prettyToString,
+    toStringObject = $__3.toStringObject,
+    toStringDetailed = $__3.toStringDetailed,
+    addFuncProp = $__3.addFuncProp,
+    isIterable = $__3.isIterable,
+    getIterator = $__3.getIterator,
+    fixFloat = $__3.fixFloat;
+var $__4 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../immutable/nodeProxiedImmutable"), $___46__46__47_immutable_47_nodeProxiedImmutable__ && $___46__46__47_immutable_47_nodeProxiedImmutable__.__esModule && $___46__46__47_immutable_47_nodeProxiedImmutable__ || {default: $___46__46__47_immutable_47_nodeProxiedImmutable__}),
+    immutableObj = $__4.immutableTom,
+    addObjectProp = $__4.addObjectProp,
+    addObjectProps = $__4.addObjectProps,
+    addLazyProp = $__4.addLazyProp;
+var Immutable = require("immutable");
 addGenerator(function* withNext(node) {
   var me = null;
-  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    var n = $__5.value;
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    var n = $__6.value;
     {
       if (me == null) {
         me = n;
@@ -44,9 +47,9 @@ const iterableWithTime = function(grouped, time) {
 addGenerator(function* groupByTime(node) {
   var currentTime = -1;
   var grouped = [];
-  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    var n = $__5.value;
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    var n = $__6.value;
     {
       if (!n.hasOwnProperty("time")) {
         console.error("groupByTime called but no time property".red);
@@ -64,22 +67,22 @@ addGenerator(function* groupByTime(node) {
   }
 });
 addGenerator(function* removeDuplicateNotes(node) {
-  for (var $__6 = m(node).groupByTime()[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__7; !($__7 = $__6.next()).done; ) {
-    var timeGrouped = $__7.value;
+  for (var $__7 = m(node).groupByTime()[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__8; !($__8 = $__7.next()).done; ) {
+    var timeGrouped = $__8.value;
     {
-      for (var $__4 = _.values(_.groupBy(timeGrouped, "pitch"))[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__5; !($__5 = $__4.next()).done; ) {
-        var n = $__5.value;
+      for (var $__5 = _.values(_.groupBy(timeGrouped, "pitch"))[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__6; !($__6 = $__5.next()).done; ) {
+        var n = $__6.value;
         yield n[n.length - 1];
       }
     }
   }
 });
 addGenerator(function* lazyMap(name, mapFunc, node) {
-  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    let n = $__5.value;
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    let n = $__6.value;
     {
       var newN = addLazyProp(n, name, mapFunc);
       yield newN;
@@ -168,19 +171,19 @@ addGenerator(function* combine(combineNode, node) {
   var previousOther = null;
   var nextOther = null;
   var meWaitingForNextOther = [];
-  for (var $__6 = merged[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__7; !($__7 = $__6.next()).done; ) {
-    let n = $__7.value;
+  for (var $__7 = merged[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__8; !($__8 = $__7.next()).done; ) {
+    let n = $__8.value;
     {
-      console.log("combining", "" + m, n);
+      log.debug("combining", "" + m, n);
       if (n.hasOwnProperty("me"))
         meWaitingForNextOther.push(n.me);
       if (n.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
         previousOther = nextOther;
         nextOther = n.other;
-        for (var $__4 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__5; !($__5 = $__4.next()).done; ) {
-          var me = $__5.value;
+        for (var $__5 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__6; !($__6 = $__5.next()).done; ) {
+          var me = $__6.value;
           {
             yield combineFunc(me, previousOther, nextOther);
           }
@@ -189,9 +192,9 @@ addGenerator(function* combine(combineNode, node) {
       }
     }
   }
-  for (var $__8 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__9; !($__9 = $__8.next()).done; ) {
-    var me = $__9.value;
+  for (var $__9 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__10; !($__10 = $__9.next()).done; ) {
+    var me = $__10.value;
     {
       yield combineFunc(me, previousOther, nextOther);
       ;
@@ -206,13 +209,13 @@ addGenerator(function* combineMap(combineFunc, combineNode, node) {
 addGenerator(function* loopLength(loopLength, node) {
   var time = 0;
   var count = 0;
-  console.log("looplength started");
+  log.debug("looplength started");
   while (true) {
-    for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__5; !($__5 = $__4.next()).done; ) {
-      var n = $__5.value;
+    for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__6; !($__6 = $__5.next()).done; ) {
+      var n = $__6.value;
       {
-        console.log("looplenghtime", time, count++);
+        log.debug("looplenghtime", time, count++);
         yield addObjectProp(n, "time", time + n.time);
       }
     }
@@ -222,42 +225,53 @@ addGenerator(function* loopLength(loopLength, node) {
 var convertToObject = (function(externalVal) {
   return immutableObj(externalVal);
 });
+function getScheduleKey(o) {
+  if (o && o.time !== undefined && o.time !== null && o.time.valueOf)
+    return o.time.valueOf();
+  if (o !== undefined && o.valueOf)
+    return o;
+  return undefined;
+}
 addGenerator(function* flattenAndSchedule(node) {
-  var scheduled = {};
-  for (var $__8 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__9; !($__9 = $__8.next()).done; ) {
-    var n = $__9.value;
+  var scheduled = Immutable.OrderedMap();
+  for (var $__9 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__10; !($__10 = $__9.next()).done; ) {
+    var n = $__10.value;
     {
       var minTime = Infinity;
       if (isIterable(n)) {
-        for (var $__4 = n[$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__5; !($__5 = $__4.next()).done; ) {
-          let nFlat = $__5.value;
+        for (var $__5 = n[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__6; !($__6 = $__5.next()).done; ) {
+          let nFlat = $__6.value;
           {
-            var time = nFlat.time;
+            var time = getScheduleKey(nFlat);
             if (time < minTime)
               minTime = time;
-            (scheduled[time] = scheduled[time] || []).push(nFlat);
+            if (!scheduled.has(time))
+              scheduled = scheduled.set(time, []);
+            scheduled.get(time).push(nFlat);
           }
         }
       } else {
         yield n;
-        minTime = n.time;
+        minTime = getScheduleKey(n);
       }
-      for (var $__6 = _.filter(Object.keys(scheduled), (function(k) {
-        return k < minTime;
+      log.debug("minTime2", scheduled.keySeq().sort());
+      for (var $__7 = scheduled.keySeq().sort().takeWhile((function(x) {
+        return x < minTime;
       }))[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__7; !($__7 = $__6.next()).done; ) {
-        let k = $__7.value;
+          $__8; !($__8 = $__7.next()).done; ) {
+        let k = $__8.value;
         {
-          if (k < minTime) {
-            yield* getIterator(scheduled[k]);
-            delete scheduled[k];
-          }
+          yield* getIterator(scheduled.get(k));
+          scheduled = scheduled.delete(k);
         }
       }
     }
   }
+  yield* getIterator(scheduled.keySeq().sort().flatMap((function(k) {
+    return scheduled.get(k);
+  })));
 });
 addGenerator(function* map(mapFunc, node) {
   var mapped = m(node).simpleMap(mapFunc);
@@ -275,9 +289,9 @@ addGenerator(function* pluck(propertyName, node) {
 addGenerator(function* memoryMap(initial, mapFunc, node) {
   var current = initial;
   yield* getIterator(m(initial));
-  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    var e = $__5.value;
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    var e = $__6.value;
     {
       current = mapFunc(current, e);
       yield* getIterator(m(e).set(m(current)));
@@ -286,9 +300,9 @@ addGenerator(function* memoryMap(initial, mapFunc, node) {
 });
 addGenerator(function* takeTime(time, node) {
   var timeTaken = 0;
-  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    var e = $__5.value;
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    var e = $__6.value;
     {
       yield e;
       timeTaken += e.event.duration;
@@ -303,9 +317,9 @@ addGenerator(function* durationSum(node) {
   }), 0));
 });
 addGenerator(function* branch(condition, branchNode, elseNode, node) {
-  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    var e = $__5.value;
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    var e = $__6.value;
     {
       var branchTo = (condition(e) ? branchNode : elseNode);
       yield* getIterator(branchTo.takeWhile((function(n) {
@@ -338,7 +352,7 @@ addGenerator(function* delay(amount, node) {
       return ({delayAmount: a});
     }))).zipLooping(node);
     yield* getIterator(zipped.simpleMap((function(n) {
-      console.log("ntomshould delay", n);
+      log.debug("ntomshould delay", n);
       return n[0].set("time", n[0].time + n[1].delayAmount);
     })));
     return;
@@ -362,7 +376,7 @@ addGenerator(function* metro(tickDuration, node) {
   yield* getIterator(m(node).set({time: m().count(0, tickDuration)}));
 });
 addGenerator(function* timeFromDurations(node) {
-  console.log("memmap used");
+  log.debug("memmap used");
   var durationSumIterator = node.pluck("duration").memoryMap(0, (function(current, x) {
     return x + current;
   }));
@@ -387,9 +401,9 @@ addGenerator(function* merge(mergeNode, node) {
   var nodeIterator = getIterator(node);
   var x = nodeIterator.next();
   var nextNode = x.value;
-  for (var $__4 = mergeNode[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    var mergeEvent = $__5.value;
+  for (var $__5 = mergeNode[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    var mergeEvent = $__6.value;
     {
       while (nextNode != undefined && nextNode.time < mergeEvent.time) {
         yield nextNode;
@@ -420,9 +434,9 @@ addGenerator(function* bjorklund(steps, pulses, rotation, node) {
   var counter = rotation;
   if (pattern.length == 0)
     pattern = [1];
-  for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__5; !($__5 = $__4.next()).done; ) {
-    var n = $__5.value;
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    var n = $__6.value;
     {
       if (pattern[counter++ % pattern.length]) {
         yield n;

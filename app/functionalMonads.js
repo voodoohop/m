@@ -110,1114 +110,6 @@ var lowerNotes = CarimboNaRoca
 
 console.log("CarimboNaRocaTest2", lowerNotes.take(20).toArray());
 
-
-// throw "bye";
-
-
-
-
-
-
-
-// throw "bye";
-
-// // TODO: add sanity checks and user understandable errors in every method
-//
-// return;
-//
-// import {
-//   wu
-// }
-// from "./wu";
-//
-// import {
-//   prettyToString, toStringObject, toStringDetailed, addFuncProp, /*clone, addObjectProp, addObjectProps, */ isIterable, getIterator, fixFloat
-// }
-// from "./utils";
-//
-// import {
-//   immutableTom as immutableObj, addObjectProp, addObjectProps
-// } from "./nodeProxiedImmutable";
-//
-// var util = require("util");
-//
-// var _ = require("lodash");
-//
-// var memoize = require('memoizee/weak');
-//
-// var SortedMap = require("collections/sorted-map");
-//
-//
-// var loopGeneratorArgs = function(generatorProducer, args) {
-//   var node = args[args.length - 1];
-//
-// }
-//
-// // // TODO: work in progress
-// // TODO: change to one option param
-// var Immutable = require("immutable");
-// var cacheLimit = 500;
-// var cache_disabled = {
-//   disabled: true
-// };
-//
-// var createCache = function() {
-//   // var cache = new WeakMap();
-//   var caches = {};
-//   return function(key, disable) {
-//     if (disable) {
-//       caches[key] = cache_disabled;
-//       return undefined;
-//     }
-//     if (!caches[key])
-//       caches[key] = [];
-//     return caches[key];
-//   }
-// }
-//
-//
-// var createCacheWM = function() {
-//   var caches = new WeakMap();
-//   // var caches = {};
-//   return function(key) {
-//     // console.log(key);
-//     if (!caches.get(key))
-//       caches.set(key, []);
-//     return caches.get(key);
-//   }
-// }
-//
-// var cache = createCache();
-//
-// var mGenerator = function(...args) {
-//   var origGenerator = args.shift();
-//   if (origGenerator.isTom)
-//     origGenerator[wu.iteratorSymbol] = MCache(origGenerator)[wu.iteratorSymbol];
-//   args.unshift(origGenerator);
-//   if (args.length > 1)
-//     origGenerator.displayName = args[1];
-//   return mGeneratorUnCached(...args);
-// };
-//
-// var doCache = function*(node) {
-//   yield * getIterator(node);
-//   return;
-//
-//   var cacheKey = "" + node;
-//   // console.log("cacheKey",cacheKey);
-//   // if (!caches[cacheKey]) {
-//   //   // console.log("not yet cashed".bgBlue.white,cacheKey);
-//   //   caches[cacheKey] = [];
-//   // }
-//
-//   var cached = cache(cacheKey);
-//   if (cached === cache_disabled) {
-//     yield * getIterator(node);
-//     return;
-//   }
-//
-//   var count = 0;
-//   var iterator = null;
-//   while (true) {
-//     if (cached.length <= count || count > cacheLimit) {
-//       if (iterator == null) {
-//         node = MSkip(count, node);
-//         if (count > cacheLimit) {
-//           cache(cacheKey, true);
-//           // console.warn("cache full", node);
-//         }
-//         iterator = getIterator(node);
-//       }
-//       var n = iterator.next();
-//       if (n.done)
-//         break;
-//       if (count > cacheLimit) {
-//         yield n.value;
-//         yield * iterator;
-//         return;
-//         //continue;
-//       }
-//       cached.push(n.value);
-//     }
-//     yield cached[count++];
-//   }
-//
-// }
-//
-// ;
-//
-// var MCache = function(node) {
-//   //return node;
-//
-//   var gen = mGeneratorUnCached(doCache, "cache");
-//   return gen(node);
-// }
-//
-//
-// var stackTrace = require('stack-trace');
-//
-// var path = process.cwd();
-//
-//
-// var mGeneratorUnCached = function(generator, name, curryArgCount = 0, toStringOverride = null) {
-//
-//   var getIterable = function(...args) {
-//     // var trace = stackTrace.get();
-//     // console.log(path);
-//     // console.log(trace.map(t => t.toString().replace(path,"")).filter(t => t.indexOf("evalmachine")>=0));
-//
-//     var res = Object.create(null);
-//     res.isTom = true;
-//     res.name = name;
-//
-//     res[wu.iteratorSymbol] = () =>  generator(...args); //loopGeneratorArgs(generatorProducer, args);
-//     if (toStringOverride)
-//       res.toString = () => toStringOverride;
-//     else
-//       prettyToString(name, args, res);
-//
-//
-//
-//     return res;
-//   };
-//   getIterable.producerName = name;
-//   getIterable.displayName = name;
-//   //console.log("constructed node",generatorProducer,name);
-//   return curryArgCount > 0 ? wu.curryable(getIterable, curryArgCount) : getIterable;
-// }
-//
-//
-//
-//
-// var MData = mGenerator(function* mData(data) {
-//
-//
-//   // console.log("wu",wu);
-//   //  console.log("data", typeof data, util.isArray(data), isIterable([1,2,3]));
-//   // console.log("blaaa", [1,2,3][@@iterator]);
-//   // console.log("iterable",util.isArray(data), [1,2,3][wu.iteratorSymbol],data[wu.iteratorSymbol]);
-//   if (isIterable(data)) {
-//     for (var d of data) {
-//       // console.log("data:",d);
-//       yield * getIterator(MData(d));
-//     }
-//   } else {
-//     var dataObj;
-//     if (data instanceof Object) {
-//       dataObj = immutableObj(data);
-//
-//
-//       if (isIterable(data))
-//         throw new Error("data shouldn't be iterable");
-//
-//
-//       //   //   //   //   //   // Object.defineProperty(dataObj,"toString", {enumerable:false,value:() => toStringDetailed(data)});
-//
-//
-//     } else {
-//       dataObj = immutableObj({
-//         type: "value",
-//         valueOf: () => data
-//       });
-//       console.log("created dataObj from value", dataObj);
-//     }
-//     yield dataObj;
-//   }
-// }, "data");
-//
-//
-// // for (var e of MData([{
-// //     pitch: 12,
-// //     velocity: 0.5
-// //   }, {
-// //     bla: 2
-// //   }]))
-// //   console.log("datatest", e);
-//
-//
-// // TODO: remove this data generator nonsense? if it's not used later yes!
-// var MLoopData = mGenerator(function* loopData(dataNode) {
-//   for (var data of dataNode) {
-//     var keys = Object.keys(data);
-//
-//     if (keys.length == 0) {
-//       yield * getIterator(MLoop(dataNode));
-//       return;
-//     }
-//
-//     for (var props of MZip(..._.values(data))) {
-//       //console.log(zippedProps);
-//
-//       var resData = props.reduce(function(prev, val, i) {
-//         // console.log("reduceLoopData",prev,keys[i]+":"+val,i);
-//         return prev.set(keys[i], val);
-//       }, immutableObj());
-//       //resData._data = data;
-//       yield immutableObj(resData);
-//     }
-//   }
-// }, "loopData");
-//
-// function* ftesttest() {
-// console.log("hey",this);
-// }
-// ftesttest.constructor.bind({hey:2});
-//
-// console.log(ftesttest.name,ftesttest().next());
-// throw "bye";
-//
-//
-// var MMergeZipped = mGenerator(function* zipMerge(node) {
-//   for (var n of node)
-//     yield addObjectProps(n[0], n[1]);
-// }, "mergeZippedObjects");
-//
-// var MMerge = mGenerator(function* simpleMerge(node1, node2) {
-//   var iterators = [node1, node2].map((node) => getIterator(node));
-//   while (true) {
-//     var next = iterators.map((i) => i.next().value);
-//     if (next[0] == undefined || next[1] == undefined)
-//       return;
-//     // console.log("addobprops",next[0], next[1]);
-//     yield addObjectProps(next[0], next[1]);
-//   }
-// }, "mergeObjects");
-//
-// var MSet = mGenerator(function* set(data, node) {
-//   yield * getIterator(MMerge(node, MLoopData(MData(data))));
-// }, "set");
-//
-//
-// // TODO: if we leave out the shallow check we automatically have a flatmap (Maybe??)
-// var MEvent = mGenerator(function* evt(data) {
-//   // here if data is iterable we are not looping individual properties
-//   if (isIterable(data)) {
-//     for (var e of MLoop(data))
-//       yield * getIterator(MData(e));
-//   } else
-//     yield * getIterator(MLoopData(MData(data)));
-// }, "evt");
-//
-//
-// var MProperty = mGenerator(function* prop(name, tomValue, children) {
-//   yield * getIterator(MSet({
-//     [name]: tomValue
-//   }, children));
-// }, "prop", 3);
-//
-//
-// var MWithNext = mGenerator(function* withNext(node) {
-//   var me = null;
-//   for (var n of node) {
-//     if (me == null) {
-//       me = n;
-//       continue;
-//     }
-//     // console.log({me:me,next:n, time:me.time });
-//     yield addObjectProps(me, {
-//       next: n
-//     });
-//     me = n;
-//   }
-// }, "withNext")
-//
-// var MGroupTime = mGenerator(function* groupByTime(node) {
-//   var currentTime = -1;
-//   var grouped = [];
-//   //console.log(""+node);
-//   for (var n of node) {
-//     if (!n.hasOwnProperty("time")) {
-//       console.error("groupByTime called but no time property".red);
-//       return;
-//     }
-//     if (n.time > currentTime) {
-//
-//       if (grouped.length > 0) {
-//         yield immutableObj({
-//           events: grouped,
-//           time: currentTime
-//         });
-//         grouped = [];
-//       }
-//       currentTime = fixFloat(n.time);
-//     }
-//     grouped.push(n);
-//   }
-// }, "groupByTime");
-//
-// var MDuplicateRemover = mGenerator(function*(node) {
-//
-//
-//   for (var timeGrouped of MGroupTime(node)) {
-//
-//     //console.log(_.groupBy(timeGrouped, "pitch"));
-//     for (var n of _.values(_.groupBy(timeGrouped.events, "pitch")))
-//       yield n[n.length - 1]; // last one... could be first too
-//
-//   }
-//
-// }, "removeDuplicateNotes");
-//
-//
-//
-//
-//
-// var MNoteAutomate = mGenerator(function* noteAutomate(node) {
-//   // console.log(MToArray(MTake(2,node)));
-//
-//   var notes = MFilter((n) => n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time") && n.duration > 0, node);
-//   // console.log(MToArray(MTake(2,notes)));
-//
-//   // console.log("notes", m.data(notes).take(5).toArray());
-//   yield * getIterator(MMapOp((n) => {
-//       // var automationHolder = n.hasOwnProperty("children") ? n.children : Object.create(null);
-//       var automation = m.data([{
-//         type: "noteOn",
-//         velocity: n.velocity,
-//         pitch: n.pitch,
-//         time: 0,
-//         evt: n
-//       }, {
-//         type: "noteOff",
-//         pitch: n.pitch,
-//         time: n.duration,
-//         evt: n
-//       }]);
-//       automation.automation = true;
-//       // console.log("returing automation",{["automation_note"]: automation});
-//       return {
-//         ["automation_note"]: automation
-//       };
-//     },
-//     MDuplicateRemover(notes)));
-// }, "notePlay");
-//
-//
-// //TODO: figure out how to deal with automations of notes that overlap in duration. at the moment automations are overlapping
-// var MAutomate = mGenerator(function* automate(paramName, valGenerator, node) {
-//   yield * getIterator(MMapOp((n) => {
-//     // var automationHolder = n.hasOwnProperty("children") ? n.children : Object.create(null);
-//     var automation = m.data({
-//         type: "automation",
-//         evt: n,
-//         name: paramName,
-//         duration: n.duration
-//       }).loop()
-//       .metro(1 / 8)
-//       //  .log("automation")
-//       .takeWhile((a) => a.time < a.evt.duration)
-//       .set({
-//         automationVal: valGenerator
-//       });
-//
-//     automation.automation = true;
-//     return {
-//       [paramName]: automation
-//     };
-//   }, node));
-// }, "automate");
-//
-//
-//
-// var MProcessAutomations = mGenerator(function* processAutomations(node) {
-//   // if (MToArray(MNoteAutomate(MTake(100,node))).length ==0)
-//   //   throw "no notes to automate";
-//
-//   yield * getIterator(MCache(MFlattenAndSchedule(MSimpleMap((n) => {
-//     var merged = m.data([]);
-//     for (var automation of _.filter(_.values(n), (nVal) => Object(nVal).automation === true)) {
-//       // console.log("processing automation",automation.toArray());
-//       // throw "hey";
-//       merged = merged.merge(automation);
-//     }
-//     // console.log("mapping",n);
-//     // console.log("returning for flatten and schedule", {time:n.time, events: merged.delay(n.time).toArray()});
-//     return immutableObj({
-//       time: n.time,
-//       events: merged.delay(n.time)
-//     });
-//   }, MNoteAutomate(node)))));
-//
-// }, "processAutomations");
-//
-//
-//
-// // var MAutomatePlay = mGenerator(function*(propName,node) {
-// //   for (var v of node) {
-// //     var play = mGenerator(function* () {
-// //       //console.log("called playMethod of automateplay");
-// //
-// //
-// //       return baconTime
-// //         .skipWhile((t) => t.time < v.time)
-// //         .takeWhile((t) => v.duration ? t.time < v.time + v.duration : true)
-// //
-// //         .map((t) => {
-// //           //console.log("returning automateplay function",v[name]);
-// //           return function(instrument) {
-// //             //console.log("calling instrument", );
-// //             instrument.param(name, v[name](t.time,v), t.time + t.offset)
-// //           };
-// //         });
-// //     },"automationPlayer");
-// //     var playerObj = _.extend({},v.instrumentPlayers, {[name]: playMethod})
-// //     yield addObjectProp(v, "instrumentPlayers", playerObj);
-// //   }
-// // },"automatePlay",2);
-//
-//
-// var MSetValue = mGenerator(function* setValue(value, child) {
-//   //  console.log("MSetValue", value, child);
-//   yield * MProperty("value", value, child);
-// }, "setValue", 2);
-//
-//
-//
-// var MZip = mGenerator(function* zip(...nodes) {
-//
-//
-//   var loopedIterators = nodes.map((node) => {
-//     console.log(node.length,MLoop(node),MLoop(node).length)
-//     return getIterator(MLoop(node))
-//   });
-//   while (true) {
-//     var next = loopedIterators.map((i) => i.next().value);
-//     yield next;
-//   }
-// }, "zip");
-//
-//
-//
-// var MLoop = mGenerator(function*(node) {
-//   if (isIterable(node)) {
-//     if (node.length>0)
-//       node = Array.from(node);
-//     while(true)
-//       yield* getIterator(node);
-//   }
-//   else
-//     while(true)
-//       yield node;
-// }, "loop");
-//
-//
-//
-//
-//
-//
-//
-// var simpleMap = mGenerator(function* simpleMap(mapFunc, node) {
-//   for (var n of node) {
-//     yield mapFunc(n);
-//   }
-// }, "simpleMap");
-//
-//
-//
-// var MCombine = mGenerator(function* combine(combineNode, node) {
-//   var combineFunc = (me, previousOther, nextOther) => addObjectProps(me, {
-//     other: {
-//       previous: previousOther,
-//       next: nextOther
-//     }
-//   });
-//   var meMapped = simpleMap((n) => {
-//     return {
-//       time: n.time,
-//       me: n
-//     }
-//   }, node);
-//   var otherMapped = simpleMap((n) => {
-//     return {
-//       time: n.time,
-//       other: n
-//     }
-//   }, combineNode);
-//   var merged = MTimeOrderedMerge(meMapped, otherMapped);
-//   // for (var test of merged)
-//   //   console.log("mergedSeq", test);
-//   var previousOther = null;
-//   var nextOther = null;
-//   var meWaitingForNextOther = [];
-//   for (var m of merged) {
-//     // console.log("combining",m);
-//     if (m.hasOwnProperty("me"))
-//       meWaitingForNextOther.push(m.me);
-//     if (m.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
-//       previousOther = nextOther;
-//       nextOther = m.other;
-//       for (var me of meWaitingForNextOther) {
-//         yield combineFunc(me, previousOther, nextOther);
-//       }
-//       meWaitingForNextOther = [];
-//     }
-//   }
-//   for (var me of meWaitingForNextOther) {
-//     yield combineFunc(me, previousOther, nextOther);;
-//   }
-// }, "combine");
-//
-// var MCombineMap = mGenerator(function*(combineFunc, combineNode, node) {
-//   // here we could add time diffs to parameters of combineFunc
-//   yield * getIterator(MMapOp((combined) => combineFunc(combined, combined.other), MCombine(combineNode, node)));
-// }, "combineMap", 3);
-//
-//
-// // var MCombine2 = mGenerator(function*(combineFunc, combineNode,node) {
-// //   var cIterator = getIterator(combineNode);
-// //   var cNext = [];
-// //   cNext.push(cIterator.next().value);
-// //   cNext.push(cIterator.next().value);
-// //   for (var n of node) {
-// //     // make it do a zip in case of no time value present ( later)
-// //     //if (cNext[0].time == undefined || cNext[1].time == undefined || n.time == undefined)
-// //     while (n.time > cNext[1].time) {
-// //       cNext.shift();
-// //       cNext.push(cIterator.next().value);
-// //     }
-// //
-// //     if (n.time <= cNext[1].time) {
-// //       if (n.time < cNext[0].time)
-// //         combineFunc({prev: undefined, next: cNext[0]});
-// //       else
-// //         if (n.time > cNext[0].time && n.time <= cNext[1].time)
-// //           combineFunc({prev:cNext[0], next: cNext[1]});
-// //     }
-// //
-// //   }
-// // },"combine",3);
-//
-//
-// var MCompose = mGenerator(function* compose(...nodes) {
-//   for (var node of nodes) {
-//     yield * getIterator(node);
-//   }
-// }, "compose");
-//
-//
-//
-// var MLoopFixedLength = mGenerator(function* loopLength(loopLength, node) {
-//   var time = 0;
-//   while (true) {
-//     for (var n of node) {
-//       //  console.log("looplengtime",time);
-//       yield addObjectProp(n, "time", time + n.time);
-//     }
-//     time += loopLength;
-//   }
-// }, "loopLength", 2);
-//
-// var convertToObject = (externalVal) => Object(externalVal);
-//
-//
-// var MSimpleMap = mGenerator(function* simpleMap(mapFunc, node) {
-//   for (var e of node) {
-//     // console.log("mapping",e);
-//     yield mapFunc(e);
-//     // console.log("after mapping",e);
-//     //throw "hey";
-//   }
-// }, "simpleMap");
-//
-//
-// var MFlattenAndSchedule = mGenerator(function* flattenAndSchedule(node) {
-//   var scheduled = new SortedMap();
-//   var passedInStartTime = null;
-//   for (var n of node) {
-//     //console.log(n);
-//     if (n.hasOwnProperty("time")) {
-//       var scheduledNow = _.take(scheduled.entries(), (s) => s[0] < n.time);
-//       // if (passedInStartTime != null)
-//       //   scheduledNow = _.filter(scheduledNow, s[0] >= startTime);
-//       //console.log(scheduledNow);
-//       for (var scheduledEvents of scheduledNow) {
-//
-//         for (var scheduledEvent of scheduledEvents[1]) {
-//           passedInStartTime =
-//             yield scheduledEvent;
-//         }
-//         // if (passedInStartTime)
-//         //   for (let [key,evt] of scheduledNow)
-//         //     if (key < passedInStartTime) {
-//         //       scheduled.delete(key);
-//         //       console.log("deleting ",key,"passedInTime",passedInStartTime);
-//         //     }
-//         //     else
-//         //       break;
-//         scheduled.delete(scheduledEvents[0]);
-//       }
-//     } else
-//       console.error("Flatten and Schedule should work on events with time set");
-//     // if (!isIterable(n))
-//     //   n=[n];
-//     for (var nFlat of n.events) {
-//       //    console.log(nFlat);
-//       if (nFlat.hasOwnProperty("time")) {
-//         // if (passedInStartTime && nFlat.time < passedInStartTime)
-//         //   continue;
-//         if (nFlat.time <= n.time)
-//           yield nFlat;
-//         else {
-//           if (!scheduled.has(nFlat.time)) {
-//             // console.log("nflat",nFlat, nFlat.time);
-//             scheduled.set(nFlat.time, []);
-//           }
-//           scheduled.get(nFlat.time).push(nFlat);
-//         }
-//       } else
-//         console.error("Flatten and Schedule should work on events with time set");
-//     }
-//   }
-//
-//   yield * getIterator(scheduled.values());
-// }, "flattenAndSchedule");
-//
-//
-// var MFlattenShallow = mGenerator(function*(node) {
-//   for (var n of node) {
-//     if (isIterable(n))
-//       yield * getIterator(n);
-//     else
-//       yield n;
-//   }
-// }, "flattenShallow");
-//
-// var MMapOp = mGenerator(function*(mapFunc, node) {
-//   var mapped = MSimpleMap(mapFunc, node);
-//
-//   var timed = false;
-//
-//   var merged = MSimpleMap((e) => {
-//     var mappedRes = MData(e[1]);
-//     var orig = e[0];
-//     //console.log("merging",orig,"mappedRes", mappedRes);
-//     var res = {
-//       events: MSimpleMap((m) => addObjectProps(orig, m), mappedRes)
-//     };
-//
-//     if (orig.hasOwnProperty("time")) {
-//       res.time = orig.time;
-//       timed = true;
-//     }
-//
-//     return res;
-//   }, MZip(node, mapped));
-//
-//
-//   // for (var z of MTake(5,merged))
-//   //   console.log("merged",z);
-//   if (timed)
-//     yield * getIterator(MFlattenAndSchedule(merged));
-//   else
-//     yield * getIterator(MFlattenShallow(MSimpleMap((e) => e.events, merged)));
-// });
-//
-//
-// // somehow like sequencer
-// var MCombineLast = mGenerator(function*(combineFunc, combineNode, node) {
-//   var meIterator = getIterator(node);
-//   //var meNext = null;
-//   var last = meIterator.next().value;
-//   for (var c of combineNode) {
-//     var next = meIterator.next();
-//     if (next.time < c.time) {
-//       last = next;
-//       continue;
-//     }
-//     yield combineFunc(last, next, combineNode);
-//
-//     last = next;
-//   }
-// });
-//
-//
-// var MFlatten = mGenerator(function*(node) {
-//   for (var e of node)
-//     if (isIterable(e))
-//       yield * getIterator(MFlatten(e))
-//     else
-//       yield e;
-// }, "flatten");
-//
-//
-// var MSubSequence = mGenerator(function*(subSequence, node) {
-//   // change yield* to iterating through subSequence
-//   yield * node;
-//   yield * subSequence;
-// }, "subSequence");
-//
-// var MPluck = mGenerator(function*(propertyName, node) {
-//   yield * getIterator(MMapOp(e => e[propertyName], node))
-// }, "pluck", 2);
-//
-// var MMapWithMemory = mGenerator(function*(initial, mapFunc, node) {
-//   var current = initial;
-//   yield * getIterator(MSet(convertToObject(current), MData(current)));
-//   for (var e of node) {
-//     current = mapFunc(current, e.value);
-//     //  console.log("current",current);
-//     yield * getIterator(MSet(convertToObject(current), MData(e)));
-//   }
-// }, "memoryMap", 3);
-//
-//
-// var MFilter = mGenerator(function*(filterFunc, node) {
-//   for (var e of node) {
-//     if (filterFunc(e))
-//       yield e;
-//   }
-// }, "filter", 2);
-//
-//
-//
-// var MTakeWhile = mGenerator(function*(filterFunc, node) {
-//   for (var e of node) {
-//     if (!filterFunc(e))
-//       break;
-//     yield e;
-//   }
-// }, "takeWhile", 2);
-//
-// var MSkipWhile = mGenerator(function*(skipFunc, node) {
-//   var skipNo = 0;
-//   for (var e of node) {
-//     if (skipFunc(e)) {
-//       continue;
-//     }
-//     yield e;
-//   }
-// }, "skipWhile", 2);
-//
-//
-// var MTake = mGenerator(function*(n, node) {
-//   var count = n;
-//   // console.log("mtake",node,n);
-//   for (var e of node) {
-//     yield e;
-//     if (--count <= 0)
-//       break;
-//   }
-// }, "take", 2);
-//
-// var MTakeTime = mGenerator(function*(time, node) {
-//   var timeTaken = 0;
-//   for (var e of node) {
-//     yield e;
-//     timeTaken += e.event.duration;
-//     if (timeTaken >= time)
-//       break;
-//   }
-// }, "takeTime", 2);
-//
-// var MRepeat = mGenerator(function*(n, node) {
-//   yield * getIterator(MTake(n, MLoop(node)));
-// }, "repeat", 2);
-//
-// var MMapTime = mGenerator(function*(mapFunc, node) {
-//   for (var e of node) {
-//     yield e.set("time", mapFunc(e.time));
-//   }
-// }, "mapTime", 2);
-//
-// var MTimeShift = mGenerator((amount, node) => MMapTime((time) => time + amount, node), "timeShift", 2);
-//
-// var MReduce = mGenerator(function*(reduceFunc, startValue, node) {
-//   var current = startValue;
-//   for (var e of node) {
-//     current = reduceFunc(current, e);
-//   }
-//   yield current;
-// }, "reduce", 3);
-//
-//
-// var MDurationSum = mGenerator(MReduce((sum, timedEvent) => sum + timedEvent.duration, 0), "durationSum");
-//
-//
-// var MSkip = mGenerator(function*(n, node) {
-//   var count = n;
-//   for (var e of node) {
-//     if (count > 0)
-//       count--;
-//     else
-//       yield e;
-//   }
-// }, "skip", 2);
-//
-// var MBranch = mGenerator(function*(condition, branchNode, elseNode, node) {
-//   for (var e of node) {
-//     //console.log("branching", condition, e);
-//     var branchTo = (condition(e) ? branchNode : elseNode);
-//
-//     //console.log(e,branchTo.set);
-//     yield * getIterator(branchTo.takeWhile((n) => n.time < e.duration).set({
-//       time: (n) => n.time + e.time
-//     }));
-//     //yield* getIterator(branchTo
-//     //  .takeWhile((n) => n.time < e.duration)
-//     //  .set((n) => {time: n.time+e.time})
-//     //);
-//   }
-// }, "branch", 4);
-//
-//
-//
-// var MCount = mGenerator(function*(start = 0, stepSize = 1) {
-//   var c = start;
-//   while (true) {
-//     yield c;
-//     c += stepSize;
-//   }
-// }, "count");
-//
-// var MSequenceEndMarker = mGenerator(function*() {
-//   yield * getIterator(MEvent({
-//     type: "endMarker"
-//   }))
-// }, "endMarker");
-//
-// var MPitch = MProperty("pitch");
-// var MVelocity = MProperty("velocity");
-// var MTime = MProperty("time");
-// var MDuration = MProperty("duration");
-// var MEventCount = MProperty("count", MCount(0, 1));
-//
-// var MDelay = mGenerator(function*(amount, node) {
-//   //console.log("delaying", node.toArray());
-//   if (!isIterable(amount))
-//     amount = [amount];
-//
-//   for (var a of amount)
-//     yield * getIterator(MProperty("time", (n) => n.time + a, node));
-// }, "delay");
-//
-//
-// // maybe possible to modify event properties to have iterables with time somehow connecting to time of external events
-// var MExternalProperty = mGenerator(function*(propName, baconProp, initialVal, node) {
-//   var propVal = initialVal;
-//   // set up bacon listener
-//   baconProp.onValue(function(v) {
-//     console.log('new param val', propName, v);
-//     propVal = v;
-//   });
-//
-//   var res = MProperty(propName, () => propVal, node);
-//
-//   yield * getIterator(res);
-// }, "externalProperty", 3, "externalProp");
-//
-//
-// var MMetronome = mGenerator(function*(tickDuration, node) {
-//   yield * getIterator(MTime(MCount(0, tickDuration), MCompose(node, MSequenceEndMarker())));
-// }, "metro");
-//
-// var MTimeFromDurations = mGenerator(function*(node) {
-//   var durationSumIterator = MMapWithMemory(0, (current, x) => x + current, MPluck("duration", node));
-//   yield * getIterator(MTime(durationSumIterator, MCompose(node, MSequenceEndMarker())));
-// }, "timeFromDurations");
-//
-//
-// var MDurationsFromTime = mGenerator(function*(node) {
-//   var i = getIterator(node);
-//   var previous = undefined;
-//   while (true) {
-//     var next = i.next().value;
-//     if (next === undefined)
-//       return;
-//     if (previous != undefined && previous.hasOwnProperty("time") && next.hasOwnProperty("time")) {
-//       yield addObjectProps(previous, {
-//         duration: next.time - previous.time - 0.01
-//       });
-//     }
-//     previous = next;
-//   }
-// });
-//
-// // var MInsertWhen = MDirectOp(
-// //   function* (nodeIterator, insertCondition, insertNode) {
-// //     for (var e of nodeIterator) {
-// //       if (insertCondition(e))
-// //         yield* insertNode;
-// //       yield e;
-// //     }
-// //   }
-// // )
-//
-//
-// // before insert, could make explicit
-// //var MInsertOnce = (insertCondition, insertNode, node) => MCompose(MTakeWhile(e => !insertCondition(e),node), insertNode, MSkipWhile(e => !insertCondition(e),node));
-//
-//
-//
-// var MTimeOrderedMerge = mGenerator(function*(mergeNode, node) {
-//   var nodeIterator = getIterator(node);
-//   var nextNode = nodeIterator.next().value;
-//   for (var mergeEvent of mergeNode) {
-//     while (nextNode != undefined && nextNode.time < mergeEvent.time) {
-//       yield nextNode;
-//       nextNode = nodeIterator.next().value;
-//     }
-//     yield mergeEvent;
-//   }
-//   if (nextNode != undefined)
-//     yield nextNode;
-//   yield * nodeIterator;
-// }, "merge");
-//
-//
-//
-// // safe and ordered NoteOnOffSequence generator which doesn't cause StackOverflows. not very functionally elegant;
-// var MNoteOnOffSequence = mGenerator(function*(node) {
-//   var iterator = getIterator(node);
-//   var next = null;
-//   var toInsert = {};
-//   while (next = iterator.next().value) {
-//     var ks = Object.keys(toInsert)
-//     for (var time of ks) {
-//       if (time < next.time) {
-//         yield * toInsert[time];
-//         delete toInsert[time];
-//       }
-//     }
-//     if (next.type == "note") {
-//       //console.log(next.set("type", "noteOn"));
-//       yield addObjectProp(next, "type", "noteOn");
-//       //console.log("next",next,next.time);
-//       var noteOffTime = next.time + next.duration - 1;
-//
-//       var noteOff = MEvent({
-//         type: "noteOff",
-//         pitch: next.pitch,
-//         time: noteOffTime
-//       });
-//       //console.log("inserting noteOff", noteOff)
-//       toInsert[noteOffTime] = noteOff;
-//     } else {
-//       yield next;
-//     }
-//   }
-// }, "noteOnOff");
-//
-// var MSwing = mGenerator(function*(timeGrid, amount, node) {
-//   yield * getIterator(MTime((e) => {
-//     // console.log("swing, mapping,",e);
-//     var diff = (e.time % (timeGrid * 2)) / timeGrid - 1;
-//
-//     var dist = diff * diff;
-//     // console.log("swing", {time: fixFloat(e.time + amount * (1-dist) * timeGrid)});
-//     return fixFloat(e.time + amount * (1 - dist) * timeGrid);
-//   }, node))
-// }, "swing", 3);
-//
-// var MQuantize = mGenerator(function*(timeGrid, amount, node) {
-//   yield * getIterator(MTime((e) => {
-//     // console.log("swing, mapping,",e);
-//     var diff = (e.time % (timeGrid * 2)) / timeGrid - 1;
-//
-//
-//     // console.log("swing", {time: fixFloat(e.time + amount * (1-dist) * timeGrid)});
-//     return fixFloat(e.time - amount * diff);
-//   }, node))
-// }, "quantize", 3);
-//
-//
-// var MLog = mGenerator(function*(name, node) {
-//   for (var e of node) {
-//     console.log(name, e);
-//     yield e;
-//   }
-// }, "log");
-//
-// var MBjorklund = mGenerator(function*(steps, pulses, rotation, node) {
-//   var pattern = bjorklund(steps, pulses);
-//   var counter = rotation;
-//   // console.log(pattern, steps, pulses);
-//   if (pattern.length == 0)
-//     pattern = [1];
-//   for (var n of node) {
-//     if (pattern[counter++ % pattern.length])
-//       yield n;
-//   }
-// }, "bjorklund", 4);
-//
-// function bjorklund(steps, pulses) {
-//
-//   steps = Math.round(steps);
-//   pulses = Math.round(pulses);
-//
-//   if (pulses > steps || pulses == 0 || steps == 0) {
-//     return new Array();
-//   }
-//
-//   var pattern = [],
-//     counts = [],
-//     remainders = [],
-//     divisor = steps - pulses;
-//   remainders.push(pulses);
-//   var level = 0;
-//
-//   while (true) {
-//     counts.push(Math.floor(divisor / remainders[level]));
-//     remainders.push(divisor % remainders[level]);
-//     divisor = remainders[level];
-//     level += 1;
-//     if (remainders[level] <= 1) {
-//       break;
-//
-//
-//     }
-//   }
-//
-//   counts.push(divisor);
-//
-//   var r = 0;
-//   var build = function(level) {
-//     r++;
-//     if (level > -1) {
-//       for (var i = 0; i < counts[level]; i++) {
-//         build(level - 1);
-//       }
-//       if (remainders[level] != 0) {
-//         build(level - 2);
-//       }
-//     } else if (level == -1) {
-//       pattern.push(0);
-//     } else if (level == -2) {
-//       pattern.push(1);
-//     }
-//   };
-//
-//   build(level);
-//   return pattern.reverse();
-// }
-//
-//
-// function MToArray(node) {
-//   var res = [];
-//   for (var n of node)
-//     res.push(n.valueOf());
-//   return res;
-// }
-//
-// var Rx = require("Rx");
-//
-// var MToRx = (node) => Rx.Observable.from(node);
-//
-// var wait = require('wait.for-es6');
-//
-// var MfromRx = function*(rxObservable) {
-//   return {
-//     next: function*() {
-//       var nextVal =
-//         yield wait.for(rxObservable.onValue);
-//       return {
-//         value: nextVal,
-//         done: false
-//       };
-//     }
-//   }
-// }
-//
-
 // import {kick} from "abletonClip";
 var kickGrid = 2;
 
@@ -1268,7 +160,7 @@ var microtime = require("microtime");
 
 
 var profilerDataStore = [];
-var profileSamples = 200;
+var profileSamples = 20;
 
 
 var startTime = microtime.nowDouble();
@@ -1523,3 +415,175 @@ log("time:", timeTaken);
 // //                   break;
 // //                 }
 // //                 c=0;
+
+
+var flautaArpBase = m().data([
+{
+  "pitch": 72,
+  "duration": 8,
+  "velocity": 0.7874015748031497,
+  "time": 0,
+  "color": "yellow"
+},
+{
+  "pitch": 76,
+  "duration": 8,
+  "velocity": 0.6299212598425197,
+  "time": 0,
+  "color": "yellow"
+},
+{
+  "pitch": 74,
+  "duration": 4,
+  "velocity": 0.7874015748031497,
+  "time": 8,
+  "color": "yellow"
+},
+{
+  "pitch": 77,
+  "duration": 4,
+  "velocity": 0.7874015748031497,
+  "time": 8,
+  "color": "yellow"
+},
+{
+  "pitch": 71,
+  "duration": 2,
+  "velocity": 0.7874015748031497,
+  "time": 12,
+  "color": "yellow"
+},
+{
+  "pitch": 76,
+  "duration": 2,
+  "velocity": 0.7874015748031497,
+  "time": 12,
+  "color": "yellow"
+},
+{
+  "pitch": 71,
+  "duration": 2,
+  "velocity": 0.7874015748031497,
+  "time": 14,
+  "color": "yellow"
+},
+{
+  "pitch": 74,
+  "duration": 2,
+  "velocity": 0.6929133858267716,
+  "time": 14,
+  "color": "yellow"
+}
+]).duration(n => n.duration*0.99).loopLength(16);
+
+
+var flautaInScale =flautaArpBase;// flautaArpBase.pitch(pitchToScale(scale));
+
+m().addGen(function* arpeggiator1(noteSelector,templateSequence, node) {
+
+
+  //log(""+m(node).groupByTime().map(n => m(templateSequence).pitch(nTemplate => nTemplate.pitch+n[0].pitch).delay(n[0].time)) );
+  templateSequence = m(templateSequence);
+
+
+  var applyTemplate= (note) =>  {
+    var takeCount=0;
+
+
+    return templateSequence
+    // .take(8)
+    .takeWhile(nt => {
+      log(nt.time, " ", note.duration," ",takeCount++);
+      return  Number(nt.time).valueOf() <Number(note.duration).valueOf()
+
+    })
+    .time(n => n.time+note.time)
+    .pitch(nTemplate => nTemplate.pitch+note.pitch)
+    // .toArray();
+  }
+
+  yield* m().getIterator(m(node).groupByTime().map(n => {
+
+
+    // log("got here");
+    log("got here too", selectedNotes);
+
+    var selectedNotes = noteSelector(n);
+
+
+    // if (!selectedNotes.length)
+    //     selectedNotes=[selectedNotes];
+    // log("got here too", selectedNotes);
+    var res = applyTemplate(selectedNotes);// R.chain(n => applyTemplate(n),selectedNotes)
+
+    // log(res.toArray());
+
+    return res;
+  })
+);
+
+// for (let n of node) {
+//     // if (n.length)
+//     for (let nTemplate of templateSequence) {
+//         yield ;
+
+//     }
+
+//     // for (let time=n.time)
+// }
+});
+
+
+
+
+var arpTemplate = m().evt({pitch:
+  [0,2,0,-2,0,1,0,-1,0,0],
+  // 0,
+  duration:[0.5,0.3,0.4],
+  velocity: //0.7
+  [0.9,1,0.7]
+
+}).metro(1/2);
+
+var arpNoteSelector = (notes) => notes[notes.length-1];
+
+
+
+var flautaAcid = m(flautaInScale).arpeggiator1(arpNoteSelector,arpTemplate)
+// .bjorklund(8,5,0)
+// .delay(-24)
+// .skip(24)
+.automate("param1", n => Math.sin(n.target.time*Math.PI/16) /2 +0.5)
+.automate("param2", n => Math.sin(n.target.time*Math.PI/12) /2 +0.5)
+
+;
+
+console.log("===start===");
+
+m(flautaAcid).take(16).toArray().forEach(n => console.log(n));
+
+// throw("bye");
+
+
+
+
+export var getPitches = function(sequence) {
+  var pitches={};
+  for (let n of sequence)
+    if (n && n.pitch)
+      pitches[n.pitch] = true;
+
+      return Object.keys(pitches).map(n => Number(n).valueOf());
+    }
+
+
+    export var extendScaleToFullRange=(pitches) => m(pitches).simpleMap(p => m().count(p%12,12).take(3).toArray()).flattenAndSchedule().toArray();
+
+
+    // log(m().count(2%12,12).take(10).toArray());
+
+    log(extendScaleToFullRange([2,3]));
+
+  //  log(m([6,3,4,5]).simpleMap(n => [n+3,n]).flattenAndSchedule().toArray());
+
+    // throw "bye";

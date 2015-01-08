@@ -5233,10 +5233,11 @@ button.close {
   margin-left: -3px;
 }
 .tooltip-inner {
-  overflow-y: scroll;
-  max-width: 250px;
+  overflow-y:auto;
+  width: 250px;
   max-height:150px;
-  padding: 2px 3px;
+
+  padding: 0px;
   color: #444;
   text-align: left;
   text-decoration: none;

@@ -96,19 +96,25 @@ module.exports = component("logger"
           console.log("rendering popover for msg",logMsg);
           var tStyle = {
             pointerEvents: "auto",
-            backgroundColor: "orange"
+            backgroundColor: "("+_.random(0,255)+","+_.random(0,255)+","+_.random(0,255)+","+_.random(0,255)+")"
           }
           // console.log("msg",logMsg);
           if (logMsg.sourcePos && logMsg.sourcePos[0]>0) {
             var coords = aceEditor.getSession().documentToScreenPosition(logMsg.sourcePos[0], 0);
             console.log("ace coords",coords, "from", logMsg.sourcePos);
           } else return null;
-
+          var colorStyle={backgroundColor:"rgba("+_.random(127,255)+","+_.random(127,255)+","+_.random(127,255)+",0.8)"};
           var top = (coords.row-1)*aceEditor.renderer.lineHeight - scrollTop;
           console.log("top",top, scrollTop, aceEditor.renderer.lineHeight);
-          var msgString = logMsg.msg.map(function(m) {return JSON.stringify(m)});
-          var disappear={disabledopacity: (10000-logMsg.timePassed)/10000};
-          return <div style={disappear}><Tooltip placement="right" style={tStyle} positionLeft={120} positionTop={top} title="log">{msgString}</Tooltip></div>;
+          var msgString = logMsg.msg.map(function(m) {return JSON.stringify(m,function(key, val) {
+            return val !== null && val.toFixed ? Number(val.toFixed(3)) : val;
+          }
+          )});
+          var visibility=(10000-logMsg.timePassed)/10000;
+          if (visibility<0)
+            return null;
+          var disappear={opacity: visibility};
+          return <div style={disappear}><Tooltip placement="right" style={tStyle} positionLeft={120} positionTop={top} title="log"><span style={colorStyle}>{msgString}</span></Tooltip></div>;
         }
 
         // if (!this.state || !this.state.visible)

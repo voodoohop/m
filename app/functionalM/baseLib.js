@@ -3,6 +3,8 @@ import {
 }
 from "../lib/wu";
 
+import log from "../lib/logger";
+
 import {
   prettyToString, toStringObject, toStringDetailed, addFuncProp, /*clone, addObjectProp, addObjectProps, */ isIterable, getIterator, fixFloat
 }
@@ -17,6 +19,7 @@ var util = require("util");
 
 var _ = require("lodash");
 
+import webServer from "../webConnection";
 
 var logDetails = true;
 
@@ -110,15 +113,12 @@ import findSourcePos from "../lib/findSourceStackPos";
 function* runGenFeedback(generator,name,args) {
   for (let e of {[wu.iteratorSymbol]: () => generator(...args)}) {
     // console.log(name,e);
-    if (e && e.appendStackTrace) {
-      var sTrace = stackTrace.get().map(s => s.getFileName()+":"+s.getLineNumber()+":"+s.getColumnNumber);
-        e = e.set({stack:sTrace.join("\n"), appendStackTrace:false});
-    }
-
     var spos = findSourcePos();
-    if (spos !== undefined)
+    if (spos !== undefined && spos !== null) {
       console.warn(name,spos);
+      webServer.sequenceFeedback.push(spos)  ;
 
+    }
     yield e;
   };
 }
@@ -139,7 +139,7 @@ var mGenerator = function(generator, options = {}) {
     res.isTom = true;
     res.name = name;
 
-    res[wu.iteratorSymbol] = () => runGenFeedback(generator,name,args);
+    res[wu.iteratorSymbol] = () => generator(...args);//runGenFeedback(generator,name,args);
     if (options.toStringOverride)
       res.toString = () => options.toStringOverride;
     else {
@@ -186,6 +186,7 @@ export var m = function(wrapObject = rootNode) {
   return new M(wrapObject);
 }
 
+
 m.prototype = M.prototype;
 
 console.log(m.prototype);
@@ -196,7 +197,7 @@ var addFunction = function(name, func, options=rootNode) {
     // console.log("called",name);
     // console.log("this in prototype",this);
     if (options.notChainable)
-      return func(this.currentNode);
+      return func(...[...args, this.currentNode]);
 
     // var argument = isIterable(this) ? this : this[wrappedSymbol];
     var callArgs = (this.currentNode != rootNode && !options.noInputChain) ? [...args, this.currentNode] : args;
@@ -278,6 +279,7 @@ export function addGenerator(generatorFunc, options={},thirdOption=false) {
 }
 
 export function addChainEndFunction(func) {
+  log.debug("added chain end function",func.name);
   addFunction(func.name, func, {notChainable:true});
 }
 
@@ -288,3 +290,6 @@ addGenerator(function* val(value) {
   else
     yield value;
 });
+
+M.prototype.addGen = addGenerator;
+M.prototype.getIterator = getIterator;

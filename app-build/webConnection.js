@@ -85,6 +85,7 @@ var $__default = {
   beatFeedback: beatFeedback,
   remoteLogger: remoteLogger,
   sequenceFeedback: sequenceFeedback,
-  individualGeneratorUpdate: individualGenUpdate
+  individualGeneratorUpdate: individualGenUpdate,
+  io: io
 };
 console.log("exported");

@@ -37,7 +37,7 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     res.isSequenceGenerator = seq.isTom;
     if (!res.isSequenceGenerator)
       return res;
-    var sampleSize = 100;
+    var sampleSize = 200;
     var playableSequence = seq.toPlayable().take(sampleSize);
     var testerCode = "result = sequence.toArray();";
     var globalBack = {};

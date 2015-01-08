@@ -10,6 +10,12 @@ import {wu} from "./lib/wu";
 
 import webServer from "./webConnection";
 
+import {
+  immutableTom as immutable
+}
+from "./immutable/nodeProxiedImmutable";
+
+
 import {isIterable,getIterator,clone} from "./lib/utils";
 
 var Easer = require('functional-easing').Easer;
@@ -24,6 +30,8 @@ var stackTrace = require("stack-trace");
 
 
 import getSourcePos from "./lib/findSourceStackPos";
+
+var ramda=require("ramda");
 
 export default function getSandBox(loadedSequences, deviceStruct=null, loggerOverride = false) {
 
@@ -65,7 +73,9 @@ export default function getSandBox(loadedSequences, deviceStruct=null, loggerOve
     "params": abletonReceiver.param,
     "wu": wu,
     "teoria": teoria,
+    "immutable": immutable,
     "_": _,
+    "R": ramda,
     "System": seqLoader,
     "clone":clone,
     "easer":() => new Easer(),

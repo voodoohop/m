@@ -4,12 +4,18 @@ var repl = require("repl");
 
 var _ = require("lodash");
 
+
 import getSourcePos from "./lib/findSourceStackPos";
 
+import log from "./lib/logger";
 
 export default function wrapSequenceError(error, deviceStruct) {
+
+  log.error("error",{err:error});
+
   var stack = stackTrace.parse(error);
-  console.warn("stackArray");
+  log.debug({stack:stack});
+  // console.warn("stackArray");
   // stack.forEach(s => console.warn("stackt",s));
   // console.log("stackstack", error.toString(), error.stack);
   // var userCodeErrors = _.filter(stack, (s) => s.lineNumber > 0 && s.fileName.startsWith("evalmachine") && s.fileName.indexOf("Bacon.js") <= 0 && s.fileName.indexOf("node_modules") <= 0 /*s.fileName == "vm.js"*/ )
@@ -35,7 +41,7 @@ export default function wrapSequenceError(error, deviceStruct) {
   //     console.error("couldn't find sourceMap error transformer");
   // }
   console.warn("looking for errorpos",deviceStruct);
-  var errorPos = getSourcePos(deviceStruct.sourcePos);
+  var errorPos = getSourcePos(deviceStruct.sourcePos, stack);
   console.warn("found errorPos",errorPos);
   //  process.exit(1);
   // repl.start({

@@ -18,6 +18,12 @@ Object.defineProperties(exports, {
   kick_real: {get: function() {
       return kick_real;
     }},
+  getPitches: {get: function() {
+      return getPitches;
+    }},
+  extendScaleToFullRange: {get: function() {
+      return extendScaleToFullRange;
+    }},
   __esModule: {value: true}
 });
 var $__functionalM_47_baseLib__,
@@ -132,7 +138,7 @@ var kick_real = m().evt({
 }).metro(1);
 var microtime = require("microtime");
 var profilerDataStore = [];
-var profileSamples = 200;
+var profileSamples = 20;
 var startTime = microtime.nowDouble();
 for (var $__1 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__2; !($__2 = $__1.next()).done; ) {
@@ -200,3 +206,111 @@ for (var $__7 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
 }
 timeTaken = microtime.nowDouble() - startTime;
 log("time:", timeTaken);
+var flautaArpBase = m().data([{
+  "pitch": 72,
+  "duration": 8,
+  "velocity": 0.7874015748031497,
+  "time": 0,
+  "color": "yellow"
+}, {
+  "pitch": 76,
+  "duration": 8,
+  "velocity": 0.6299212598425197,
+  "time": 0,
+  "color": "yellow"
+}, {
+  "pitch": 74,
+  "duration": 4,
+  "velocity": 0.7874015748031497,
+  "time": 8,
+  "color": "yellow"
+}, {
+  "pitch": 77,
+  "duration": 4,
+  "velocity": 0.7874015748031497,
+  "time": 8,
+  "color": "yellow"
+}, {
+  "pitch": 71,
+  "duration": 2,
+  "velocity": 0.7874015748031497,
+  "time": 12,
+  "color": "yellow"
+}, {
+  "pitch": 76,
+  "duration": 2,
+  "velocity": 0.7874015748031497,
+  "time": 12,
+  "color": "yellow"
+}, {
+  "pitch": 71,
+  "duration": 2,
+  "velocity": 0.7874015748031497,
+  "time": 14,
+  "color": "yellow"
+}, {
+  "pitch": 74,
+  "duration": 2,
+  "velocity": 0.6929133858267716,
+  "time": 14,
+  "color": "yellow"
+}]).duration((function(n) {
+  return n.duration * 0.99;
+})).loopLength(16);
+var flautaInScale = flautaArpBase;
+m().addGen(function* arpeggiator1(noteSelector, templateSequence, node) {
+  templateSequence = m(templateSequence);
+  var applyTemplate = (function(note) {
+    var takeCount = 0;
+    return templateSequence.takeWhile((function(nt) {
+      log(nt.time, " ", note.duration, " ", takeCount++);
+      return Number(nt.time).valueOf() < Number(note.duration).valueOf();
+    })).time((function(n) {
+      return n.time + note.time;
+    })).pitch((function(nTemplate) {
+      return nTemplate.pitch + note.pitch;
+    }));
+  });
+  yield* m().getIterator(m(node).groupByTime().map((function(n) {
+    log("got here too", selectedNotes);
+    var selectedNotes = noteSelector(n);
+    var res = applyTemplate(selectedNotes);
+    return res;
+  })));
+});
+var arpTemplate = m().evt({
+  pitch: [0, 2, 0, -2, 0, 1, 0, -1, 0, 0],
+  duration: [0.5, 0.3, 0.4],
+  velocity: [0.9, 1, 0.7]
+}).metro(1 / 2);
+var arpNoteSelector = (function(notes) {
+  return notes[notes.length - 1];
+});
+var flautaAcid = m(flautaInScale).arpeggiator1(arpNoteSelector, arpTemplate).automate("param1", (function(n) {
+  return Math.sin(n.target.time * Math.PI / 16) / 2 + 0.5;
+})).automate("param2", (function(n) {
+  return Math.sin(n.target.time * Math.PI / 12) / 2 + 0.5;
+}));
+;
+console.log("===start===");
+m(flautaAcid).take(16).toArray().forEach((function(n) {
+  return console.log(n);
+}));
+var getPitches = function(sequence) {
+  var pitches = {};
+  for (var $__9 = sequence[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__10; !($__10 = $__9.next()).done; ) {
+    let n = $__10.value;
+    if (n && n.pitch)
+      pitches[n.pitch] = true;
+  }
+  return Object.keys(pitches).map((function(n) {
+    return Number(n).valueOf();
+  }));
+};
+var extendScaleToFullRange = (function(pitches) {
+  return m(pitches).simpleMap((function(p) {
+    return m().count(p % 12, 12).take(3).toArray();
+  })).flattenAndSchedule().toArray();
+});
+log(extendScaleToFullRange([2, 3]));

@@ -1,6 +1,6 @@
 
 import {addChainEndFunction,addGenerator} from "./baseLib";
-
+import log from "../lib/logger";
 
 addChainEndFunction(function toArray(node) {
   var res = [];
@@ -21,10 +21,6 @@ addGenerator(function* log(name, node) {
 });
 
 
-var Rx = require("Rx");
-
-addChainEndFunction(function MToRx(node) {return Rx.Observable.from(node)});;
-
 
 // var wait = require('wait.for-es6');
 //
@@ -40,3 +36,28 @@ addChainEndFunction(function MToRx(node) {return Rx.Observable.from(node)});;
 //     }
 //   }
 // }
+
+
+
+addChainEndFunction(function reduce(func,initial,node) {
+  log.debug("reducing start");
+  if (node === undefined) {
+    node = initial;
+    initial=null;
+  }
+  log.debug("reducing node",node);
+  for (let n of node) {
+    if (initial===undefined) {
+      initial = n;
+      continue;
+    }
+    initial = func(initial, n);
+  }
+  return initial;
+});
+
+
+
+var Rx = require("Rx");
+
+addChainEndFunction(function MToRx(node) {return Rx.Observable.from(node)});;

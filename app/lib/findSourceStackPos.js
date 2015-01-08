@@ -1,12 +1,27 @@
 var stackTrace = require("stack-trace");
 var _ = require("lodash");
 
-export default function getSourcePos(trace=false) {
+import log from "./logger";
+
+export default function getSourcePos(sourcePosMapper, trace=false) {
 
 //console.warn("determining source pos");
 
-if (trace===false)
+if (trace===false || !trace)
   trace = stackTrace.get();
+
+
+
+//debug(trace);
+
+// log.debug("trace length", trace.length);
+
+// console.log(trace);
+
+if (!trace.map)
+  log.error("trace doesn't have map function", trace);
+
+
 var stack = trace.map(t => ({
   fileName: t.getFileName(),
   line: t.getLineNumber(),
@@ -19,7 +34,7 @@ var stack = trace.map(t => ({
 
 // stack.forEach(s => console.log("stackEntry",s));
 
-var stackEntry = _.find(stack, s => s.eval == true);
+var stackEntry = _.find(stack, s => s.eval === true || s.functionName === "eval");
 if (stackEntry !==undefined)
 console.log("found stackEntry",stackEntry);
 // console.log("stack",stack);
@@ -28,9 +43,9 @@ if (!stackEntry)
   return;
   if (typeof sourcePosMapper === "function") {
     // console.log("transforming ",stackEntry.line, stackEntry.column);
-    // var transformed = sourcePosMapper(stackEntry.line, stackEntry.column);
-    pos = [stackEntry.line, stackEntry.column];
-    console.log("result",transformed);
+    var transformed = sourcePosMapper(stackEntry.line, stackEntry.column);
+    pos = [transformed.line, transformed.column];
+    log.debug("result of transforming error pos", stackEntry, transformed);
     return pos;
   }
   else {

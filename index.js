@@ -1,4 +1,4 @@
-// 
+//
 // declare class ErrorStatic {
 //   stackTraceLimit: number;
 // }
@@ -19,7 +19,7 @@ var dispName = require('stack-displayname');
 require('source-map-support').install();
 require('traceur/bin/traceur-runtime');
 
-Error.stackTraceLimit = 200;
+Error.stackTraceLimit = 100;
 
 
 console.log("requiring main");

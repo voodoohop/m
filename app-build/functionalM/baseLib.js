@@ -12,24 +12,28 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $___46__46__47_lib_47_wu__,
+    $___46__46__47_lib_47_logger__,
     $___46__46__47_lib_47_utils__,
     $___46__46__47_immutable_47_nodeProxiedImmutable__,
+    $___46__46__47_webConnection__,
     $___46__46__47_lib_47_findSourceStackPos__;
 var wu = ($___46__46__47_lib_47_wu__ = require("../lib/wu"), $___46__46__47_lib_47_wu__ && $___46__46__47_lib_47_wu__.__esModule && $___46__46__47_lib_47_wu__ || {default: $___46__46__47_lib_47_wu__}).wu;
-var $__1 = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46__47_lib_47_utils__ && $___46__46__47_lib_47_utils__.__esModule && $___46__46__47_lib_47_utils__ || {default: $___46__46__47_lib_47_utils__}),
-    prettyToString = $__1.prettyToString,
-    toStringObject = $__1.toStringObject,
-    toStringDetailed = $__1.toStringDetailed,
-    addFuncProp = $__1.addFuncProp,
-    isIterable = $__1.isIterable,
-    getIterator = $__1.getIterator,
-    fixFloat = $__1.fixFloat;
-var $__2 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../immutable/nodeProxiedImmutable"), $___46__46__47_immutable_47_nodeProxiedImmutable__ && $___46__46__47_immutable_47_nodeProxiedImmutable__.__esModule && $___46__46__47_immutable_47_nodeProxiedImmutable__ || {default: $___46__46__47_immutable_47_nodeProxiedImmutable__}),
-    immutableObj = $__2.immutableTom,
-    addObjectProp = $__2.addObjectProp,
-    addObjectProps = $__2.addObjectProps;
+var log = ($___46__46__47_lib_47_logger__ = require("../lib/logger"), $___46__46__47_lib_47_logger__ && $___46__46__47_lib_47_logger__.__esModule && $___46__46__47_lib_47_logger__ || {default: $___46__46__47_lib_47_logger__}).default;
+var $__2 = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46__47_lib_47_utils__ && $___46__46__47_lib_47_utils__.__esModule && $___46__46__47_lib_47_utils__ || {default: $___46__46__47_lib_47_utils__}),
+    prettyToString = $__2.prettyToString,
+    toStringObject = $__2.toStringObject,
+    toStringDetailed = $__2.toStringDetailed,
+    addFuncProp = $__2.addFuncProp,
+    isIterable = $__2.isIterable,
+    getIterator = $__2.getIterator,
+    fixFloat = $__2.fixFloat;
+var $__3 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../immutable/nodeProxiedImmutable"), $___46__46__47_immutable_47_nodeProxiedImmutable__ && $___46__46__47_immutable_47_nodeProxiedImmutable__.__esModule && $___46__46__47_immutable_47_nodeProxiedImmutable__ || {default: $___46__46__47_immutable_47_nodeProxiedImmutable__}),
+    immutableObj = $__3.immutableTom,
+    addObjectProp = $__3.addObjectProp,
+    addObjectProps = $__3.addObjectProps;
 var util = require("util");
 var _ = require("lodash");
+var webServer = ($___46__46__47_webConnection__ = require("../webConnection"), $___46__46__47_webConnection__ && $___46__46__47_webConnection__.__esModule && $___46__46__47_webConnection__ || {default: $___46__46__47_webConnection__}).default;
 var logDetails = true;
 var Immutable = require("immutable");
 var cacheLimit = 10;
@@ -82,30 +86,23 @@ function* doCache(node) {
 var stackTrace = require("stack-trace");
 var findSourcePos = ($___46__46__47_lib_47_findSourceStackPos__ = require("../lib/findSourceStackPos"), $___46__46__47_lib_47_findSourceStackPos__ && $___46__46__47_lib_47_findSourceStackPos__.__esModule && $___46__46__47_lib_47_findSourceStackPos__ || {default: $___46__46__47_lib_47_findSourceStackPos__}).default;
 function* runGenFeedback(generator, name, args) {
-  var $__4;
-  for (var $__5 = ($__4 = {}, Object.defineProperty($__4, wu.iteratorSymbol, {
+  var $__6;
+  for (var $__7 = ($__6 = {}, Object.defineProperty($__6, wu.iteratorSymbol, {
     value: (function() {
       return generator.apply(null, $traceurRuntime.spread(args));
     }),
     configurable: true,
     enumerable: true,
     writable: true
-  }), $__4)[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    let e = $__6.value;
+  }), $__6)[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__8; !($__8 = $__7.next()).done; ) {
+    let e = $__8.value;
     {
-      if (e && e.appendStackTrace) {
-        var sTrace = stackTrace.get().map((function(s) {
-          return s.getFileName() + ":" + s.getLineNumber() + ":" + s.getColumnNumber;
-        }));
-        e = e.set({
-          stack: sTrace.join("\n"),
-          appendStackTrace: false
-        });
-      }
       var spos = findSourcePos();
-      if (spos !== undefined)
+      if (spos !== undefined && spos !== null) {
         console.warn(name, spos);
+        webServer.sequenceFeedback.push(spos);
+      }
       yield e;
     }
   }
@@ -118,13 +115,13 @@ var mGenerator = function(generator) {
   var name = options.nameOverride || generator.name;
   var getIterable = function() {
     for (var args = [],
-        $__7 = 0; $__7 < arguments.length; $__7++)
-      args[$__7] = arguments[$__7];
+        $__9 = 0; $__9 < arguments.length; $__9++)
+      args[$__9] = arguments[$__9];
     var res = {};
     res.isTom = true;
     res.name = name;
     res[wu.iteratorSymbol] = (function() {
-      return runGenFeedback(generator, name, args);
+      return generator.apply(null, $traceurRuntime.spread(args));
     });
     if (options.toStringOverride)
       res.toString = (function() {
@@ -174,10 +171,10 @@ var addFunction = function(name, func) {
   var options = arguments[2] !== (void 0) ? arguments[2] : rootNode;
   M.prototype[name] = function() {
     for (var args = [],
-        $__7 = 0; $__7 < arguments.length; $__7++)
-      args[$__7] = arguments[$__7];
+        $__9 = 0; $__9 < arguments.length; $__9++)
+      args[$__9] = arguments[$__9];
     if (options.notChainable)
-      return func(this.currentNode);
+      return func.apply(null, $traceurRuntime.spread($traceurRuntime.spread(args, [this.currentNode])));
     var callArgs = (this.currentNode != rootNode && !options.noInputChain) ? $traceurRuntime.spread(args, [this.currentNode]) : args;
     var newNode = func.apply(null, $traceurRuntime.spread(callArgs));
     newNode.parentNode = this;
@@ -195,6 +192,7 @@ function addGenerator(generatorFunc) {
   addFunction(options.nameOverride || generatorFunc.name, mGenerator(generatorFunc, options), options);
 }
 function addChainEndFunction(func) {
+  log.debug("added chain end function", func.name);
   addFunction(func.name, func, {notChainable: true});
 }
 addGenerator(function* val(value) {
@@ -203,3 +201,5 @@ addGenerator(function* val(value) {
   else
     yield value;
 });
+M.prototype.addGen = addGenerator;
+M.prototype.getIterator = getIterator;

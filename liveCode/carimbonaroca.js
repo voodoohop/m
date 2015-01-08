@@ -1,6 +1,6 @@
 
 import {CarimboNaRoca} from "abletonClip_CarimboNaRoca";
-// import {rhythmBased2} from "carimbonarocaRhytmBased";
+import {rhythmBased2} from "carimbonarocaRhytmBased";
 
 
 
@@ -19,7 +19,7 @@ export var lowerNotes = CarimboNaRoca
   .pitch(n =>  n.pitch)
   .duration(0.2)
   .delay(m().count(0,0.25).take(32)).bjorklund(16,13,2)
-  .automate("pitchBend",n => Math.sin(n.target.time*Math.PI*2/8)/4+0.5);
+  .automate("pitchBend",n => Math.sin(n.target.time*Math.PI*2/4)/2+0.5);
 
 
   //.map(n => m().data(n)).duration(0.2).metro(0.5);
@@ -31,8 +31,13 @@ export var lowerNotes = CarimboNaRoca
 
 
 
-export var rhytihmc = m().evt({velocity:[0.9,0.5,0.6], duration:[0.4,0.2], pitch:60})
-.metro(0.25).pitch([70,40,60])
+export var rhythmic = rhythmBased2.delay(-1).takeWhile(n => n.time <2).loopLength(2);
+
+// m().evt({velocity:[0.9,0.5,0.6], color:"yellow", duration:[0.4,0.2], pitch:60})
+// .metro(0.25).pitch([62,50,62])
+
+
+
 // .delay(0.2);
 //.pitch(n => n.pitch);
 // .groupByTime().simpleMap(n => {
@@ -57,7 +62,6 @@ export var rhytihmc = m().evt({velocity:[0.9,0.5,0.6], duration:[0.4,0.2], pitch
 //   return Math.sin((n.time+n.target.time)*2)/2+0.5;
 // })
 // .merge(lowerNotes).filter(n => n.duration <1 );
-
 
 // import {CarimboRhythm} from "abletonClip_CarimboRhythm";
 

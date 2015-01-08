@@ -38,7 +38,7 @@ addGenerator(function* data(dataInput) {
   }
 });
 addGenerator(function* loopData(dataNode) {
-  var $__11;
+  var $__12;
   for (var $__6 = dataNode[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__7; !($__7 = $__6.next()).done; ) {
     var data = $__7.value;
@@ -48,7 +48,7 @@ addGenerator(function* loopData(dataNode) {
         yield* getIterator(m(dataNode).loop());
         return;
       }
-      for (var $__4 = ($__11 = m()).zipLooping.apply($__11, $traceurRuntime.spread(_.values(data)))[$traceurRuntime.toProperty(Symbol.iterator)](),
+      for (var $__4 = ($__12 = m()).zipLooping.apply($__12, $traceurRuntime.spread(_.values(data)))[$traceurRuntime.toProperty(Symbol.iterator)](),
           $__5; !($__5 = $__4.next()).done; ) {
         var props = $__5.value;
         {
@@ -209,7 +209,7 @@ addGenerator(function* simpleMap(mapFunc, node) {
       } catch (exception) {
         console.error("simpleMap", "" + (typeof mapFunc), "" + mapFunc, node);
         console.error("exception", exception, "in simpleMap", exception.stack);
-        throw new Error("exception in simpleMap");
+        throw new Error("exception in simpleMap" + exception);
       }
       if (mapRes === undefined) {
         console.error("mapRes undefined, for node:" + n + "func:" + mapFunc);
@@ -281,14 +281,22 @@ addGenerator(function* count() {
     c += stepSize;
   }
 }, {noInputChain: true});
-addGenerator(function* reduce(reduceFunc, startValue, node) {
-  var current = startValue;
+addGenerator(function* scan(func, initial) {
+  var $__11;
+  var node = arguments[2] !== (void 0) ? arguments[2] : null;
+  if (node === null) {
+    ($__11 = [initial, undefined], node = $__11[0], initial = $__11[1], $__11);
+  }
   for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__5; !($__5 = $__4.next()).done; ) {
-    var e = $__5.value;
+    let n = $__5.value;
     {
-      current = reduceFunc(current, e);
+      if (initial === undefined) {
+        initial = n;
+        continue;
+      }
+      initial = func(initial, n);
+      yield initial;
     }
   }
-  yield current;
 });

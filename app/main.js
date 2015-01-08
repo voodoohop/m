@@ -41,10 +41,13 @@ import * as moduleManager from "./generatorModuleManager";
 var _ = require("lodash");
 
 
+import log from "./lib/logger";
 
 var Bacon = require("baconjs");
 
+log.info("bunyasaan");
 
+// throw "bye";
 
 // console.log('hello'.green);
 
@@ -188,7 +191,7 @@ var newClipSequences = abletonReceiver.clipNotes.map(function(v) {
   var seq=m().data(notes.map((n) => {
     return {
       pitch: n.pitch,
-      duration: n.duration,
+      duration: n.duration-0.01,
       velocity:n.velocity/127,
       time: n.time,
       color: "yellow"

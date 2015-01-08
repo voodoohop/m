@@ -6,6 +6,7 @@ var $__patchConsoleLog__,
     $__oscAbleton__,
     $__lib_47_utils__,
     $__generatorModuleManager__,
+    $__lib_47_logger__,
     $__webConnection__,
     $__sequencePlayManager__,
     $__codeStore__;
@@ -23,7 +24,9 @@ var $__4 = ($__lib_47_utils__ = require("./lib/utils"), $__lib_47_utils__ && $__
     clone = $__4.clone;
 var moduleManager = ($__generatorModuleManager__ = require("./generatorModuleManager"), $__generatorModuleManager__ && $__generatorModuleManager__.__esModule && $__generatorModuleManager__ || {default: $__generatorModuleManager__});
 var _ = require("lodash");
+var log = ($__lib_47_logger__ = require("./lib/logger"), $__lib_47_logger__ && $__lib_47_logger__.__esModule && $__lib_47_logger__ || {default: $__lib_47_logger__}).default;
 var Bacon = require("baconjs");
+log.info("bunyasaan");
 var traceur = require("traceur");
 var timeResetRequest = new Bacon.Bus();
 var lastCodeResetNo = -1;
@@ -76,10 +79,10 @@ timeThatAccountsForTransportJumps.throttle(1000).onValue((function() {
     return seqPath + ":" + sequencePlayManager.playingSequences[seqPath].port;
   })));
 }));
-var $__7 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
-    baconStorer = $__7.baconStorer,
-    onCodeLoaded = $__7.onCodeLoaded,
-    storedSequences = $__7.storedSequences;
+var $__8 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
+    baconStorer = $__8.baconStorer,
+    onCodeLoaded = $__8.onCodeLoaded,
+    storedSequences = $__8.storedSequences;
 var Easer = require('functional-easing').Easer;
 webServer.beatFeedback(timeThatAccountsForTransportJumps.toEventStream().map((function(t) {
   return Math.floor(t.time);
@@ -91,7 +94,7 @@ var newClipSequences = abletonReceiver.clipNotes.map(function(v) {
   var seq = m().data(notes.map((function(n) {
     return {
       pitch: n.pitch,
-      duration: n.duration,
+      duration: n.duration - 0.01,
       velocity: n.velocity / 127,
       time: n.time,
       color: "yellow"
@@ -111,9 +114,9 @@ moduleManager.newSequenceCode.plug(newClipSequences);
 moduleManager.newSequenceCode.plug(webServer.liveCode);
 setTimeout(function() {
   console.log("CODE LOADED", storedSequences);
-  for (var $__8 = storedSequences[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__9; !($__9 = $__8.next()).done; ) {
-    var seq = $__9.value;
+  for (var $__9 = storedSequences[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__10; !($__10 = $__9.next()).done; ) {
+    var seq = $__10.value;
     {
       moduleManager.newSequenceCode.push({
         device: seq.device,
