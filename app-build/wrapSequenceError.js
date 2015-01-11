@@ -15,10 +15,11 @@ var log = ($__lib_47_logger__ = require("./lib/logger"), $__lib_47_logger__ && $
 function wrapSequenceError(error, deviceStruct) {
   log.error("error", {err: error});
   var stack = stackTrace.parse(error);
-  log.debug({stack: stack});
-  console.warn("looking for errorpos", deviceStruct);
+  if (log.showDebug)
+    log.debug({stack: stack});
+  log.warn("looking for errorpos", deviceStruct);
   var errorPos = getSourcePos(deviceStruct.sourcePos, stack);
-  console.warn("found errorPos", errorPos);
+  log.warn("found errorPos", errorPos);
   return {
     error: error,
     errorPos: errorPos,

@@ -15,6 +15,7 @@ import {
 }
 from "./immutable/nodeProxiedImmutable";
 
+import log from "./lib/logger";
 
 import {isIterable,getIterator,clone} from "./lib/utils";
 
@@ -37,13 +38,16 @@ export default function getSandBox(loadedSequences, deviceStruct=null, loggerOve
 
 
   var remoteLog = function(...m) {
-    console.log("seqLog".bgYellow,m);
+    // console.log("seqLog".bgYellow,m);
 
     // try {
-      console.log("deviceStruct sourcePos",deviceStruct.sourcePos);
+      // console.log("deviceStruct sourcePos",deviceStruct.sourcePos);
+      var sourcePos = getSourcePos(deviceStruct.sourcePos);
+      if (!sourcePos)
+        log.warn("warning, logging to device but no sourcePos",deviceStruct.name,"sourcePos:",deviceStruct.sourcePos);
       webServer.remoteLogger.push(
       { msg: m,
-        sourcePos: getSourcePos(deviceStruct.sourcePos),
+        sourcePos: sourcePos,
         device:deviceStruct.device,
         // allStack:stack,
         // code: deviceStruct.code,

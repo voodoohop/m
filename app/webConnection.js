@@ -23,6 +23,8 @@ var _ = require("lodash");
 
 console.log('listening on port 8000');
 
+
+
 // socket.start(app);
 //
 // socket.on('join', function(data){
@@ -119,6 +121,7 @@ var beatFeedback = function(beatInfo) {
 var remoteLogger = new Bacon.Bus();
 
 remoteLogger.onValue((v) => {
+  console.log("remoteLogger", v);
   io.sockets.emit("consoleMessage",v);
 })
 

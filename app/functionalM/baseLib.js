@@ -143,7 +143,8 @@ var mGenerator = function(generator, options = {}) {
     if (options.toStringOverride)
       res.toString = () => options.toStringOverride;
     else {
-        res.toString= () => prettyToString(name, args);
+      var stringRep = prettyToString(name, args)
+        res.toString= () => stringRep;
     }
     // console.log("res",res);
     return new M(res);
@@ -168,10 +169,11 @@ function M(node = rootNode) {
   this.currentNode = node;
   this.name = node.name;
   this.isTom = true;
-  this.parentNode=null;
+  //this.parentNode=null;
+  // this._loopLength=node._loopLength;
   this[wu.iteratorSymbol] = node[wu.iteratorSymbol];
-  Object.seal(this);
-  Object.seal(node);
+  // Object.seal(this);
+  // Object.seal(node);
 }
 
 M.prototype.toString  = function() { return this.currentNode.toString()};
@@ -279,7 +281,7 @@ export function addGenerator(generatorFunc, options={},thirdOption=false) {
 }
 
 export function addChainEndFunction(func) {
-  log.debug("added chain end function",func.name);
+  if (log.showDebug) log.debug("added chain end function",func.name);
   addFunction(func.name, func, {notChainable:true});
 }
 

@@ -120,7 +120,7 @@ export var addFuncProp = function(eventObject, name, func) {
 }
 
 // stringifying needs to be optimized
-export var toStringDetailed = function(v) {
+export var toStringDetailed = _.memoize(function(v) {
 //  console.log(v);
   //  if (v instanceof Object) {
       if (v==null)
@@ -144,7 +144,7 @@ export var toStringDetailed = function(v) {
   // }
 
   return ""+v;
-}
+});
 
 export var toStringObject = function(o) {
   if (typeof o == "object") {

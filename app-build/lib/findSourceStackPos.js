@@ -32,12 +32,15 @@ function getSourcePos(sourcePosMapper) {
   if (stackEntry !== undefined)
     console.log("found stackEntry", stackEntry);
   var pos = null;
-  if (!stackEntry)
+  if (!stackEntry) {
+    log.warn("couldn't find stackEntry", stack);
     return;
+  }
   if (typeof sourcePosMapper === "function") {
     var transformed = sourcePosMapper(stackEntry.line, stackEntry.column);
     pos = [transformed.line, transformed.column];
-    log.debug("result of transforming error pos", stackEntry, transformed);
+    if (log.showDebug)
+      log.debug("result of transforming error pos", stackEntry, transformed);
     return pos;
   } else {
     console.error("couldn't find sourceMap transformer, returning stack entry", stackEntry);
@@ -45,3 +48,4 @@ function getSourcePos(sourcePosMapper) {
   }
 }
 var $__default = getSourcePos;
+;

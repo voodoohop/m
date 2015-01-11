@@ -10,6 +10,7 @@ var $__functionalM_47_baseLib__,
     $__lib_47_wu__,
     $__webConnection__,
     $__immutable_47_nodeProxiedImmutable__,
+    $__lib_47_logger__,
     $__lib_47_utils__,
     $__oscAbleton__,
     $__lib_47_findSourceStackPos__;
@@ -19,15 +20,16 @@ var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__
 var wu = ($__lib_47_wu__ = require("./lib/wu"), $__lib_47_wu__ && $__lib_47_wu__.__esModule && $__lib_47_wu__ || {default: $__lib_47_wu__}).wu;
 var webServer = ($__webConnection__ = require("./webConnection"), $__webConnection__ && $__webConnection__.__esModule && $__webConnection__ || {default: $__webConnection__}).default;
 var immutable = ($__immutable_47_nodeProxiedImmutable__ = require("./immutable/nodeProxiedImmutable"), $__immutable_47_nodeProxiedImmutable__ && $__immutable_47_nodeProxiedImmutable__.__esModule && $__immutable_47_nodeProxiedImmutable__ || {default: $__immutable_47_nodeProxiedImmutable__}).immutableTom;
-var $__5 = ($__lib_47_utils__ = require("./lib/utils"), $__lib_47_utils__ && $__lib_47_utils__.__esModule && $__lib_47_utils__ || {default: $__lib_47_utils__}),
-    isIterable = $__5.isIterable,
-    getIterator = $__5.getIterator,
-    clone = $__5.clone;
+var log = ($__lib_47_logger__ = require("./lib/logger"), $__lib_47_logger__ && $__lib_47_logger__.__esModule && $__lib_47_logger__ || {default: $__lib_47_logger__}).default;
+var $__6 = ($__lib_47_utils__ = require("./lib/utils"), $__lib_47_utils__ && $__lib_47_utils__.__esModule && $__lib_47_utils__ || {default: $__lib_47_utils__}),
+    isIterable = $__6.isIterable,
+    getIterator = $__6.getIterator,
+    clone = $__6.clone;
 var Easer = require('functional-easing').Easer;
 var _ = require("lodash");
-var $__6 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
-    abletonReceiver = $__6.abletonReceiver,
-    abletonSender = $__6.abletonSender;
+var $__7 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
+    abletonReceiver = $__7.abletonReceiver,
+    abletonSender = $__7.abletonSender;
 var vm = require("vm");
 var stackTrace = require("stack-trace");
 var getSourcePos = ($__lib_47_findSourceStackPos__ = require("./lib/findSourceStackPos"), $__lib_47_findSourceStackPos__ && $__lib_47_findSourceStackPos__.__esModule && $__lib_47_findSourceStackPos__ || {default: $__lib_47_findSourceStackPos__}).default;
@@ -37,13 +39,14 @@ function getSandBox(loadedSequences) {
   var loggerOverride = arguments[2] !== (void 0) ? arguments[2] : false;
   var remoteLog = function() {
     for (var m = [],
-        $__8 = 0; $__8 < arguments.length; $__8++)
-      m[$__8] = arguments[$__8];
-    console.log("seqLog".bgYellow, m);
-    console.log("deviceStruct sourcePos", deviceStruct.sourcePos);
+        $__9 = 0; $__9 < arguments.length; $__9++)
+      m[$__9] = arguments[$__9];
+    var sourcePos = getSourcePos(deviceStruct.sourcePos);
+    if (!sourcePos)
+      log.warn("warning, logging to device but no sourcePos", deviceStruct.name, "sourcePos:", deviceStruct.sourcePos);
     webServer.remoteLogger.push({
       msg: m,
-      sourcePos: getSourcePos(deviceStruct.sourcePos),
+      sourcePos: sourcePos,
       device: deviceStruct.device
     });
   };

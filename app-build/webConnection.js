@@ -60,6 +60,7 @@ var beatFeedback = function(beatInfo) {
 };
 var remoteLogger = new Bacon.Bus();
 remoteLogger.onValue((function(v) {
+  console.log("remoteLogger", v);
   io.sockets.emit("consoleMessage", v);
 }));
 var count = 0;

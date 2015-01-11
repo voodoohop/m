@@ -116,14 +116,19 @@ addGenerator(function* prop(name, tomValue, children) {
 
 addGenerator(function* loop(node) {
   if (isIterable(node)) {
-    if (node.length>0)
+    if (node.length>0) {
       node = Array.from(node);
+      // this._loopLength = node.length;
+    }
     while(true)
       yield* getIterator(node);
   }
-  else
+  else {
+    // this._loopLength = 1;
     while(true)
       yield node;
+
+  }
 });
 
 

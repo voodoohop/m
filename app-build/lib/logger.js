@@ -37,4 +37,5 @@ log.info("bunyan log");
 setInterval((function() {
   log.info("bunyan ping", {testObj: {bla: true}});
 }), 30000);
+log.showDebug = false;
 var $__default = log;

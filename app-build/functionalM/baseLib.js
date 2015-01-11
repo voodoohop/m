@@ -128,8 +128,9 @@ var mGenerator = function(generator) {
         return options.toStringOverride;
       });
     else {
+      var stringRep = prettyToString(name, args);
       res.toString = (function() {
-        return prettyToString(name, args);
+        return stringRep;
       });
     }
     return new M(res);
@@ -150,10 +151,7 @@ function M() {
   this.currentNode = node;
   this.name = node.name;
   this.isTom = true;
-  this.parentNode = null;
   this[wu.iteratorSymbol] = node[wu.iteratorSymbol];
-  Object.seal(this);
-  Object.seal(node);
 }
 M.prototype.toString = function() {
   return this.currentNode.toString();
@@ -192,7 +190,8 @@ function addGenerator(generatorFunc) {
   addFunction(options.nameOverride || generatorFunc.name, mGenerator(generatorFunc, options), options);
 }
 function addChainEndFunction(func) {
-  log.debug("added chain end function", func.name);
+  if (log.showDebug)
+    log.debug("added chain end function", func.name);
   addFunction(func.name, func, {notChainable: true});
 }
 addGenerator(function* val(value) {

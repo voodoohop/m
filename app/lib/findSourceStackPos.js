@@ -14,7 +14,7 @@ if (trace===false || !trace)
 
 //debug(trace);
 
-// log.debug("trace length", trace.length);
+// if (log.showDebug) log.debug("trace length", trace.length);
 
 // console.log(trace);
 
@@ -39,17 +39,19 @@ if (stackEntry !==undefined)
 console.log("found stackEntry",stackEntry);
 // console.log("stack",stack);
 var pos = null;
-if (!stackEntry)
+if (!stackEntry) {
+  log.warn("couldn't find stackEntry", stack);
   return;
+}
   if (typeof sourcePosMapper === "function") {
     // console.log("transforming ",stackEntry.line, stackEntry.column);
     var transformed = sourcePosMapper(stackEntry.line, stackEntry.column);
     pos = [transformed.line, transformed.column];
-    log.debug("result of transforming error pos", stackEntry, transformed);
+    if (log.showDebug) log.debug("result of transforming error pos", stackEntry, transformed);
     return pos;
   }
   else {
     console.error("couldn't find sourceMap transformer, returning stack entry", stackEntry);
     return [stackEntry.line, stackEntry.column];
   }
-}
+};

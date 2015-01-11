@@ -138,7 +138,7 @@ var kick_real = m().evt({
 }).metro(1);
 var microtime = require("microtime");
 var profilerDataStore = [];
-var profileSamples = 20;
+var profileSamples = 2000;
 var startTime = microtime.nowDouble();
 for (var $__1 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__2; !($__2 = $__1.next()).done; ) {

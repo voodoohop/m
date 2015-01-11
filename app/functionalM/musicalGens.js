@@ -170,9 +170,9 @@ addGenerator(function* automate(paramName, valGenerator, node) {
         name: paramName,
         duration: n.duration
       })
-      .duration(n.duration)
+      // .duration(n.duration)
       .loop()
-      .metro(1/8)
+      .metro(1/4)
       .takeWhile(a => a.time < n.duration)
       .simpleMap(n => n.set("automationVal", valGenerator(n)))
       .delay(n.time)
@@ -226,7 +226,7 @@ addGenerator(function* combine(combineNode, node) {
   var nextOther = null;
   var meWaitingForNextOther = [];
   for (let n of merged) {
-   log.debug("combining",""+m,n);
+   if (log.showDebug) log.debug("combining",""+m,n);
     if (n.hasOwnProperty("me"))
       meWaitingForNextOther.push(n.me);
     if (n.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
@@ -257,17 +257,17 @@ addGenerator(function* combineMap(combineFunc, combineNode, node) {
 
 
 
-addGenerator(function* loopLength(loopLength, node) {
+addGenerator(function* loopLength(loopL, node) {
   var time = 0;
   var count=0;
-  log.debug("looplength started");
+  if (log.showDebug) log.debug("looplength started");
   while (true) {
     for (var n of node) {
-      log.debug("looplenghtime",time, count++);
+      if (log.showDebug) log.debug("looplenghtime",time, count++);
       yield addObjectProp(n, "time", time + n.time);
     }
 
-    time += loopLength;
+    time += loopL;
   }
 });
 
@@ -275,6 +275,8 @@ addGenerator(function* loopLength(loopLength, node) {
 
 var convertToObject = (externalVal) => immutableObj(externalVal);
 
+
+var PriorityQueue = require("js-priority-queue");
 
 function getScheduleKey(o) {
   if (o && o.time !== undefined && o.time !== null && o.time.valueOf)
@@ -287,22 +289,26 @@ function getScheduleKey(o) {
 
 addGenerator(function* flattenAndSchedule(node) {
   // var outerIterator = getIterator(node);
-  var scheduled = Immutable.OrderedMap();
+  var scheduled = new PriorityQueue({comparator: (a,b) => {
+    // if (log.showDebug) log.debug("scheduleKey", getScheduleKey(b)- getScheduleKey(a));
+    return getScheduleKey(a) - getScheduleKey(b)
+  }});
   for (var n of node) {
     var minTime = Infinity;
     if (isIterable(n)) {
       for (let nFlat of n) {
         var time = getScheduleKey(nFlat);//.time;
-        // log.debug("key for flatten",time);
+        // if (log.showDebug) log.debug("key for flatten",time);
         if (time < minTime)
           minTime = time;
-        // log.debug("minTime", minTime);
-        if (!scheduled.has(time))
-          scheduled = scheduled.set(time,[]);
+        // if (log.showDebug) log.debug("minTime", minTime);
+        //if (!scheduled.has(time));,
+        if (log.showDebug) log.debug("queuing",nFlat);
+        scheduled.queue(nFlat);
+        // if (log.showDebug) log.debug("scheduled",minTime);
+        //scheduled.get(time).push(nFlat);
 
-        scheduled.get(time).push(nFlat);
-
-        // log.debug("scheduled",scheduled);
+        // if (log.showDebug) log.debug("scheduled",scheduled);
 
       }
     }
@@ -310,19 +316,30 @@ addGenerator(function* flattenAndSchedule(node) {
       yield n;
       minTime = getScheduleKey(n);
     }
-    log.debug("minTime2", scheduled.keySeq().sort());
-    for (let k of scheduled.keySeq().sort().takeWhile(x => x < minTime)) {
-
-        // log.debug("yielding");
-        yield* getIterator(scheduled.get(k));
-        scheduled = scheduled.delete(k);
-
+    // if (log.showDebug) log.debug("minTime2", getScheduleKey(scheduled.peek()), minTime);
+    while (scheduled.length>0 && getScheduleKey(scheduled.peek()) < minTime) {
+      // if (log.showDebug) log.debug("scheduledLength",scheduled.length, scheduled.peek());
+      yield scheduled.dequeue();
+      // if (log.showDebug) log.debug("scheduledLength2",scheduled.length);
     }
+    // for (let k of scheduled.keySeq().sort().takeWhile(x => x < minTime)) {
+    //
+    //     // if (log.showDebug) log.debug("yielding");
+    //     yield* getIterator(scheduled.get(k));
+    //     scheduled = scheduled.delete(k);
+    //
+    // }
 
 
 
   }
-  yield* getIterator(scheduled.keySeq().sort().flatMap(k => scheduled.get(k)));
+
+  while (scheduled.length > 0) {
+    // if (log.showDebug) log.debug("scheduledLength2",scheduled.length);
+    yield scheduled.dequeue();
+  }
+
+  // yield* getIterator(scheduled.keySeq().sort().flatMap(k => scheduled.get(k)));
 });
 
 
@@ -494,7 +511,7 @@ addGenerator(function* delay(amount, node) {
     // else
       var zipped =m(amount.map(a => ({delayAmount:a}))).zipLooping(node);
       yield* getIterator(zipped.simpleMap(n => {
-        log.debug("ntomshould delay", n);
+        if (log.showDebug) log.debug("ntomshould delay", n);
         return n[0].set("time",n[0].time+n[1].delayAmount);
       }));
       return;
@@ -528,7 +545,7 @@ addGenerator(function* metro(tickDuration, node) {
 
 
 addGenerator(function* timeFromDurations(node) {
-  log.debug("memmap used");
+  if (log.showDebug) log.debug("memmap used");
   var durationSumIterator = node.pluck("duration").memoryMap(0, (current, x) => x + current);
   yield * getIterator(endMarker.compose(node).time(durationSumIterator));
 });
@@ -577,13 +594,13 @@ addGenerator(function* merge(mergeNode, node) {
   // console.log(x);
   var nextNode = x.value;
   for (var mergeEvent of mergeNode) {
-    while (nextNode != undefined && nextNode.time < mergeEvent.time) {
+    while (nextNode != undefined && nextNode.time <= mergeEvent.time) {
       yield nextNode;
       nextNode = nodeIterator.next().value;
     }
     yield mergeEvent;
   }
-  if (nextNode != undefined)
+  if (nextNode !== undefined)
     yield nextNode;
   yield * nodeIterator;
 });

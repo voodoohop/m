@@ -27,12 +27,14 @@ addGenerator(function* log(name, node) {
   }
 });
 addChainEndFunction(function reduce(func, initial, node) {
-  log.debug("reducing start");
+  if (log.showDebug)
+    log.debug("reducing start");
   if (node === undefined) {
     node = initial;
     initial = null;
   }
-  log.debug("reducing node", node);
+  if (log.showDebug)
+    log.debug("reducing node", node);
   for (var $__2 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__3; !($__3 = $__2.next()).done; ) {
     let n = $__3.value;

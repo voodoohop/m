@@ -98,3 +98,13 @@
 .react-grid-item:hover .react-grid-resize-handle {
   opacity: 1;
 }
+
+
+@font-face {
+  font-family: 'codeFont';
+  url('./handwriting-draft.ttf')  format('truetype'), /* Safari, Android, iOS */
+}
+/*
+.ace_editor {
+  font-family: 'codeFont' !important;
+}.*/

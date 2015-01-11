@@ -111,13 +111,15 @@ addGenerator(function* prop(name, tomValue, children) {
 });
 addGenerator(function* loop(node) {
   if (isIterable(node)) {
-    if (node.length > 0)
+    if (node.length > 0) {
       node = Array.from(node);
+    }
     while (true)
       yield* getIterator(node);
-  } else
+  } else {
     while (true)
       yield node;
+  }
 });
 addGenerator(function* filter(filterFunc, node) {
   for (var $__4 = node[$traceurRuntime.toProperty(Symbol.iterator)](),

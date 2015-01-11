@@ -1,6 +1,8 @@
 
 var seedrandom = require('seedrandom');
 
+var Sparkline = require('react-sparkline');
+
 function stringToColour(str) {
   var rng = seedrandom(str);
   //console.log("seed",str,rng());
@@ -117,10 +119,22 @@ module.exports = component("generatorPreview", function(gens) {
   //onMouseDown={onDown} onMouseUp={onUp} onMouseMove={onZoom}
   // var code = gens
   // console.log("gens",gens);
+  var values = [
+{
+  date: "2014-06-23T00:21:59.271Z",
+  value: 2
+},
+{
+  date: "2014-06-24T00:21:59.271Z",
+  value: 4
+}
+];
+
+// <Sparkline data={values} />
+
   return <div style={style}>
   <svg className="noteView" {...svgAttrs} >{notes.map(noteRect)}{noteLines}{gridLine()}
   <div style={({float:"right", top: "5px", fontSize:"10px","zIndex":1000, opacity:0.5, padding:"3px", marginTop:"-2px"})}>{Math.round(gens.beatsPerTime)}</div>
-
   </svg>
   </div>;
   // {gens.sequenceAsString}

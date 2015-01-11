@@ -88,6 +88,7 @@ webServer.beatFeedback(timeThatAccountsForTransportJumps.toEventStream().map((fu
   return Math.floor(t.time);
 })).skipDuplicates());
 var newClipSequences = abletonReceiver.clipNotes.map(function(v) {
+  console.log("new clip sequence received from ableton", v);
   var notes = _.sortBy(v.notes, (function(n) {
     return n.time;
   }));
@@ -102,7 +103,8 @@ var newClipSequences = abletonReceiver.clipNotes.map(function(v) {
   }))).loopLength(v.loopEnd - v.loopStart);
   console.log("created clip seq from clipNotes", {
     device: "abletonClip",
-    name: v.name
+    name: v.name,
+    sequence: seq
   });
   var code = "export var " + v.name + " = " + seq.toString() + ";";
   return {

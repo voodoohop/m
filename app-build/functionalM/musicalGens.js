@@ -134,7 +134,7 @@ addGenerator(function* automate(paramName, valGenerator, node) {
       target: n,
       name: paramName,
       duration: n.duration
-    }).duration(n.duration).loop().metro(1 / 8).takeWhile((function(a) {
+    }).loop().metro(1 / 4).takeWhile((function(a) {
       return a.time < n.duration;
     })).simpleMap((function(n) {
       return n.set("automationVal", valGenerator(n));
@@ -175,7 +175,8 @@ addGenerator(function* combine(combineNode, node) {
       $__8; !($__8 = $__7.next()).done; ) {
     let n = $__8.value;
     {
-      log.debug("combining", "" + m, n);
+      if (log.showDebug)
+        log.debug("combining", "" + m, n);
       if (n.hasOwnProperty("me"))
         meWaitingForNextOther.push(n.me);
       if (n.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
@@ -206,25 +207,28 @@ addGenerator(function* combineMap(combineFunc, combineNode, node) {
     return combineFunc(combined, combined.other);
   })));
 });
-addGenerator(function* loopLength(loopLength, node) {
+addGenerator(function* loopLength(loopL, node) {
   var time = 0;
   var count = 0;
-  log.debug("looplength started");
+  if (log.showDebug)
+    log.debug("looplength started");
   while (true) {
     for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__6; !($__6 = $__5.next()).done; ) {
       var n = $__6.value;
       {
-        log.debug("looplenghtime", time, count++);
+        if (log.showDebug)
+          log.debug("looplenghtime", time, count++);
         yield addObjectProp(n, "time", time + n.time);
       }
     }
-    time += loopLength;
+    time += loopL;
   }
 });
 var convertToObject = (function(externalVal) {
   return immutableObj(externalVal);
 });
+var PriorityQueue = require("js-priority-queue");
 function getScheduleKey(o) {
   if (o && o.time !== undefined && o.time !== null && o.time.valueOf)
     return o.time.valueOf();
@@ -233,10 +237,12 @@ function getScheduleKey(o) {
   return undefined;
 }
 addGenerator(function* flattenAndSchedule(node) {
-  var scheduled = Immutable.OrderedMap();
-  for (var $__9 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__10; !($__10 = $__9.next()).done; ) {
-    var n = $__10.value;
+  var scheduled = new PriorityQueue({comparator: (function(a, b) {
+      return getScheduleKey(a) - getScheduleKey(b);
+    })});
+  for (var $__7 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__8; !($__8 = $__7.next()).done; ) {
+    var n = $__8.value;
     {
       var minTime = Infinity;
       if (isIterable(n)) {
@@ -247,31 +253,23 @@ addGenerator(function* flattenAndSchedule(node) {
             var time = getScheduleKey(nFlat);
             if (time < minTime)
               minTime = time;
-            if (!scheduled.has(time))
-              scheduled = scheduled.set(time, []);
-            scheduled.get(time).push(nFlat);
+            if (log.showDebug)
+              log.debug("queuing", nFlat);
+            scheduled.queue(nFlat);
           }
         }
       } else {
         yield n;
         minTime = getScheduleKey(n);
       }
-      log.debug("minTime2", scheduled.keySeq().sort());
-      for (var $__7 = scheduled.keySeq().sort().takeWhile((function(x) {
-        return x < minTime;
-      }))[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__8; !($__8 = $__7.next()).done; ) {
-        let k = $__8.value;
-        {
-          yield* getIterator(scheduled.get(k));
-          scheduled = scheduled.delete(k);
-        }
+      while (scheduled.length > 0 && getScheduleKey(scheduled.peek()) < minTime) {
+        yield scheduled.dequeue();
       }
     }
   }
-  yield* getIterator(scheduled.keySeq().sort().flatMap((function(k) {
-    return scheduled.get(k);
-  })));
+  while (scheduled.length > 0) {
+    yield scheduled.dequeue();
+  }
 });
 addGenerator(function* map(mapFunc, node) {
   var mapped = m(node).simpleMap(mapFunc);
@@ -352,7 +350,8 @@ addGenerator(function* delay(amount, node) {
       return ({delayAmount: a});
     }))).zipLooping(node);
     yield* getIterator(zipped.simpleMap((function(n) {
-      log.debug("ntomshould delay", n);
+      if (log.showDebug)
+        log.debug("ntomshould delay", n);
       return n[0].set("time", n[0].time + n[1].delayAmount);
     })));
     return;
@@ -376,7 +375,8 @@ addGenerator(function* metro(tickDuration, node) {
   yield* getIterator(m(node).set({time: m().count(0, tickDuration)}));
 });
 addGenerator(function* timeFromDurations(node) {
-  log.debug("memmap used");
+  if (log.showDebug)
+    log.debug("memmap used");
   var durationSumIterator = node.pluck("duration").memoryMap(0, (function(current, x) {
     return x + current;
   }));
@@ -405,14 +405,14 @@ addGenerator(function* merge(mergeNode, node) {
       $__6; !($__6 = $__5.next()).done; ) {
     var mergeEvent = $__6.value;
     {
-      while (nextNode != undefined && nextNode.time < mergeEvent.time) {
+      while (nextNode != undefined && nextNode.time <= mergeEvent.time) {
         yield nextNode;
         nextNode = nodeIterator.next().value;
       }
       yield mergeEvent;
     }
   }
-  if (nextNode != undefined)
+  if (nextNode !== undefined)
     yield nextNode;
   yield* nodeIterator;
 });

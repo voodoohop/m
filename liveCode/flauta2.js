@@ -127,7 +127,7 @@ export var flautaAcid = m(flautaInScale).arpeggiator(arpNoteSelector,arpTemplate
 
 // .delay(-24)
 // .skip(24)
-.automate("param1", n => Math.sin(n.target.time*Math.PI/16) /2 +0.5)
+.automate("param1", n => Math.sin(n.target.time*Math.PI/19) /2 +0.5)
 .automate("param2", n => Math.sin(n.target.time*Math.PI/12) /2 +0.5)
 
 // .automate("pitchBend", n=> Math.max(1-(((n.target.time+n.time)/2) % 2) ,0.5))

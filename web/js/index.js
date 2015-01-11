@@ -207,7 +207,7 @@ logProcessor(logMessage);
 
 var scrollFeedBack = new Bacon.Bus();
 
-// var Grid = require("./grid.js");
+var Grid = require("./grid.js");
 
 scrollFeedBack
 // .debounce(200)
@@ -225,6 +225,7 @@ render= function(data) {
     return (
     <div className="panel panel-default" style={style}>
     <div className="panel-body" style={style}>
+
   {LogView("logs", {selectedDevice: genData.cursor("selectedDevice"), deviceLogs: genData.cursor("deviceLogs"), editorState: genData.cursor("editorState")})}
     <BraceEdit style="width:100%; height:100%" codePlay={codePlay} setCode={codeReceived} sequenceFeedback={sequenceFeedback} cursorToSeq={cursorToSeq} scrollFeedBack={scrollFeedBack}/>
     </div>
@@ -234,7 +235,7 @@ render= function(data) {
 
   }
 
-  // React.render(Grid(),document.getElementById("grid"));
+  React.render(<Grid />,document.getElementById("grid"));
 
   React.render(createEditor(),document.getElementById("javascript-editor"));
 

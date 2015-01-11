@@ -40,12 +40,12 @@ addGenerator(function* log(name, node) {
 
 
 addChainEndFunction(function reduce(func,initial,node) {
-  log.debug("reducing start");
+  if (log.showDebug) log.debug("reducing start");
   if (node === undefined) {
     node = initial;
     initial=null;
   }
-  log.debug("reducing node",node);
+  if (log.showDebug) log.debug("reducing node",node);
   for (let n of node) {
     if (initial===undefined) {
       initial = n;

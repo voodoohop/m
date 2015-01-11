@@ -160,7 +160,7 @@ var microtime = require("microtime");
 
 
 var profilerDataStore = [];
-var profileSamples = 20;
+var profileSamples = 2000;
 
 
 var startTime = microtime.nowDouble();

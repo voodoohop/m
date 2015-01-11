@@ -27,8 +27,11 @@ var log = bunyan.createLogger({
 log.info("bunyan log");
 
 
+
 setInterval(() => {
   log.info("bunyan ping",{testObj:{bla:true}});
 },30000)
+
+log.showDebug = false;
 
 export default log;
