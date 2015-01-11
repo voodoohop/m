@@ -17,24 +17,23 @@ var $__1 = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46_
 var $__2 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../immutable/nodeProxiedImmutable"), $___46__46__47_immutable_47_nodeProxiedImmutable__ && $___46__46__47_immutable_47_nodeProxiedImmutable__.__esModule && $___46__46__47_immutable_47_nodeProxiedImmutable__ || {default: $___46__46__47_immutable_47_nodeProxiedImmutable__}),
     immutableObj = $__2.immutableTom,
     addObjectProp = $__2.addObjectProp,
-    addObjectProps = $__2.addObjectProps;
+    addObjectProps = $__2.addObjectProps,
+    objIsImmutable = $__2.objIsImmutable;
 addGenerator(function* data(dataInput) {
+  var loopLength = arguments[1];
   if (isIterable(dataInput)) {
     for (var $__4 = dataInput[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
       var d = $__5.value;
       {
-        yield* data(d);
+        if (dataInput.length)
+          yield* data(d, dataInput.length);
+        else
+          yield* data(d);
       }
     }
   } else {
-    var dataObj;
-    if (dataInput instanceof Object && (typeof dataInput != "function")) {
-      dataObj = immutableObj(dataInput);
-    } else {
-      dataObj = dataInput;
-    }
-    yield* getIterator([dataObj]);
+    yield immutableObj(dataInput);
   }
 });
 addGenerator(function* loopData(dataNode) {

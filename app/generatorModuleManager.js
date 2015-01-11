@@ -51,7 +51,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
   if (unsatisfiedImports.count() > 0) {
     console.log("imports unSatisfied".red, unsatisfiedImports.toJS());
     // console.log("all imports",newSeqIm.get("imports").entrySeq().toJS());
-    console.log("existing exports".bold,loadedSequences.entrySeq().map(s => ({name: s[0],  exports:s[1].get("exports").toJS()})).toJS());
+    console.log("existing exports".bold,loadedSequences.entrySeq().map(s => ({name: s[0],  exports:s[1].get("exports") && s[1].get("exports").toJS()})).toJS());
     return newSeqIm.set("evaluatedError", Immutable.Map({type:"importsUnsatisfied", msg:"imports unsatisfied", imports:unsatisfiedImports}));
   }
   var [evaluated,details, error] = evalSequences(newSequence, loadedSequences);

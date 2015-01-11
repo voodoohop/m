@@ -546,7 +546,7 @@ addGenerator(function* metro(tickDuration, node) {
 
 addGenerator(function* timeFromDurations(node) {
   if (log.showDebug) log.debug("memmap used");
-  var durationSumIterator = node.pluck("duration").memoryMap(0, (current, x) => x + current);
+  var durationSumIterator = m(node).pluck("duration").memoryMap(0, (current, x) => x + current);
   yield * getIterator(endMarker.compose(node).time(durationSumIterator));
 });
 

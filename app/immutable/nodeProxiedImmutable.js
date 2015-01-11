@@ -122,7 +122,9 @@ export const immutableTom = function(initial={}) {
   return wrapNewProps(empty, initial);
 }
 
-
+export function objIsImmutable(obj) {
+  return obj && obj[isImmutable];
+}
 // throw "bye";
 
 export var isLazy = Symbol("Lazy Resolving Function");

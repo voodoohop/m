@@ -4,6 +4,9 @@ Object.defineProperties(exports, {
   immutableTom: {get: function() {
       return immutableTom;
     }},
+  objIsImmutable: {get: function() {
+      return objIsImmutable;
+    }},
   isLazy: {get: function() {
       return isLazy;
     }},
@@ -147,6 +150,9 @@ const immutableTom = function() {
     console.warn("initial is iterable, making an immutable object may mean we lose the Symbol.iterator", initial);
   return wrapNewProps(empty, initial);
 };
+function objIsImmutable(obj) {
+  return obj && obj[isImmutable];
+}
 var isLazy = Symbol("Lazy Resolving Function");
 var addLazyProp = (function(obj, name, resolveFunc) {
   resolveFunc.isLazy = true;

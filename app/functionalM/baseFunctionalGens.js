@@ -10,26 +10,31 @@ import {
 from "../lib/utils";
 
 import {
-  immutableTom as immutableObj, addObjectProp, addObjectProps
+  immutableTom as immutableObj, addObjectProp, addObjectProps, objIsImmutable
 } from "../immutable/nodeProxiedImmutable";
 
 
 
-addGenerator(function* data(dataInput) {
+addGenerator(function* data(dataInput,loopLength=undefined) {
   if (isIterable(dataInput)) {
     // yield* getIterator(dataInput);
     for (var d of dataInput) {
       // console.log("data:",d);
-      yield* data(d);
+      if (dataInput.length)
+        yield* data(d,dataInput.length)
+      else
+        yield* data(d);
     }
   } else {
-    var dataObj;
-    if (dataInput instanceof Object && (typeof dataInput != "function")) {
-      dataObj = immutableObj(dataInput);
-    } else {
-      dataObj = dataInput;
-    }
-    yield* getIterator([dataObj]);
+    // var dataObj;
+    // if (dataInput instanceof Object && (typeof dataInput != "function")) {
+    //   dataObj = immutableObj(dataInput);
+    // } else {
+    //   dataObj = dataInput;
+    // }
+    yield immutableObj(dataInput);
+    // console.log("resObj",resObj, resObj instanceof Object);
+    // yield objIsImmutable(resObj) && loopLength ? addObjectProp(resObj,"loopSize",loopLength):resObj;
   }
 })
 

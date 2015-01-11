@@ -70,9 +70,7 @@ export var ondasKick = m().evt({
     duration: 0.1,
     velocity: 0.9
   }).metro(1)
- 
- 
-  .combine(OndasGroove).simpleMap(n => {
+  .combine(OndasGroove).simpleMap(note => {
 
     //   return note;
     if (!n.previous || !n.next) {

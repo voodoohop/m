@@ -53,7 +53,7 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
     console.log("existing exports".bold, loadedSequences.entrySeq().map((function(s) {
       return ({
         name: s[0],
-        exports: s[1].get("exports").toJS()
+        exports: s[1].get("exports") && s[1].get("exports").toJS()
       });
     })).toJS());
     return newSeqIm.set("evaluatedError", Immutable.Map({
