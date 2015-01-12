@@ -50,7 +50,7 @@ export var BaconSequencer = wu.curryable(function(baconTime, sequence) {
         .skipWhile((n) => n.time < prevTime)
         .toPlayable());
 
-      next = seqIterator.next();
+      next = seqIterator.next(prevTime);
       // if (!next)
       //   return;
     //   console.log("Rx",Rx.Observable);

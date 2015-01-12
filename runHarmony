@@ -4,7 +4,7 @@ rm -r app-build/*
 traceur --symbols=parse --arrow-functions=true --unicode-expressions=true --numeric-literals=parse --unicode-escape-sequences=true --block-binding=parse --generators=parse --default-parameters=true --for-of=true --rest-parameters=true --spread=true --destructuring=true --classes=parse --computed-property-names=true --dir app app-build --modules=commonjs
 #--source-maps
 #browserify browser/braceEditor.js > browser-build/app.js
-node --harmony_symbols  --harmony_typeof --harmony_scoping --harmony_modules  --harmony_proxies  --harmony_collections --harmony_generators --harmony_iteration  --harmony_numeric_literals  --harmony_strings --harmony_arrays  --harmony_maths  --harmony_promises index.js | bunyan -l info
+node --harmony_symbols  --harmony_typeof --harmony_scoping --harmony_modules  --harmony_proxies  --harmony_collections --harmony_generators --harmony_iteration  --harmony_numeric_literals  --harmony_strings --harmony_arrays  --harmony_maths  --harmony_promises index.js | bunyan -l debug
 
 #
 #node  --harmony --harmony-proxies index.js

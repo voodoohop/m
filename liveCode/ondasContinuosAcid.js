@@ -106,6 +106,8 @@ export var ondasGrooveAcid = ondasGrooveAcidNoAuto.combine(OndasGroove).automate
       log("no previous");
       return n;
     }
+    
+    log(n.time-n.previous.time," ",n.next.time-n.time);
 
     var closestOther = R.minBy(other => dist(other, n), [n.previous, n.next]);
     log("yeah");
@@ -116,14 +118,14 @@ export var ondasGrooveAcid = ondasGrooveAcidNoAuto.combine(OndasGroove).automate
     //   dist(n.previous,n), "\n",
     //   dist(closestOther,n));
 
-    if (closestDist > 0.3)
-      return n;
+    // if (closestDist > 0.3)
+    //   return n;
 
     log(n.next.time, ":", n.previous.time);
 
 
 
-    var grooveAmount=0.8;
+    var grooveAmount=0;
 
     log("closesOtherIs", n, closestOther);
     return n.set({

@@ -145,14 +145,46 @@ addGenerator(function* automate(paramName, valGenerator, node) {
 addGenerator(function* toPlayable(node) {
   yield* getIterator(m(node).notePlay().lazyResolve().flattenAndSchedule());
 });
+var R = require("ramda");
 addGenerator(function* setValue(value, child) {
   yield* child.prop("value", value, child);
 });
+addGenerator(function* groupBy(groupFunc, node) {
+  var currentGroup = [];
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    let n = $__6.value;
+    {
+      if (log.showDebug)
+        log.debug("groupBy", currentGroup, n);
+      if (!((currentGroup.length == 0) || (groupFunc(currentGroup[currentGroup.length - 1], n)))) {
+        yield currentGroup;
+        currentGroup = [];
+      }
+      currentGroup.push(n);
+    }
+  }
+});
+addGenerator(function* slidingWindow(no, node) {
+  var accumulated = [];
+  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__6; !($__6 = $__5.next()).done; ) {
+    let n = $__6.value;
+    {
+      accumulated.push(n);
+      if (accumulated.length > no)
+        accumulated.shift();
+      log.debug("slidingWindow accumulated", accumulated);
+      if (accumulated.length == no)
+        yield accumulated;
+    }
+  }
+});
 addGenerator(function* combine(combineNode, node) {
-  var combineFunc = (function(me, previousOther, nextOther) {
+  var combineFunc = (function(me, previousOthers, nextOthers) {
     return addObjectProps(me, {
-      previous: previousOther,
-      next: nextOther
+      previous: previousOthers[previousOthers.length - 1].other,
+      next: nextOthers[0].other
     });
   });
   var meMapped = m(node).simpleMap((function(n) {
@@ -168,8 +200,49 @@ addGenerator(function* combine(combineNode, node) {
     };
   }));
   var merged = meMapped.merge(otherMapped);
-  var previousOther = null;
-  var nextOther = null;
+  var grouped = merged.groupBy((function(n1, n2) {
+    return (n1.me && n2.me) || (n1.other && n2.other);
+  }));
+  var accumulated = grouped.slidingWindow(3);
+  for (var $__7 = accumulated[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__8; !($__8 = $__7.next()).done; ) {
+    let n = $__8.value;
+    {
+      if (log.showDebug)
+        log.debug("combining", n, n[1]);
+      if (n[1][0].hasOwnProperty("me")) {
+        log.debug("yielding", "previous:", n[0], "next:", n[2]);
+        for (var $__5 = n[1][$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__6; !($__6 = $__5.next()).done; ) {
+          let n2 = $__6.value;
+          yield combineFunc(n2.me, n[0], n[2]);
+        }
+      }
+    }
+  }
+});
+addGenerator(function* combine2(combineNode, node) {
+  var combineFunc = (function(me, previousOthers, nextOthers) {
+    return addObjectProps(me, {
+      previous: previousOthers[previousOthers.length - 1],
+      next: nextOthers[0]
+    });
+  });
+  var meMapped = m(node).simpleMap((function(n) {
+    return {
+      time: n.time,
+      me: n
+    };
+  }));
+  var otherMapped = m(combineNode).simpleMap((function(n) {
+    return {
+      time: n.time,
+      other: n
+    };
+  }));
+  var merged = meMapped.merge(otherMapped);
+  var previousOthers = [];
+  var nextOthers = [];
   var meWaitingForNextOther = [];
   for (var $__7 = merged[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__8; !($__8 = $__7.next()).done; ) {
@@ -177,19 +250,20 @@ addGenerator(function* combine(combineNode, node) {
     {
       if (log.showDebug)
         log.debug("combining", "" + m, n);
-      if (n.hasOwnProperty("me"))
-        meWaitingForNextOther.push(n.me);
-      if (n.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
-        previousOther = nextOther;
-        nextOther = n.other;
+      if (n.hasOwnProperty("me")) {
         for (var $__5 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
             $__6; !($__6 = $__5.next()).done; ) {
-          var me = $__6.value;
+          let me = $__6.value;
           {
-            yield combineFunc(me, previousOther, nextOther);
+            yield combineFunc(me, previousOthers, nextOthers);
           }
         }
-        meWaitingForNextOther = [];
+        meWaitingForNextOther = [n.me];
+        previousOthers = nextOthers;
+        nextOthers = [];
+      }
+      if (n.hasOwnProperty("other")) {
+        nextOthers.push(n.other);
       }
     }
   }
@@ -197,7 +271,7 @@ addGenerator(function* combine(combineNode, node) {
       $__10; !($__10 = $__9.next()).done; ) {
     var me = $__10.value;
     {
-      yield combineFunc(me, previousOther, nextOther);
+      yield combineFunc(me, previousOthers, nextOthers);
       ;
     }
   }
@@ -284,7 +358,7 @@ addGenerator(function* pluck(propertyName, node) {
     return e[propertyName];
   }), node));
 });
-addGenerator(function* memoryMap(initial, mapFunc, node) {
+addGenerator(function* scan(initial, mapFunc, node) {
   var current = initial;
   yield* getIterator(m(initial));
   for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
@@ -292,7 +366,9 @@ addGenerator(function* memoryMap(initial, mapFunc, node) {
     var e = $__6.value;
     {
       current = mapFunc(current, e);
-      yield* getIterator(m(e).set(m(current)));
+      if (log.showDebug)
+        log.debug("scan", current, e);
+      yield current;
     }
   }
 });
@@ -360,6 +436,22 @@ addGenerator(function* delay(amount, node) {
       return n.set("time", amount + n.time);
     })));
 });
+addGenerator(function* translate(amount, node) {
+  if (isIterable(amount)) {
+    var zipped = m(amount.map((function(a) {
+      return ({translateAmount: a});
+    }))).zipLooping(node);
+    yield* getIterator(zipped.simpleMap((function(n) {
+      if (log.showDebug)
+        log.debug("ntomshould translate", n);
+      return n[0].set("pitch", n[0].pitch + n[1].translateAmount);
+    })));
+    return;
+  } else
+    yield* getIterator(m(node).map((function(n) {
+      return n.set("pitch", amount + n.pitch);
+    })));
+});
 addGenerator(function* externalProp(propName, baconProp, initialVal, node) {
   var propVal = initialVal;
   baconProp.onValue(function(v) {
@@ -377,7 +469,7 @@ addGenerator(function* metro(tickDuration, node) {
 addGenerator(function* timeFromDurations(node) {
   if (log.showDebug)
     log.debug("memmap used");
-  var durationSumIterator = m(node).pluck("duration").memoryMap(0, (function(current, x) {
+  var durationSumIterator = m(node).pluck("duration").scan(0, (function(current, x) {
     return x + current;
   }));
   yield* getIterator(endMarker.compose(node).time(durationSumIterator));
@@ -485,3 +577,9 @@ function bjorklundMaker(steps, pulses) {
   build(level);
   return pattern.reverse();
 }
+var testCombine1 = m().evt({pitch: 50}).metro(1).delay(0.1);
+var testCombine2 = m().evt({pitch: 50}).metro(0.25);
+var combined = testCombine1.combine(testCombine2);
+combined.take(10).toArray().forEach((function(n) {
+  return console.log("combineTest", n);
+}));

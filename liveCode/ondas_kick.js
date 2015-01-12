@@ -90,10 +90,12 @@ export var ondasKick = m().evt({
     //   dist(n.previous,n), "\n",
     //   dist(closestOther,n));
 
-    if (closestDist > 0.3)
-      return n;
+    // if (closestDist > 0.3)
+    //   return n;
 
     log(n.next.time, ":", n.previous.time);
+
+ 
 
 
 
@@ -107,3 +109,38 @@ export var ondasKick = m().evt({
       duration: 0.1
     }); // n.set({time:closestOther.time});
   });
+
+
+
+
+log(OndasGroove.take(50).toArray());
+
+
+
+
+
+
+
+log(ondasKick.take(10).toArray());
+
+
+
+
+
+
+
+
+
+
+
+
+log(OndasGroove.merge(m().evt({
+    pitch: 60,
+    duration: 0.1,
+    velocity: 0.9
+  }).metro(1)).take(50).toArray());
+
+
+
+
+

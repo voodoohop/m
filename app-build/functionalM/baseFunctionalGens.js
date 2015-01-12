@@ -26,7 +26,7 @@ addGenerator(function* data(dataInput) {
         $__5; !($__5 = $__4.next()).done; ) {
       var d = $__5.value;
       {
-        if (dataInput.length)
+        if (dataInput.hasOwnProperty("length"))
           yield* data(d, dataInput.length);
         else
           yield* data(d);

@@ -195,17 +195,107 @@ addGenerator(function* toPlayable(node) {
 })
 
 
+var R = require("ramda");
 
 addGenerator(function* setValue(value, child) {
   yield* child.prop("value", value, child);
 });
 
 
+addGenerator(function* groupBy(groupFunc, node) {
+  var currentGroup = [];
+  for (let n of node) {
+    if(log.showDebug)
+      log.debug("groupBy",currentGroup, n);
+    if (!((currentGroup.length == 0)
+          ||
+        (groupFunc(currentGroup[currentGroup.length-1],n)))) {
+      yield currentGroup;
+      currentGroup = [];
+    }
+    currentGroup.push(n);
+}});
+
+addGenerator(function* slidingWindow(no,node) {
+  var accumulated = [];
+  for (let n of node) {
+    accumulated.push(n);
+    if (accumulated.length > no)
+      accumulated.shift();
+    log.debug("slidingWindow accumulated",accumulated);
+    if (accumulated.length==no)
+      yield accumulated;
+  }
+});
 
 addGenerator(function* combine(combineNode, node) {
-  var combineFunc = (me, previousOther, nextOther) => addObjectProps(me, {
-    previous: previousOther,
-    next: nextOther
+  var combineFunc = (me, previousOthers, nextOthers) => addObjectProps(me, {
+    previous: previousOthers[previousOthers.length-1].other,
+    next: nextOthers[0].other
+  });
+  var meMapped = m(node).simpleMap((n) => {
+    return {
+      time: n.time,
+      me: n
+    }
+  });
+  var otherMapped = m(combineNode).simpleMap((n) => {
+    return {
+      time: n.time,
+      other: n
+    }
+  });
+  var merged = meMapped.merge(otherMapped);
+
+  var grouped = merged.groupBy((n1,n2) => (n1.me && n2.me )|| (n1.other && n2.other));
+
+  var accumulated = grouped.slidingWindow(3);
+
+  for (let n of accumulated) {
+    if (log.showDebug)
+      log.debug("combining", n,n[1]);
+    if (n[1][0].hasOwnProperty("me")) {
+      log.debug("yielding", "previous:", n[0],"next:",n[2]);
+      for (let n2 of n[1])
+        yield combineFunc(n2.me, n[0],n[2]);
+    }
+  }
+
+
+  // yield* getIterator(merged.scan(immutableObj({previous:[], next:null, lastN:null,waiting:[]}), (state,n) => {
+  //   if (log.showDebug)
+  //     log.debug("combine",state,n);
+  //
+  //   if (n.hasOwnProperty("other")) {
+  //     log.debug("combineOther",state);
+  //     return state.set({
+  //       next: n.other,
+  //       lastN: n
+  //     });
+  //   }
+  //   if (n.hasOwnProperty("me")) {
+  //     log.debug("combineMe", state);
+  //     if (state.next !== null)
+  //       return state.set({
+  //         previous: R.append(state.next,state.previous),
+  //         next: null,
+  //         lastN:n,
+  //         waiting: R.append(n.me,state.waiting)
+  //       });
+  //     else
+  //       return state.set({
+  //         lastN:n,
+  //         waiting: R.append(n.me,state.waiting)
+  //       });
+  //   }
+  // } ).filter(n => n.lastN !== null && n.lastN.hasOwnProperty("me")));
+});
+
+
+addGenerator(function* combine2(combineNode, node) {
+  var combineFunc = (me, previousOthers, nextOthers) => addObjectProps(me, {
+    previous: previousOthers[previousOthers.length-1],
+    next: nextOthers[0]
   });
   var meMapped = m(node).simpleMap((n) => {
     return {
@@ -222,24 +312,47 @@ addGenerator(function* combine(combineNode, node) {
   var merged = meMapped.merge(otherMapped);
   // for (var test of merged)
   //   // console.log("mergedSeq", test);
-  var previousOther = null;
-  var nextOther = null;
+  var previousOthers = [];
+  var nextOthers = [];
   var meWaitingForNextOther = [];
+  // for (let n of merged) {
+  //   if (n.hasOwnProperty("me")) {
+  //     meWaiting.push(n.me);
+  //     if (nextOthers.length>0) {
+  //       for (let me of meWaiting) {
+  //         yield combineFunc(me, previousOthers,nextOthers);
+  //       }
+  //       meWaiting=[];
+  //     }
+  //   }
+  //   if (n.hasOwnProperty("other")) {
+  //     if (meWaiting.length == 0 && nextOthers.leng) {
+  //       previousOthers = nextOthers;
+  //       nextOthers=[];
+  //     }
+  //     else
+  //       nextOthers.push(n.other);
+  //
+  //   }
+  // }
+
+
   for (let n of merged) {
    if (log.showDebug) log.debug("combining",""+m,n);
-    if (n.hasOwnProperty("me"))
-      meWaitingForNextOther.push(n.me);
-    if (n.hasOwnProperty("other") && meWaitingForNextOther.length > 0) {
-      previousOther = nextOther;
-      nextOther = n.other;
-      for (var me of meWaitingForNextOther) {
-        yield combineFunc(me, previousOther, nextOther);
+    if (n.hasOwnProperty("me")) {
+      for (let me of meWaitingForNextOther) {
+        yield combineFunc(me, previousOthers, nextOthers);
       }
-      meWaitingForNextOther = [];
+      meWaitingForNextOther=[n.me];
+      previousOthers = nextOthers;
+      nextOthers=[];
+    }
+    if (n.hasOwnProperty("other")) {
+      nextOthers.push(n.other);
     }
   }
   for (var me of meWaitingForNextOther) {
-    yield combineFunc(me, previousOther, nextOther);;
+    yield combineFunc(me, previousOthers, nextOthers);;
   }
 });
 
@@ -403,13 +516,15 @@ addGenerator(function* pluck(propertyName, node) {
 
 
 
-addGenerator(function* memoryMap(initial, mapFunc, node) {
+addGenerator(function* scan(initial, mapFunc, node) {
   var current = initial;
   yield * getIterator(m(initial));
   for (var e of node) {
     current = mapFunc(current, e);
+    if (log.showDebug)
+      log.debug("scan", current, e);
     //  // console.log("current",current);
-    yield * getIterator(m(e).set(m(current)));
+    yield current;
   }
 });
 
@@ -499,16 +614,6 @@ addGenerator(function* eventCount(node) {
 addGenerator(function* delay(amount, node) {
   // console.log("delaying",amount, node);
   if (isIterable(amount)) {
-    // if (amount.length>0) {
-    //
-    //   yield* getIterator(m(node).map(n =>  {
-    //     var res = amount.map(a => n.delay(a));
-    //     console.log("delay res", res);
-    //     return res;
-    //   }));
-    //   return;
-    // }
-    // else
       var zipped =m(amount.map(a => ({delayAmount:a}))).zipLooping(node);
       yield* getIterator(zipped.simpleMap(n => {
         if (log.showDebug) log.debug("ntomshould delay", n);
@@ -522,6 +627,23 @@ addGenerator(function* delay(amount, node) {
       return n.set("time",amount+n.time)
     }));
 });
+
+addGenerator(function* translate(amount, node) {
+  // console.log("delaying",amount, node);
+  if (isIterable(amount)) {
+    var zipped = m(amount.map(a => ({translateAmount:a}))).zipLooping(node);
+    yield* getIterator(zipped.simpleMap(n => {
+      if (log.showDebug) log.debug("ntomshould translate", n);
+      return n[0].set("pitch",n[0].pitch+n[1].translateAmount);
+    }));
+    return;
+  }
+  else
+    // for (var a of amount)
+    yield * getIterator(m(node).map(n => {
+      return n.set("pitch",amount+n.pitch);
+    }));
+  });
 
 
 // maybe possible to modify event properties to have iterables with time somehow connecting to time of external events
@@ -546,7 +668,7 @@ addGenerator(function* metro(tickDuration, node) {
 
 addGenerator(function* timeFromDurations(node) {
   if (log.showDebug) log.debug("memmap used");
-  var durationSumIterator = m(node).pluck("duration").memoryMap(0, (current, x) => x + current);
+  var durationSumIterator = m(node).pluck("duration").scan(0, (current, x) => x + current);
   yield * getIterator(endMarker.compose(node).time(durationSumIterator));
 });
 
@@ -693,3 +815,13 @@ function bjorklundMaker(steps, pulses) {
   build(level);
   return pattern.reverse();
 }
+
+
+var testCombine1 = m().evt({pitch:50}).metro(1).delay(0.1);
+var testCombine2 = m().evt({pitch:50}).metro(0.25);
+
+var combined = testCombine1.combine(testCombine2);
+
+combined.take(10).toArray().forEach(n => console.log("combineTest",n));
+
+// throw "bye";

@@ -20,7 +20,7 @@ addGenerator(function* data(dataInput,loopLength=undefined) {
     // yield* getIterator(dataInput);
     for (var d of dataInput) {
       // console.log("data:",d);
-      if (dataInput.length)
+      if (dataInput.hasOwnProperty("length"))
         yield* data(d,dataInput.length)
       else
         yield* data(d);
