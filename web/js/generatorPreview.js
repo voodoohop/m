@@ -27,7 +27,7 @@ var noteRect = component("noteRect", function(note) {
     // note.duration =0;
     console.log("Negative Duration Error"+JSON.stringify(note));
   }
-  var rectStyle={stroke:"white",strokeWidth:"0.001", strokeOpacity:"0.3"};
+  var rectStyle={stroke:"white",strokeWidth:"0.000", strokeOpacity:"0.3"};
   return <rect style={rectStyle} opacity={opacity} fill={col} x={note.time * timeScale} y={1-Math.min(Math.max(note.pitch-20,0)/87,1)} width={note.duration * timeScale} height={1/32}/>
 });
 //

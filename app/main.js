@@ -212,8 +212,12 @@ moduleManager.newSequenceCode.plug(webServer.liveCode);
 
 setTimeout(function() {
   console.log("CODE LOADED",storedSequences);
+  moduleManager.newSequenceCode.push(_.find(storedSequences, s => s.device === "userExtensions"));
+  //  throw "bye";
+
   for (var seq of storedSequences) {
-    moduleManager.newSequenceCode.push({device: seq.device, code: seq.code});
+    if (seq.device !== "userExtensions")
+      moduleManager.newSequenceCode.push({device: seq.device, code: seq.code});
   }
   // moduleManager.loadedSequences.onValue(v =>console.log("after load:",v.toJS()));
 }, 100);

@@ -58,7 +58,7 @@ m().addGen(function* arpeggiator(noteSelector,templateSequence, node) {
 });
 
 function noteSelect(n) {
-    return n[1];
+    return n[n.length-1];
 }
 
 
@@ -73,12 +73,13 @@ function dist(n1, n2) {
 
 var ondasScale = extendScaleToFullRange(getPitches(OndasChords));
 
-var template= m().evt({pitch:[0,3,0,-2,0],duration:[0.15,0.2,0.1],velocity:[0.9,1,0.5]}).metro(1/4);
+var template= m().evt({pitch:[0,3,0,-2,0],duration:[0.15,0.2,0.1],velocity:[0.9,1,0.5,0.3]}).metro(0.25);
 
 var ondasGrooveAcidNoAuto = OndasChords.pitch(pitchToScale(ondasScale)).arpeggiator(noteSelect,template).pitch(scaleToPitch(ondasScale))
 .bjorklund(12,7,0).pitch(n =>n.pitch-12);
 
-export var ondasGrooveAcid = ondasGrooveAcidNoAuto.combine(OndasGroove).automate("param1", n => {
+export var ondasGrooveAcidNoAuto = ondasGrooveAcidNoAuto.combine(OndasGroove).automate("param1", n => {
+    return Math.sin((n.time+n.target.time))/2+0.5;
     if (!n.target.previous || !n.target.next)
         return 0.5;
 
@@ -87,8 +88,10 @@ export var ondasGrooveAcid = ondasGrooveAcidNoAuto.combine(OndasGroove).automate
     log(dist1);
     var shortestDist = 1-Math.min(dist1,1);
     return shortestDist;
-})
-.automate("param2", n => {
+});
+
+
+export var ondasGrooveAcid = ondasGrooveAcidNoAuto.automate("param2", n => {
     if (!n.target.previous || !n.target.next)
         return 0.5;
 

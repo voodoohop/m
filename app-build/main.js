@@ -116,14 +116,18 @@ moduleManager.newSequenceCode.plug(newClipSequences);
 moduleManager.newSequenceCode.plug(webServer.liveCode);
 setTimeout(function() {
   console.log("CODE LOADED", storedSequences);
+  moduleManager.newSequenceCode.push(_.find(storedSequences, (function(s) {
+    return s.device === "userExtensions";
+  })));
   for (var $__9 = storedSequences[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__10; !($__10 = $__9.next()).done; ) {
     var seq = $__10.value;
     {
-      moduleManager.newSequenceCode.push({
-        device: seq.device,
-        code: seq.code
-      });
+      if (seq.device !== "userExtensions")
+        moduleManager.newSequenceCode.push({
+          device: seq.device,
+          code: seq.code
+        });
     }
   }
 }, 100);

@@ -14,6 +14,8 @@
 //   });
 // require("long-stack-traces");
 // console.log(Symbol);
+
+console.log("start");
 var dispName = require('stack-displayname');
 
 require('source-map-support').install();
@@ -22,13 +24,14 @@ require('traceur/bin/traceur-runtime');
 Error.stackTraceLimit = 100;
 
 
-console.log("requiring main");
+console.log("requiring main2");
+console.log("requiring main3");
 require('./app-build/main');
 
 
 
   //
-// 
+//
 //   var fs = require("fs");
 // var agent = require('strong-agent');
 // agent.metrics.startCpuProfiling();

@@ -1,94 +1,72 @@
-
 export var OndasChords = m().data([
   {
-    "pitch": 52,
+    "pitch": 62,
     "duration": 3.99,
-    "velocity": 0.8188976377952756,
-    "time": 16,
+    "velocity": 0.6614173228346457,
+    "time": 0,
     "color": "yellow"
   },
   {
-    "pitch": 54,
+    "pitch": 66,
     "duration": 3.99,
-    "velocity": 0.8188976377952756,
-    "time": 16,
+    "velocity": 0.5748031496062992,
+    "time": 0,
     "color": "yellow"
   },
   {
-    "pitch": 57,
+    "pitch": 69,
     "duration": 3.99,
-    "velocity": 0.8188976377952756,
-    "time": 16,
+    "velocity": 0.31496062992125984,
+    "time": 0,
     "color": "yellow"
   },
   {
-    "pitch": 59,
+    "pitch": 62,
     "duration": 3.99,
+    "velocity": 0.4330708661417323,
+    "time": 4,
+    "color": "yellow"
+  },
+  {
+    "pitch": 66,
+    "duration": 3.99,
+    "velocity": 0.4409448818897638,
+    "time": 4,
+    "color": "yellow"
+  },
+  {
+    "pitch": 69,
+    "duration": 3.99,
+    "velocity": 0.6062992125984252,
+    "time": 4,
+    "color": "yellow"
+  },
+  {
+    "pitch": 73,
+    "duration": 3.99,
+    "velocity": 0.6299212598425197,
+    "time": 4,
+    "color": "yellow"
+  },
+  {
+    "pitch": 62,
+    "duration": 7.99,
+    "velocity": 0.5039370078740157,
+    "time": 8,
+    "color": "yellow"
+  },
+  {
+    "pitch": 65,
+    "duration": 7.99,
     "velocity": 0.6220472440944882,
-    "time": 16,
+    "time": 8,
     "color": "yellow"
   },
   {
-    "pitch": 62,
-    "duration": 3.99,
-    "velocity": 0.8188976377952756,
-    "time": 16,
-    "color": "yellow"
-  },
-  {
-    "pitch": 54,
-    "duration": 3.99,
-    "velocity": 0.8188976377952756,
-    "time": 20,
-    "color": "yellow"
-  },
-  {
-    "pitch": 57,
-    "duration": 3.99,
-    "velocity": 0.8188976377952756,
-    "time": 20,
-    "color": "yellow"
-  },
-  {
-    "pitch": 59,
-    "duration": 3.99,
-    "velocity": 0.8976377952755905,
-    "time": 20,
-    "color": "yellow"
-  },
-  {
-    "pitch": 61,
-    "duration": 3.99,
-    "velocity": 0.8188976377952756,
-    "time": 20,
-    "color": "yellow"
-  },
-  {
-    "pitch": 53,
+    "pitch": 70,
     "duration": 7.99,
-    "velocity": 0.8188976377952756,
-    "time": 24,
-    "color": "yellow"
-  },
-  {
-    "pitch": 57,
-    "duration": 7.99,
-    "velocity": 0.8188976377952756,
-    "time": 24,
-    "color": "yellow"
-  },
-  {
-    "pitch": 59,
-    "duration": 7.99,
-    "velocity": 0.8188976377952756,
-    "time": 24,
-    "color": "yellow"
-  },
-  {
-    "pitch": 62,
-    "duration": 7.99,
-    "velocity": 0.8188976377952756,
-    "time": 24,
+    "velocity": 0.6062992125984252,
+    "time": 8,
     "color": "yellow"
   }
-]).delay(-16).loopLength(16);
+]).loopLength(16);
