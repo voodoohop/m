@@ -9,7 +9,6 @@ var $__wrapSequenceError__,
     $__sequenceEvalSandbox__;
 var vm = require("vm");
 var _ = require("lodash");
-var microtime = require("microtime");
 var stackTrace = require("stack-trace");
 var wrapError = ($__wrapSequenceError__ = require("./wrapSequenceError"), $__wrapSequenceError__ && $__wrapSequenceError__.__esModule && $__wrapSequenceError__ || {default: $__wrapSequenceError__}).default;
 var sandbox = ($__sequenceEvalSandbox__ = require("./sequenceEvalSandbox"), $__sequenceEvalSandbox__ && $__sequenceEvalSandbox__.__esModule && $__sequenceEvalSandbox__ || {default: $__sequenceEvalSandbox__}).default;
@@ -51,13 +50,13 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     }
     globalBack.sequence = global.sequence;
     global.sequence = playableSequence;
-    var startTime = microtime.nowDouble();
+    var startTime = process.hrtime();
     var testSeqResult = null;
     var timeTaken;
     try {
       console.log("global m before running code", global["m"]);
       testSeqResult = vm.runInThisContext(testerCode, {timeout: 5000});
-      timeTaken = microtime.nowDouble() - startTime;
+      timeTaken = process.hrtime() - startTime;
     } catch (e) {
       console.log("exception while trying to generate events", e.stack, e, seq);
       res.playable = false;

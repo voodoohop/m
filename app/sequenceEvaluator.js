@@ -2,7 +2,7 @@ var vm = require("vm");
 
 var _ = require("lodash");
 
-var microtime = require("microtime");
+// var microtime = require("microtime");
 var stackTrace = require("stack-trace");
 
 import wrapError from "./wrapSequenceError";
@@ -60,7 +60,7 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     globalBack.sequence = global.sequence;
     global.sequence = playableSequence;
 
-    var startTime = microtime.nowDouble();
+    var startTime = process.hrtime();
     var testSeqResult = null;
     var timeTaken;
     try {
@@ -68,7 +68,7 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
       testSeqResult = vm.runInThisContext(testerCode, {
         timeout: 5000
       });
-      timeTaken = microtime.nowDouble() - startTime;
+      timeTaken = process.hrtime() - startTime;
 
     } catch (e) {
       console.log("exception while trying to generate events", e.stack, e, seq);

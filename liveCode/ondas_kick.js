@@ -70,38 +70,18 @@ export var ondasKick = m().evt({
     duration: 0.1,
     velocity: 0.9
   }).metro(1)
- 
- 
+
+
   .combine(OndasGroove).simpleMap(n => {
 
     //   return note;
     if (!n.previous || !n.next) {
 
-      log("no previous");
+
       return n;
     }
-
     var closestOther = R.minBy(other => dist(other, n), [n.previous, n.next]);
-    log("yeah");
-
     var closestDist = dist(closestOther, n);
-    // if (closestDist>0.2)
-    //   log("distance",dist(n.previous,n),"\n",
-    //   dist(n.previous,n), "\n",
-    //   dist(closestOther,n));
-
-    // if (closestDist > 0.3)
-    //   return n;
-
-    log(n.next.time, ":", n.previous.time);
-
- 
-
-
-
-
-
-    log("closesOtherIs", n, closestOther);
     return n.set({
       time: closestOther.time,
       color: "orange",
@@ -111,36 +91,46 @@ export var ondasKick = m().evt({
   });
 
 
+import {growToBreak1,songUnitEaser4} from "overallAutomator";
 
 
-log(OndasGroove.take(50).toArray());
-
-
-
-
-
-
-
-log(ondasKick.take(10).toArray());
-
-
-
-
-
-
-
-
-
-
-
-
-log(OndasGroove.merge(m().evt({
+  export var ondasClap = m().evt({
     pitch: 60,
     duration: 0.1,
     velocity: 0.9
-  }).metro(1)).take(50).toArray());
+  }).metro(2).delay(1).map(n => n.time % 16 <12 ? [n]:[n,n.set({time:n.time+0.25, velocity:0.5})])
+
+
+  .combine(OndasGroove).simpleMap(n => {
+
+    //   return note;
+    if (!n.previous || !n.next) {
+
+
+      return n;
+    }
+    var closestOther = R.minBy(other => dist(other, n), [n.previous, n.next]);
+    var closestDist = dist(closestOther, n);
+    return n.set({
+      time: closestOther.time,
+      color: "orange",
+    //   velocity: 0.9,
+      duration: 0.1
+    }); // n.set({time:closestOther.time});
+  }).automate("param3",growToBreak1)
+.automate("param4", songUnitEaser4);
 
 
 
 
 
+
+
+
+
+
+// log(OndasGroove.merge(m().evt({
+//     pitch: 60,
+//     duration: 0.1,
+//     velocity: 0.9
+//   }).metro(1)).take(50).toArray());

@@ -142,10 +142,9 @@ var kick_real = m().evt({
   velocity: [0.9, 0.7, 0.8],
   duration: 0.1
 }).metro(1);
-var microtime = require("microtime");
 var profilerDataStore = [];
 var profileSamples = 2000;
-var startTime = microtime.nowDouble();
+var startTime = process.hrtime();
 for (var $__1 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__2; !($__2 = $__1.next()).done; ) {
   var n = $__2.value;
@@ -158,7 +157,7 @@ for (var $__1 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toPropert
     });
   }
 }
-var timeTaken = microtime.nowDouble() - startTime;
+var timeTaken = process.hrtime() - startTime;
 log("time:", timeTaken);
 log("-------------".bgRed);
 console.log(kick.toPlayable().take(50).toArray()[49]);
@@ -173,7 +172,7 @@ for (var $__3 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
     });
   }
 }
-timeTaken = microtime.nowDouble() - startTime;
+timeTaken = process.hrtime() - startTime;
 log("time:", timeTaken);
 for (var $__5 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__6; !($__6 = $__5.next()).done; ) {
@@ -199,7 +198,7 @@ for (var $__5 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
     });
   }
 }
-timeTaken = microtime.nowDouble() - startTime;
+timeTaken = process.hrtime() - startTime;
 log("time2:", timeTaken);
 for (var $__7 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
     $__8; !($__8 = $__7.next()).done; ) {
@@ -210,7 +209,7 @@ for (var $__7 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
     veloctiy: n.velocity
   });
 }
-timeTaken = microtime.nowDouble() - startTime;
+timeTaken = process.hrtime() - startTime;
 log("time:", timeTaken);
 var flautaArpBase = m().data([{
   "pitch": 72,

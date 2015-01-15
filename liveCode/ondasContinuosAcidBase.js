@@ -1,4 +1,9 @@
 
 import {ondasGrooveAcidNoAuto} from "ondasContinuosAcid";
 
-export var ondasContinuousBass = ondasGrooveAcidNoAuto.bjorklund(16,8,0).pitch(n=>n.pitch-24);
+import {growToBreak1,songUnitEaser} from "overallAutomator";
+
+export var ondasContinuousBass = ondasGrooveAcidNoAuto.bjorklund(16,7,0).pitch(n=>n.pitch-24)
+.automate("param3",growToBreak1)
+.automate("param4", songUnitEaser)
+;

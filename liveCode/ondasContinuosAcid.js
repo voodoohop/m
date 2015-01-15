@@ -4,6 +4,10 @@ import {OndasGroove} from "abletonClip_OndasGroove";
 import {OndasChords} from "abletonClip_OndasChords";
 import {getPitches,extendScaleToFullRange, scaleToPitch, pitchToScale} from "scaleTools";
 
+import {growToBreak1,songUnitEaser} from "overallAutomator";
+
+
+
 m().addGen(function* arpeggiator(noteSelector,templateSequence, node) {
 
      //log(""+m(node).groupByTime().map(n => m(templateSequence).pitch(nTemplate => nTemplate.pitch+n[0].pitch).delay(n[0].time)) );
@@ -106,14 +110,14 @@ export var ondasGrooveAcid = ondasGrooveAcidNoAuto.automate("param2", n => {
     //   return note;
     if (!n.previous || !n.next) {
 
-      log("no previous");
+    //   log("no previous");
       return n;
     }
     
     log(n.time-n.previous.time," ",n.next.time-n.time);
 
     var closestOther = R.minBy(other => dist(other, n), [n.previous, n.next]);
-    log("yeah");
+    // log("yeah");
 
     var closestDist = dist(closestOther, n);
     // if (closestDist>0.2)
@@ -130,10 +134,12 @@ export var ondasGrooveAcid = ondasGrooveAcidNoAuto.automate("param2", n => {
 
     var grooveAmount=0;
 
-    log("closesOtherIs", n, closestOther);
+    // log("closesOtherIs", n, closestOther);
     return n.set({
       time: n.time + (closestOther.time-n.time)*grooveAmount,
       color: "orange"
     }); // n.set({time:closestOther.time});
-  });
+  }).automate("param3",growToBreak1)
+.automate("param4", songUnitEaser)
+;
 ;

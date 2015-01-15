@@ -156,14 +156,14 @@ export var kick_real = m().evt({
 }).metro(1);
 // .automate("pitchBend", n => Math.sin((n.time+n.evt.time)*Math.PI/8)/4+0.5)
 
-var microtime = require("microtime");
+// var microtime = require("microtime");
 
 
 var profilerDataStore = [];
 var profileSamples = 2000;
 
 
-var startTime = microtime.nowDouble();
+var startTime = process.hrtime();
 
 // console.log(kick.toPlayable()[wu.iteratorSymbol]);
 
@@ -179,7 +179,7 @@ for (var n of kick
   // console.log(n);
 }
 
-var timeTaken = microtime.nowDouble() - startTime;
+var timeTaken = process.hrtime() - startTime;
 log("time:", timeTaken);
 log("-------------".bgRed);
 console.log(kick.toPlayable().take(50).toArray()[49]);
@@ -196,8 +196,8 @@ for (var n of tom
 }
 
 
-// startTime = microtime.nowDouble();
-timeTaken = microtime.nowDouble() - startTime;
+// startTime = process.hrtime();
+timeTaken = process.hrtime() - startTime;
 log("time:", timeTaken);
 
 for (var n of tom
@@ -223,7 +223,7 @@ for (var n of tom
   });
 }
 
-timeTaken = microtime.nowDouble() - startTime;
+timeTaken = process.hrtime() - startTime;
 log("time2:", timeTaken);
 
 
@@ -236,7 +236,7 @@ for (var n of tom
     veloctiy: n.velocity
   });
 
-timeTaken = microtime.nowDouble() - startTime;
+timeTaken = process.hrtime() - startTime;
 log("time:", timeTaken);
 
 // throw "bye";

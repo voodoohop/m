@@ -36,7 +36,7 @@ var stack = trace.map(t => ({
 
 var stackEntry = _.find(stack, s => s.eval === true || s.functionName === "eval");
 if (stackEntry !==undefined)
-console.log("found stackEntry",stackEntry);
+log.debug("found stackEntry",stackEntry);
 // console.log("stack",stack);
 var pos = null;
 if (!stackEntry) {

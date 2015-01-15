@@ -7702,7 +7702,7 @@ parseYieldExpression: true, parseAwaitExpression: true
     }
 
     // Sync with *.json manifests.
-    exports.version = '8001.2001.0-dev-harmony-fb';
+    exports.version = '9001.1.0-dev-harmony-fb';
 
     exports.tokenize = tokenize;
 

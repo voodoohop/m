@@ -30,7 +30,7 @@ function getSourcePos(sourcePosMapper) {
     return s.eval === true || s.functionName === "eval";
   }));
   if (stackEntry !== undefined)
-    console.log("found stackEntry", stackEntry);
+    log.debug("found stackEntry", stackEntry);
   var pos = null;
   if (!stackEntry) {
     log.warn("couldn't find stackEntry", stack);
