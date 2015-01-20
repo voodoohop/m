@@ -1,5 +1,5 @@
 
-import {OndasChords} from "abletonClip_OndasChords";
+import {chords as OndasChords} from "OndasChordsVariety";
 import {MisturaBreakGroove as MistureCongaGroove} from "abletonClip_MisturaBreakGroove";
 
 var chords =OndasChords.groupByTime().simpleMap(n => ({time:n[0].time, events:n}));
@@ -15,4 +15,4 @@ export var bellChordGroove = MistureCongaGroove.bjorklund(8,8,0).combine(chords)
     ;
 
     // return n.prop("pitch",n.previous.pitch);
-  }).bjorklund(16,9,2).velocity([0.9,0.7,0.9,0.8]).delay(0); 
+  }).bjorklund(16,9,2).velocity([0.9,0.7,0.9,0.8]).delay(0);

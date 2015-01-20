@@ -1,4 +1,4 @@
-import {OndasChords} from "abletonClip_OndasChords";
+import {chords as OndasChords} from "OndasChordsVariety";
 
 
 export var bended = OndasChords;

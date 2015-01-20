@@ -24,3 +24,7 @@ export var songUnitEaser = n => (n.time+n.target.time) % songUnit <songUnit/2 ? 
                                                            
 export var songUnitEaser4 = n => (n.time+n.target.time) % songUnit*4 <songUnit/2*4 ? periodicEaser(n.time+n.target.time,"in-bounce", songUnit/2*4) :
                                                            1-periodicEaser(n.time+n.target.time,"in-bounce", songUnit/2*4) ;                                                
+                                                           
+                                                           
+
+export var chorusFilter = (node) => node.filter(n => n.time % songStructureUnit < songStructureUnit*0.75);                                                    
