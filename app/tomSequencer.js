@@ -16,10 +16,10 @@ var eventPlayer = function(evtWithOffset) {
   return {evt: evt, play: function(instrument) {
 
 
-   if (evt.type=="noteOn") {
+   if (evt.type=="noteOn" && !evt.noteDisabled) {
     instrument.noteOn(evt.pitch.valueOf(), evt.velocity.valueOf(), evt.time+firstTime);
    }
-   if (evt.type=="noteOff") {
+   if (evt.type=="noteOff" && !evt.noteDisabled) {
      instrument.noteOff(evt.pitch.valueOf(), evt.time+firstTime);
     }
     if (evt.type=="automation") {

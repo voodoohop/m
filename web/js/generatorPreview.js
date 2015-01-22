@@ -22,7 +22,7 @@ var noteRect = component("noteRect", function(note) {
     return noteRect(note.evt);
   var timeScale=1/16;
   var col = note.color || "rgba(255,255,255,1)";
-  var opacity=note.velocity/1.7+0.1;
+  var opacity=note.noteDisabled ? 0 : note.velocity/1.7+0.1;
   if (note.duration < 0) {
     // note.duration =0;
     console.log("Negative Duration Error"+JSON.stringify(note));

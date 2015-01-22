@@ -36,7 +36,7 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     res.isSequenceGenerator = seq.isTom;
     if (!res.isSequenceGenerator)
       return res;
-    var sampleSize = 200;
+    var sampleSize = 100;
     var playableSequence = seq.toPlayable().take(sampleSize);
     var testerCode = "result = sequence.toArray();";
     var globalBack = {};
@@ -55,7 +55,7 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     var timeTaken;
     try {
       console.log("global m before running code", global["m"]);
-      testSeqResult = vm.runInThisContext(testerCode, {timeout: 5000});
+      testSeqResult = vm.runInThisContext(testerCode, {timeout: 2500});
       timeTaken = process.hrtime() - startTime;
     } catch (e) {
       console.log("exception while trying to generate events", e.stack, e, seq);
@@ -89,7 +89,7 @@ function evalSequences(seqContext, loadedSequences) {
   try {
     console.log("running seqGen");
     global.seqGen = seqGen;
-    sequences = vm.runInThisContext("seqGen();", {timeout: 5000});
+    sequences = vm.runInThisContext("seqGen();", {timeout: 500});
   } catch (e) {
     console.log("exception in live code", e.stack);
     error = wrapError(e, seqContext);

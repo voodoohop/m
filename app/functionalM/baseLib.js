@@ -171,6 +171,7 @@ function M(node = rootNode) {
   this.isTom = true;
   //this.parentNode=null;
   // this._loopLength=node._loopLength;
+  this.length = node.length;
   this[wu.iteratorSymbol] = node[wu.iteratorSymbol];
   // Object.seal(this);
   // Object.seal(node);

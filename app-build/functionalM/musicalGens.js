@@ -111,6 +111,12 @@ addGenerator(function* lazyResolve(node) {
 var isNote = (function(n) {
   return n.hasOwnProperty("pitch") && n.hasOwnProperty("velocity") && n.hasOwnProperty("time") && n.duration > 0;
 });
+var hasTimeAndDuration = (function(n) {
+  return n.hasOwnProperty("time") && n.hasOwnProperty("duration");
+});
+addGenerator(function* automationOnly(node) {
+  yield* getIterator(m(node).set({noteDisabled: true}));
+});
 addGenerator(function* notePlay(node) {
   yield* getIterator(m(node).filter(isNote).lazyMap("automation_noteOnOff", (function(n) {
     return [{
@@ -119,16 +125,18 @@ addGenerator(function* notePlay(node) {
       pitch: n.pitch,
       duration: n.duration,
       time: n.time,
-      color: n.color
+      color: n.color,
+      noteDisabled: n.noteDisabled
     }, {
       type: "noteOff",
       pitch: n.pitch,
-      time: n.time + n.duration
+      time: n.time + n.duration,
+      noteDisabled: n.noteDisabled
     }];
   })));
 });
 addGenerator(function* automate(paramName, valGenerator, node) {
-  yield* getIterator(m(node).filter(isNote).lazyMap("automation_" + paramName, (function(n) {
+  yield* getIterator(m(node).filter(hasTimeAndDuration).lazyMap("automation_" + paramName, (function(n) {
     var automation = m().data({
       type: "automation",
       target: n,
@@ -282,18 +290,26 @@ addGenerator(function* combineMap(combineFunc, combineNode, node) {
   })));
 });
 addGenerator(function* loopLength(loopL, node) {
-  var time = 0;
-  var count = 0;
+  var time = loopL;
+  var count = 1;
   if (log.showDebug)
     log.debug("looplength started");
+  var evaluatedNodes = m(node).takeWhile((function(n) {
+    return n.time < loopL;
+  })).toArray();
+  if (log.showDebug)
+    log.debug("looplength evaluated nodes", evaluatedNotes.length);
+  yield* getIterator(evaluatedNodes);
   while (true) {
-    for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+    for (var $__5 = evaluatedNodes[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__6; !($__6 = $__5.next()).done; ) {
       var n = $__6.value;
       {
         if (log.showDebug)
           log.debug("looplenghtime", time, count++);
-        yield addObjectProp(n, "time", time + n.time);
+        var _optimizeTimeJump = yield addObjectProp(n, "time", time + n.time);
+        if (_optimizeTimeJump)
+          console.log(("" + _optimizeTimeJump + "").red());
       }
     }
     time += loopL;
@@ -521,21 +537,49 @@ addGenerator(function* quantize(timeGrid, amount, node) {
     return e.time - amount * diff;
   }), node));
 });
+function paramEval(param) {
+  if (typeof param === "function")
+    return (function(n) {
+      return param(n);
+    });
+  if (isIterable(param)) {
+    var iterator = getIterator(param);
+    var lastVal = undefined;
+    return (function() {
+      var next = iterator.next();
+      if (next.done)
+        return lastVal;
+      return next.value;
+    });
+  }
+  return (function() {
+    return param;
+  });
+}
 addGenerator(function* bjorklund(steps, pulses, rotation, node) {
-  var pattern = bjorklundMaker(steps, pulses);
-  var counter = rotation;
-  if (pattern.length == 0)
-    pattern = [1];
+  var stepsEval = paramEval(steps);
+  var pulsesEval = paramEval(pulses);
+  var counter = 0;
   for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__6; !($__6 = $__5.next()).done; ) {
     var n = $__6.value;
     {
-      if (pattern[counter++ % pattern.length]) {
+      var pattern = bjorklundMaker(stepsEval(n), pulsesEval(n));
+      if (pattern.length == 0)
+        pattern = [1];
+      if (pattern[((counter++) + rotation) % pattern.length]) {
         yield n;
       }
     }
   }
 });
+var bjorklundMemo = {};
+function memoizedBjorklundMaker(steps, pulses) {
+  var key = "" + steps + "_" + pulses;
+  if (bjorklundMemo[key])
+    return bjorklundMemo[key];
+  return (bjorklundMemo[key] = bjorklundMaker(steps, pulses));
+}
 function bjorklundMaker(steps, pulses) {
   steps = Math.round(steps);
   pulses = Math.round(pulses);

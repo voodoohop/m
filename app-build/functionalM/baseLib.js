@@ -151,6 +151,7 @@ function M() {
   this.currentNode = node;
   this.name = node.name;
   this.isTom = true;
+  this.length = node.length;
   this[wu.iteratorSymbol] = node[wu.iteratorSymbol];
 }
 M.prototype.toString = function() {

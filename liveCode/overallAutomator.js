@@ -12,7 +12,7 @@ export var periodicEaser = function(time,easeType, period) {
 
 export var break1=songStructureUnit;
 
-export var  growToBreak = function(breakMoment) {
+export var  growToBreak = function(breakMoment) {   
     return n => periodicEaser(n.time+n.target.time, "in-cubic", breakMoment);
 };
  
@@ -27,4 +27,10 @@ export var songUnitEaser4 = n => (n.time+n.target.time) % songUnit*4 <songUnit/2
                                                            
                                                            
 
-export var chorusFilter = (node) => node.filter(n => n.time % songStructureUnit < songStructureUnit*0.75);                                                    
+export var chorusFilter = (node) => node.filter(n => n.time>songUnit*6 && n.time % songStructureUnit < songStructureUnit*0.75);
+
+
+export var kickFilter = (node) => node.filter(n => n.time>songUnit*6 && n.time%(songUnit*4) < songUnit*4-2  );
+
+export var hatFilter = (node) => node.filter(n => n.time>songUnit*8 && n.time%(songUnit*8) < songUnit*8-3  );
+

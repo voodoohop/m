@@ -2,6 +2,7 @@
 
 import {OndasGroove} from "abletonClip_OndasGroove";
 import {chords as OndasChords} from "OndasChordsVariety";
+import {OndasChords as RealOndasChords} from "abletonClip_OndasChords";
 import {getPitches,extendScaleToFullRange, scaleToPitch, pitchToScale} from "scaleTools";
 
 import {growToBreak1,songUnitEaser} from "overallAutomator";
@@ -75,18 +76,19 @@ function dist(n1, n2) {
   }
 
 
-  var ondasScale = extendScaleToFullRange(getPitches(OndasChords));
+  export var ondasScale = extendScaleToFullRange(getPitches(RealOndasChords));
 
-  var template= m().evt({pitch:[0,-3,-5,0,-2,0],duration:[0.4,0.2,0.1],velocity:[0.9,1,0.5,0.3]}).metro(0.25);
+  var template= m().evt({pitch:[0,-3,-5,0,-2,0],duration:[0.1,0.2,0.1],velocity:[0.65,8,0.5,0.3]}).metro(0.25);
 
   var ondasGrooveAcidNoAuto = OndasChords.pitch(pitchToScale(ondasScale)).arpeggiator(noteSelect,template).pitch(scaleToPitch(ondasScale))
-  .bjorklund(12,//7
+//   .bjorklund(12,//7
 
-    n => {
-        return n.time%64 >48 ? 5:7;
-    }
+//     n => {
+//         return n.time%64 >48 ? 5:7;
+//     }
 
-    ,0).pitch(n =>n.pitch-12);
+//     ,0)
+    .pitch(n =>n.pitch-12);
 
     export var ondasGrooveAcidNoAuto = ondasGrooveAcidNoAuto.combine(OndasGroove)
     .automate("param1", n => {
@@ -103,14 +105,14 @@ function dist(n1, n2) {
     ;
 
     export var ondasGrooveAcid = ondasGrooveAcidNoAuto
-    .bjorklund(16,7,0)
+    // .bjorklund(16,9,0)
     .automate("param2", n => {
       if (!n.target.previous || !n.target.next)
         return 0.5;
 
         var dist1 = Math.abs(n.target.next.time - (n.time+n.target.time));
         var dist2= Math.abs(n.target.previous.time - (n.time+n.target.time));
-        log(dist1);
+        // log(dist1);
         var shortestDist = 1-Math.min(dist2,1);
         return shortestDist;
       })
@@ -123,7 +125,7 @@ function dist(n1, n2) {
           return n;
         }
 
-        log(n.time-n.previous.time," ",n.next.time-n.time);
+        // log(n.time-n.previous.time," ",n.next.time-n.time);
 
         var closestOther = R.minBy(other => dist(other, n), [n.previous, n.next]);
         // log("yeah");
@@ -137,7 +139,7 @@ function dist(n1, n2) {
         // if (closestDist > 0.3)
         //   return n;
 
-        log(n.next.time, ":", n.previous.time);
+        // log(n.next.time, ":", n.previous.time);
 
 
 
@@ -150,5 +152,8 @@ function dist(n1, n2) {
         }); // n.set({time:closestOther.time});
       }).automate("param3",growToBreak1)
       .automate("param4", songUnitEaser)
+    //   .doCache()
+      
       ;
-      ;
+      
+      export var ondasGrooveAcid2 = ondasGrooveAcid;

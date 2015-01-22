@@ -2,7 +2,12 @@ import {
   OndasGroove
 }
 from "abletonClip_OndasGroove";
+
+import {kickFilter,hatFilter} from "overallAutomator";
+
 log("here we are!");
+
+
 
 export var OndasGrooveTest = m().evt({
   pitch: 60,
@@ -68,7 +73,7 @@ export var ondasGrooveCompare = OndasGroove.combine(acidExport).simpleMap(note =
 export var ondasKick = m().evt({
     pitch: 60,
     duration: 0.1,
-    velocity: 0.9
+    velocity: 0.7
   }).metro(1)
 
 
@@ -88,7 +93,7 @@ export var ondasKick = m().evt({
       velocity: 0.9,
       duration: 0.1
     }); // n.set({time:closestOther.time});
-  });
+  }).invoke(kickFilter);
 
 
 import {growToBreak1,songUnitEaser4} from "overallAutomator";
@@ -97,7 +102,7 @@ import {growToBreak1,songUnitEaser4} from "overallAutomator";
   export var ondasClap = m().evt({
     pitch: 60,
     duration: 0.1,
-    velocity: 0.9
+    velocity: 0.7
   }).metro(2).delay(1).map(n => n.time % 16 <12 ? [n]:[n,n.set({time:n.time+0.25, velocity:0.5})])
 
 
@@ -115,11 +120,39 @@ import {growToBreak1,songUnitEaser4} from "overallAutomator";
       time: closestOther.time,
       color: "orange",
     //   velocity: 0.9,
-      duration: 0.1
+      duration: 0.1,
+      pitch:60
     }); // n.set({time:closestOther.time});
   }).automate("param3",growToBreak1)
 .automate("param4", songUnitEaser4);
 
+
+  export var ondasHat = m().evt({
+    pitch: 60,
+    duration: 0.1,
+    velocity: 0.7
+  }).metro(1).delay(0.5).invoke(hatFilter)
+
+
+  .combine(OndasGroove).simpleMap(n => {
+
+    //   return note;
+    if (!n.previous || !n.next) {
+
+
+      return n;
+    }
+    var closestOther = R.minBy(other => dist(other, n), [n.previous, n.next]);
+    var closestDist = dist(closestOther, n);
+    return n.set({
+      time: closestOther.time,
+      color: "orange",
+    //   velocity: 0.9,
+      duration: 0.1,
+      pitch:60
+    }); // n.set({time:closestOther.time});
+  }).automate("param3",growToBreak1)
+.automate("param4", songUnitEaser4);
 
 
 

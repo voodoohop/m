@@ -13,7 +13,7 @@ var noteSelector= (notes, n) => {
     return notes[arpedNoteNo%2];
 }
 
-var template = m().evt({pitch:0,duration:0.15, velocity:0.8}).metro(metro);
+var template = m().evt({pitch:0,duration:0.15, velocity:[0.7,0.4,0.5]}).metro(metro);
 
 function dist(n1, n2) {
   var dist2 = Math.abs(n1.time - n2.time);
@@ -22,7 +22,9 @@ function dist(n1, n2) {
   return dist2;
 }
 
-var intermediateArped=m(OndasChords).arpeggiator2(noteSelector,template).combine(ondasContinuousBass.delay(16)).filter(n => {
+var intermediateArped=m(OndasChords).arpeggiator2(noteSelector,template).combine(ondasContinuousBass
+// .delay(16)
+).filter(n => {
     if (!n.previous)
         return true;
     if (n.previous.duration<0.1)
@@ -35,12 +37,12 @@ var intermediateArped=m(OndasChords).arpeggiator2(noteSelector,template).combine
 
 
 
-export var arped=intermediateArped
+export var arped2=intermediateArped
 //   .bjorklund(16,9,0)
 .merge(m(intermediateArped).pitch(n => n.pitch-12).delay(0.25).duration(n=> (n.time % 64) / 64 *n.duration)  
 //
 )
-.bjorklund(16,7,0)
+// .bjorklund(16,7,0)
 
 // .pitch(n => n.pitch)
  .combine(OndasGroove).simpleMap(n => {

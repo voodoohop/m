@@ -47,7 +47,7 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
 
     if (!res.isSequenceGenerator)
       return res;
-    var sampleSize = 200;
+    var sampleSize = 100;
     var playableSequence = seq.toPlayable().take(sampleSize);
     var testerCode = "result = sequence.toArray();";
     // console.log("testing playableSequence:".bgYellow,seq, playableSequence);
@@ -66,7 +66,7 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     try {
       console.log("global m before running code", global["m"]);
       testSeqResult = vm.runInThisContext(testerCode, {
-        timeout: 5000
+        timeout: 2500
       });
       timeTaken = process.hrtime() - startTime;
 
@@ -128,7 +128,7 @@ export default function evalSequences(seqContext, loadedSequences) {
       console.log("running seqGen");
       global.seqGen = seqGen;
     sequences = vm.runInThisContext("seqGen();", {
-      timeout: 5000
+      timeout: 500
     });
   } catch (e) {
     console.log("exception in live code", e.stack);
