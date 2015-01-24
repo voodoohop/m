@@ -6,12 +6,14 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $__wrapSequenceError__,
-    $__sequenceEvalSandbox__;
+    $__sequenceEvalSandbox__,
+    $__lib_47_hrtimer__;
 var vm = require("vm");
 var _ = require("lodash");
 var stackTrace = require("stack-trace");
 var wrapError = ($__wrapSequenceError__ = require("./wrapSequenceError"), $__wrapSequenceError__ && $__wrapSequenceError__.__esModule && $__wrapSequenceError__ || {default: $__wrapSequenceError__}).default;
 var sandbox = ($__sequenceEvalSandbox__ = require("./sequenceEvalSandbox"), $__sequenceEvalSandbox__ && $__sequenceEvalSandbox__.__esModule && $__sequenceEvalSandbox__ || {default: $__sequenceEvalSandbox__}).default;
+var hrTimer = ($__lib_47_hrtimer__ = require("./lib/hrtimer"), $__lib_47_hrtimer__ && $__lib_47_hrtimer__.__esModule && $__lib_47_hrtimer__ || {default: $__lib_47_hrtimer__}).default;
 function getSequenceGenerator(code, loadedSequences, seqContext) {
   var sequenceSandbox = sandbox(loadedSequences, seqContext, false);
   var availableGlobals = _.keys(sequenceSandbox);
@@ -40,9 +42,9 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     var playableSequence = seq.toPlayable().take(sampleSize);
     var testerCode = "result = sequence.toArray();";
     var globalBack = {};
-    for (var $__2 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__3; !($__3 = $__2.next()).done; ) {
-      let key = $__3.value;
+    for (var $__3 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__4; !($__4 = $__3.next()).done; ) {
+      let key = $__4.value;
       {
         globalBack[key] = global[key];
         global[key] = sequenceSandbox[key];
@@ -50,21 +52,21 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     }
     globalBack.sequence = global.sequence;
     global.sequence = playableSequence;
-    var startTime = process.hrtime();
+    var startTime = hrTimer();
     var testSeqResult = null;
     var timeTaken;
     try {
       console.log("global m before running code", global["m"]);
       testSeqResult = vm.runInThisContext(testerCode, {timeout: 2500});
-      timeTaken = process.hrtime() - startTime;
+      timeTaken = hrTimer(startTime);
     } catch (e) {
       console.log("exception while trying to generate events", e.stack, e, seq);
       res.playable = false;
       res.evaluatedError = wrapError(e, sequenceContext, seq.name);
     }
-    for (var $__4 = Object.keys(globalBack)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__5; !($__5 = $__4.next()).done; ) {
-      let key = $__5.value;
+    for (var $__5 = Object.keys(globalBack)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__6; !($__6 = $__5.next()).done; ) {
+      let key = $__6.value;
       global[key] = globalBack[key];
     }
     if (!res.evaluatedError && testSeqResult && testSeqResult.length > 0) {
@@ -104,7 +106,6 @@ function evalSequences(seqContext, loadedSequences) {
     sequences = seqGen();
   if (sequences == null || !passedTests)
     return [null, false, error];
-  console.log("now create sequences using regular new Function becasue it seems like garbage collection is fucking with me");
   return [sequences, passedTests];
 }
 var $__default = evalSequences;

@@ -1,5 +1,7 @@
-
-import {addChainEndFunction,addGenerator} from "./baseLib";
+import {
+  addChainEndFunction, addGenerator
+}
+from "./baseLib";
 import log from "../lib/logger";
 
 addChainEndFunction(function toArray(node) {
@@ -39,15 +41,15 @@ addGenerator(function* log(name, node) {
 
 
 
-addChainEndFunction(function reduce(func,initial,node) {
+addChainEndFunction(function reduce(func, initial, node) {
   if (log.showDebug) log.debug("reducing start");
   if (node === undefined) {
     node = initial;
-    initial=null;
+    initial = null;
   }
-  if (log.showDebug) log.debug("reducing node",node);
+  if (log.showDebug) log.debug("reducing node", node);
   for (let n of node) {
-    if (initial===undefined) {
+    if (initial === undefined) {
       initial = n;
       continue;
     }
@@ -60,4 +62,6 @@ addChainEndFunction(function reduce(func,initial,node) {
 
 var Rx = require("Rx");
 
-addChainEndFunction(function MToRx(node) {return Rx.Observable.from(node)});;
+addChainEndFunction(function MToRx(node) {
+  return Rx.Observable.from(node)
+});;

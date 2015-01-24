@@ -1,24 +1,26 @@
 var _ = require("lodash");
 
 
-export var immutableObj = function(initial={}, extendWith=undefined) {
+export var immutableObj = function(initial = {}, extendWith = undefined) {
 
-  const me = Object.create(
-  { set: (...args) => {
-      var val=args[0];
+  const me = Object.create({
+    set: (...args) => {
+      var val = args[0];
       if (args.length > 1) {
-        val = {[args[0]]:args[1]};
+        val = {
+          [args[0]]: args[1]
+        };
       }
-      return immutableObj(me,val);
+      return immutableObj(me, val);
     }
   });
   for (let k of Object.keys(initial)) {
     me[k] = initial[k];
   }
   if (extendWith)
-  for (let k of Object.keys(extendWith)) {
-    me[k] = extendWith[k];
-  }
+    for (let k of Object.keys(extendWith)) {
+      me[k] = extendWith[k];
+    }
   return Object.freeze(me);
 }
 

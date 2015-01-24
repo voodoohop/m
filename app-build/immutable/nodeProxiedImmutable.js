@@ -67,10 +67,10 @@ var wrapNewProps = (function(target, newProps) {
       writable: true
     }), $__1) : name);
   });
-  const hasCheck = _.memoize((function(name) {
+  const hasCheck = ((function(name) {
     return (newProps.hasOwnProperty(name) && newProps[name] != deleteMe) || (!newProps.hasOwnProperty(name) && target.hasOwnProperty(name));
   }));
-  const getPropDescriptor = _.memoize((function(name) {
+  const getPropDescriptor = ((function(name) {
     return name === "set" ? {
       value: setFunc,
       enumerable: false,

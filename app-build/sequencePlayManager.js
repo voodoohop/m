@@ -33,20 +33,31 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
   var playingSequences = {};
   var Sequencer = BaconSequencer(time);
   var subscribedSequences = [];
+  var baconSubscribedSequences = new Bacon.Bus();
   function playOnlySubscribed() {
     var $__8,
         $__9;
     console.log("subscribedSequences", subscribedSequences);
-    var needToBeStopped = ($__8 = _).without.apply($__8, $traceurRuntime.spread([Object.keys(playingSequences)], _.pluck(subscribedSequences, "path")));
+    console.log("playingSequences", Object.keys(playingSequences));
+    var needToBeStopped = ($__8 = _).without.apply($__8, $traceurRuntime.spread([Object.keys(playingSequences)], subscribedSequences.map((function(s) {
+      return s.path + ":" + s.port;
+    }))));
+    console.log("need to stop:", needToBeStopped);
     for (var $__4 = needToBeStopped[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__5; !($__5 = $__4.next()).done; ) {
       let seqPath = $__5.value;
       {
+        console.log("stopping", seqPath);
         playingSequences[seqPath].stop();
         delete playingSequences[seqPath];
       }
     }
-    var needToPlay = ($__9 = _).without.apply($__9, $traceurRuntime.spread([_.pluck(subscribedSequences, "path")], Object.keys(playingSequences)));
+    var needToPlay = ($__9 = _).without.apply($__9, $traceurRuntime.spread([_.zip(_.pluck(subscribedSequences, "path"), _.pluck(subscribedSequences, "port")).map((function(n) {
+      return n[0] + ":_" + n[1];
+    }))], Object.keys(playingSequences)));
+    needToPlay = needToPlay.map((function(n) {
+      return n.split(":")[0];
+    }));
     console.log("availableSequences", availableSequences);
     console.log("needToPlay", needToPlay);
     for (var $__6 = needToPlay[$traceurRuntime.toProperty(Symbol.iterator)](),
@@ -77,19 +88,29 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     playOnlySubscribed();
   }));
   var instrumentPlayer = function(seq) {
-    var port = _.find(subscribedSequences, (function(s) {
-      return s.path == seq.device + "/" + seq.name;
-    })).port;
-    console.log("creating instrument for", seq.device + "/" + seq.name, port);
-    var seqInst = abletonSender.subscribeInstrument(seq.device + "/" + seq.name, port);
-    playingSequences[seq.device + "/" + seq.name] = {
-      stop: playSequencer(Sequencer(seq.sequence, seq.device + "/" + seq.name), seqInst, seq.name, seq.device),
-      sequence: seq.sequence,
-      name: seq.name,
-      path: seq.device + "/" + seq.name,
-      device: seq.device,
-      port: port
-    };
+    var playSeqs;
+    if (seq.port)
+      playSeqs = [seq];
+    else
+      playSeqs = subscribedSequences.filter((function(s) {
+        return s.path === seq.device + "/" + seq.name;
+      }));
+    playSeqs.forEach((function(s) {
+      var port = s.port;
+      console.log("creating instrument for", seq.device + "/" + seq.name, port);
+      var seqInst = abletonSender.subscribeInstrument(seq.device + "/" + seq.name, port);
+      var key = seq.device + "/" + seq.name + ":" + port;
+      if (playingSequences[key])
+        playingSequences[key].stop();
+      playingSequences[key] = {
+        stop: playSequencer(Sequencer(seq.sequence, seq.device + "/" + seq.name), seqInst, seq.name, seq.device),
+        sequence: seq.sequence,
+        name: seq.name,
+        path: seq.device + "/" + seq.name,
+        device: seq.device,
+        port: port
+      };
+    }));
   };
   resetMessages.onValue((function() {
     for (var $__4 = Object.keys(playingSequences)[$traceurRuntime.toProperty(Symbol.iterator)](),
@@ -109,10 +130,13 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     }
     availableSequences[seq.device + "/" + seq.name] = seq;
     console.log("terminating ", seq.device + "/" + seq.name, "in playingSequences", playingSequences);
-    if (playingSequences[seq.device + "/" + seq.name]) {
-      playingSequences[seq.device + "/" + seq.name].stop();
-      instrumentPlayer(seq);
-    }
+    var path = seq.device + "/" + seq.name;
+    Object.keys(playingSequences).forEach((function(n) {
+      var path2 = n.split(":")[0];
+      if (path2 === path)
+        playingSequences[n].stop();
+    }));
+    instrumentPlayer(seq);
   }));
   return {
     playingSequences: playingSequences,

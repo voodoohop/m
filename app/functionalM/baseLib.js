@@ -27,96 +27,22 @@ var logDetails = true;
 // // TODO: work in progress
 // TODO: change to one option param
 var Immutable = require("immutable");
-var cacheLimit = 10;
-var cache_disabled = {
-  disabled: true
-};
 
-var createCache = function() {
-  // var cache = new WeakMap();
-  var caches = {};
-  return function(key, disable) {
-    if (disable) {
-      caches[key] = cache_disabled;
-      return undefined;
-    }
-    if (!caches[key])
-      caches[key] = [];
-    return caches[key];
-  }
-}
-
-
-
-var cache = createCache();
-
-// var mGenerator = function(generatorFunc, options={}) {
-//   var origGenerator = mGeneratorUnCached(generatorFunc, options);;
-//   if (origGenerator.isTom)
-//     origGenerator[wu.iteratorSymbol] = doCache(origGenerator)[wu.iteratorSymbol];
-//   return origGenerator;
-// };
-
-function* doCache(node) {
-  // yield * getIterator(node);
-  // return;
-
-  var cacheKey = "" + node;
-  // console.log(cacheKey);
-  // console.log("cacheKey",cacheKey);
-  // if (!caches[cacheKey]) {
-  //   // console.log("not yet cashed".bgBlue.white,cacheKey);
-  //   caches[cacheKey] = [];
-  // }
-
-  var cached = cache(cacheKey);
-  if (cached === cache_disabled) {
-    yield * getIterator(node);
-    return;
-  }
-
-  var count = 0;
-  var iterator = null;
-  while (true) {
-    if (cached.length <= count || count > cacheLimit) {
-      if (iterator == null) {
-        node = MSkip(count, node);
-        if (count > cacheLimit) {
-          cache(cacheKey, true);
-          // console.warn("cache full", node);
-        }
-        iterator = getIterator(node);
-      }
-      var n = iterator.next();
-      if (n.done)
-        break;
-      if (count > cacheLimit) {
-        yield n.value;
-        yield * iterator;
-        return;
-        //continue;
-      }
-      cached.push(n.value);
-    }
-    yield cached[count++];
-  }
-
-}
-
-;
 
 var stackTrace = require("stack-trace");
 import findSourcePos from "../lib/findSourceStackPos";
 
 
 
-function* runGenFeedback(generator,name,args) {
-  for (let e of {[wu.iteratorSymbol]: () => generator(...args)}) {
+function* runGenFeedback(generator, name, args) {
+  for (let e of {
+      [wu.iteratorSymbol]: () => generator(...args)
+    }) {
     // console.log(name,e);
     var spos = findSourcePos();
     if (spos !== undefined && spos !== null) {
-      console.warn(name,spos);
-      webServer.sequenceFeedback.push(spos)  ;
+      console.warn(name, spos);
+      webServer.sequenceFeedback.push(spos);
 
     }
     yield e;
@@ -139,12 +65,16 @@ var mGenerator = function(generator, options = {}) {
     res.isTom = true;
     res.name = name;
 
-    res[wu.iteratorSymbol] = () => generator(...args);//runGenFeedback(generator,name,args);
+    res[wu.iteratorSymbol] = () => generator(...args); //runGenFeedback(generator,name,args);
     if (options.toStringOverride)
       res.toString = () => options.toStringOverride;
     else {
-      var stringRep = prettyToString(name, args)
-        res.toString= () => stringRep;
+      // var stringRep =
+      res.toString = () => {
+        if (!res.toStringCached)
+          res.toStringCached = prettyToString(name, args);
+        return res.toStringCached;
+      }
     }
     // console.log("res",res);
     return new M(res);
@@ -154,7 +84,10 @@ var mGenerator = function(generator, options = {}) {
   return getIterable;
 }
 
-var rootNode = Object.freeze({isTom:true, name: "m()"});
+var rootNode = Object.freeze({
+  isTom: true,
+  name: "m()"
+});
 
 var wrappedSymbol = Symbol("M wrapped Object");
 
@@ -177,11 +110,13 @@ function M(node = rootNode) {
   // Object.seal(node);
 }
 
-M.prototype.toString  = function() { return this.currentNode.toString()};
+M.prototype.toString = function() {
+  return this.currentNode.toString()
+};
 
 export var m = function(wrapObject = rootNode) {
   // console.log("creating m from ",wrapObject);
-  if (!wrapObject.isTom || (!isIterable(wrapObject) && wrapObject != rootNode) ){
+  if (!wrapObject.isTom || (!isIterable(wrapObject) && wrapObject != rootNode)) {
     return new M(rootNode).data(wrapObject);
   }
 
@@ -195,7 +130,7 @@ m.prototype = M.prototype;
 console.log(m.prototype);
 
 
-var addFunction = function(name, func, options=rootNode) {
+var addFunction = function(name, func, options = rootNode) {
   M.prototype[name] = function(...args) {
     // console.log("called",name);
     // console.log("this in prototype",this);
@@ -217,7 +152,7 @@ var addFunction = function(name, func, options=rootNode) {
 
 
 
-addFunction(doCache);
+
 
 
 // process.exit(1);
@@ -270,7 +205,7 @@ addFunction(doCache);
 //
 
 
-export function addGenerator(generatorFunc, options={},thirdOption=false) {
+export function addGenerator(generatorFunc, options = {}, thirdOption = false) {
   if (thirdOption)
     throw "thirdOption removed";
 
@@ -278,12 +213,14 @@ export function addGenerator(generatorFunc, options={},thirdOption=false) {
   // console.log("name:",nameOverride || generatorFunc.name);
   if (!(options.nameOverride || generatorFunc.name).length)
     throw "no name given" + generatorFunc;
-  addFunction(options.nameOverride || generatorFunc.name, mGenerator(generatorFunc,options), options);
+  addFunction(options.nameOverride || generatorFunc.name, mGenerator(generatorFunc, options), options);
 }
 
 export function addChainEndFunction(func) {
-  if (log.showDebug) log.debug("added chain end function",func.name);
-  addFunction(func.name, func, {notChainable:true});
+  if (log.showDebug) log.debug("added chain end function", func.name);
+  addFunction(func.name, func, {
+    notChainable: true
+  });
 }
 
 

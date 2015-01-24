@@ -35,11 +35,15 @@ Object.defineProperties(exports, {
 var $__functionalM_47_baseLib__,
     $__functionalM_47_baseFunctionalGens__,
     $__functionalM_47_genexporters__,
-    $__functionalM_47_musicalGens__;
+    $__functionalM_47_musicalGens__,
+    $__functionalM_47_asyncSequence__,
+    $__lib_47_hrtimer__;
 var mImported = ($__functionalM_47_baseLib__ = require("./functionalM/baseLib"), $__functionalM_47_baseLib__ && $__functionalM_47_baseLib__.__esModule && $__functionalM_47_baseLib__ || {default: $__functionalM_47_baseLib__}).m;
 ($__functionalM_47_baseFunctionalGens__ = require("./functionalM/baseFunctionalGens"), $__functionalM_47_baseFunctionalGens__ && $__functionalM_47_baseFunctionalGens__.__esModule && $__functionalM_47_baseFunctionalGens__ || {default: $__functionalM_47_baseFunctionalGens__});
 ($__functionalM_47_genexporters__ = require("./functionalM/genexporters"), $__functionalM_47_genexporters__ && $__functionalM_47_genexporters__.__esModule && $__functionalM_47_genexporters__ || {default: $__functionalM_47_genexporters__});
 ($__functionalM_47_musicalGens__ = require("./functionalM/musicalGens"), $__functionalM_47_musicalGens__ && $__functionalM_47_musicalGens__.__esModule && $__functionalM_47_musicalGens__ || {default: $__functionalM_47_musicalGens__});
+($__functionalM_47_asyncSequence__ = require("./functionalM/asyncSequence"), $__functionalM_47_asyncSequence__ && $__functionalM_47_asyncSequence__.__esModule && $__functionalM_47_asyncSequence__ || {default: $__functionalM_47_asyncSequence__});
+var hrTimer = ($__lib_47_hrtimer__ = require("./lib/hrtimer"), $__lib_47_hrtimer__ && $__lib_47_hrtimer__.__esModule && $__lib_47_hrtimer__ || {default: $__lib_47_hrtimer__}).default;
 var assert = require("assert");
 var m = mImported;
 var _ = require("lodash");
@@ -144,10 +148,10 @@ var kick_real = m().evt({
 }).metro(1);
 var profilerDataStore = [];
 var profileSamples = 2000;
-var startTime = process.hrtime();
-for (var $__1 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__2; !($__2 = $__1.next()).done; ) {
-  var n = $__2.value;
+var startTime = hrTimer();
+for (var $__2 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__3; !($__3 = $__2.next()).done; ) {
+  var n = $__3.value;
   {
     var x = ({
       time: n.time,
@@ -157,13 +161,13 @@ for (var $__1 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toPropert
     });
   }
 }
-var timeTaken = process.hrtime() - startTime;
+var timeTaken = hrTimer() - startTime;
 log("time:", timeTaken);
 log("-------------".bgRed);
 console.log(kick.toPlayable().take(50).toArray()[49]);
-for (var $__3 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__4; !($__4 = $__3.next()).done; ) {
-  var n = $__4.value;
+for (var $__4 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__5; !($__5 = $__4.next()).done; ) {
+  var n = $__5.value;
   {
     var cx = ({
       time: n.time,
@@ -172,11 +176,11 @@ for (var $__3 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
     });
   }
 }
-timeTaken = process.hrtime() - startTime;
+timeTaken = hrTimer() - startTime;
 log("time:", timeTaken);
-for (var $__5 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__6; !($__6 = $__5.next()).done; ) {
-  var n = $__6.value;
+for (var $__6 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__7; !($__7 = $__6.next()).done; ) {
+  var n = $__7.value;
   {
     var x = ({
       time: n.time,
@@ -198,18 +202,18 @@ for (var $__5 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
     });
   }
 }
-timeTaken = process.hrtime() - startTime;
+timeTaken = hrTimer() - startTime;
 log("time2:", timeTaken);
-for (var $__7 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__8; !($__8 = $__7.next()).done; ) {
-  var n = $__8.value;
+for (var $__8 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__9; !($__9 = $__8.next()).done; ) {
+  var n = $__9.value;
   var x = ({
     time: n.time,
     pitch: n.pitch,
     veloctiy: n.velocity
   });
 }
-timeTaken = process.hrtime() - startTime;
+timeTaken = hrTimer() - startTime;
 log("time:", timeTaken);
 var flautaArpBase = m().data([{
   "pitch": 72,
@@ -303,9 +307,9 @@ m(flautaAcid).take(16).toArray().forEach((function(n) {
 }));
 var getPitches = function(sequence) {
   var pitches = {};
-  for (var $__9 = sequence[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__10; !($__10 = $__9.next()).done; ) {
-    let n = $__10.value;
+  for (var $__10 = sequence[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__11; !($__11 = $__10.next()).done; ) {
+    let n = $__11.value;
     if (n && n.pitch)
       pitches[n.pitch] = true;
   }

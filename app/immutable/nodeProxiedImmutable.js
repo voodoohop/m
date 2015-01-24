@@ -1,8 +1,13 @@
 var _ = require("lodash");
 
-import {isIterable} from "../lib/utils";
+import {
+  isIterable
+}
+from "../lib/utils";
 
-const nothing = Object.freeze({reallyNothing:true});
+const nothing = Object.freeze({
+  reallyNothing: true
+});
 
 const deleteMe = {
   DELETED: true
@@ -11,7 +16,7 @@ const deleteMe = {
 const isImmutable = Symbol("isImmutableTom");
 
 
-var undefinedToNull = (val) => (val === undefined) ? null:val;
+var undefinedToNull = (val) => (val === undefined) ? null : val;
 
 const getFunc = ((target, newProps, name) => {
   var res;
@@ -25,20 +30,20 @@ const getFunc = ((target, newProps, name) => {
   //   return () => target[name] ? res.func(target.set(name,undefinedToNull(target[name]()))) : res.func(target);
 
   // console.log("res", name, res && res.length, ""+res);
-  return res === deleteMe ? undefined : res;//;
+  return res === deleteMe ? undefined : res; //;
 });
 
 const keysFunc = ((oldKeys, newKeys, newProps) => _.filter(_.union(oldKeys(), newKeys()), (k) => !(newProps[k] == deleteMe)));
 
-const convertFuncToVal = function(val,target) {
+const convertFuncToVal = function(val, target) {
   return ((typeof val === "function" && val.length <= 1) ? val(target) : val);
 }
 
 var wrapNewProps = (target, newProps) => {
-  if (! (newProps instanceof Object)) {
-    console.log("newProps",newProps);
-    console.log("stacktrace", require("stack-trace").get().map(s => s.getFileName()+":"+s.getLineNumber()+":"+s.getFunctionName()));
-    throw new TypeError("trying to add props that are not object"+newProps);
+  if (!(newProps instanceof Object)) {
+    console.log("newProps", newProps);
+    console.log("stacktrace", require("stack-trace").get().map(s => s.getFileName() + ":" + s.getLineNumber() + ":" + s.getFunctionName()));
+    throw new TypeError("trying to add props that are not object" + newProps);
   }
   // console.log("wrapping",target," with newProps",newProps);
   // console.log("adding ",newProps,"to",target)
@@ -50,13 +55,14 @@ var wrapNewProps = (target, newProps) => {
   const delFunc = (name) => setFunc(name, deleteMe);
 
   const setFunc = (name, val = nothing) => wrapNewProps(newProxy,
-    val != nothing ?
-    { [name]: val} : name);
+    val != nothing ? {
+      [name]: val
+    } : name);
 
-  const hasCheck = _.memoize((name) =>
+  const hasCheck = ((name) =>
     (newProps.hasOwnProperty(name) && newProps[name] != deleteMe) || (!newProps.hasOwnProperty(name) && target.hasOwnProperty(name)));
 
-  const getPropDescriptor = _.memoize(name =>
+  const getPropDescriptor = (name =>
     name === "set" ? {
       value: setFunc,
       enumerable: false,
@@ -108,48 +114,50 @@ var wrapNewProps = (target, newProps) => {
   return newProxy;
 }
 
-const empty={[isImmutable]:true};
+const empty = {
+  [isImmutable]: true
+};
 
 // TODO: not using deep yet
-export const immutableTom = function(initial={}) {
-  if (! (initial instanceof Object))
+export const immutableTom = function(initial = {}) {
+  if (!(initial instanceof Object))
     return initial;
   if (initial[isImmutable])
     return initial;
   if (isIterable(initial))
     console.warn("initial is iterable, making an immutable object may mean we lose the Symbol.iterator", initial);
-    // throw new Error("can't create immutable from non-object");
+  // throw new Error("can't create immutable from non-object");
   return wrapNewProps(empty, initial);
 }
 
 export function objIsImmutable(obj) {
-  return obj && obj[isImmutable];
-}
-// throw "bye";
+    return obj && obj[isImmutable];
+  }
+  // throw "bye";
 
 export var isLazy = Symbol("Lazy Resolving Function");
 
 export var addLazyProp = (obj, name, resolveFunc) => {
   // console.log("add lazy", obj,name,resolveFunc);
-  resolveFunc.isLazy=true;
+  resolveFunc.isLazy = true;
   // console.log(typeof obj.set(name,resolveFunc)[name]);
-  return obj.set(name,resolveFunc);
+  return obj.set(name, resolveFunc);
   // return addObjectProp(obj, name, lazy);
 };
 
 
-var processVal = (obj,name,value) => (typeof value === "function" && value.length <= 1 && name.length>0 && name != "toString" && name != "toJSON" && name != "valueOf") ? value(obj) : value
+var processVal = (obj, name, value) => (typeof value === "function" && value.length <= 1 && name.length > 0 && name != "toString" && name != "toJSON" && name != "valueOf") ? value(obj) : value
 
 export var addObjectProp = (obj, name, value) => {
   // console.log("proxy adding prop1", name,value);
   //
   // console.log("proxy adding prop2", obj,name,value);
-  return obj.set(name, processVal(obj,name,value));
+  return obj.set(name, processVal(obj, name, value));
 }
 
 export var addObjectProps = (obj, props) => {
   // console.log("proxy adding prop1", props,obj);
-  if (typeof props.time =="object" ) {
+  if (typeof props.time == "object") {
     // debugger;
     throw Error("time shouldn't be object")
   }
@@ -157,7 +165,7 @@ export var addObjectProps = (obj, props) => {
   // props = _.mapValues(props, (value,name) => processVal(name,value));
   var propsNew = {}
   for (let k of Object.keys(props))
-    propsNew[k] = processVal(obj,k,props[k]);
+    propsNew[k] = processVal(obj, k, props[k]);
   // console.log("ppppppp");
   // console.log("props after",propsNew,obj);
 

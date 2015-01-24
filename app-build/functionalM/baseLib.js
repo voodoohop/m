@@ -36,53 +36,6 @@ var _ = require("lodash");
 var webServer = ($___46__46__47_webConnection__ = require("../webConnection"), $___46__46__47_webConnection__ && $___46__46__47_webConnection__.__esModule && $___46__46__47_webConnection__ || {default: $___46__46__47_webConnection__}).default;
 var logDetails = true;
 var Immutable = require("immutable");
-var cacheLimit = 10;
-var cache_disabled = {disabled: true};
-var createCache = function() {
-  var caches = {};
-  return function(key, disable) {
-    if (disable) {
-      caches[key] = cache_disabled;
-      return undefined;
-    }
-    if (!caches[key])
-      caches[key] = [];
-    return caches[key];
-  };
-};
-var cache = createCache();
-function* doCache(node) {
-  var cacheKey = "" + node;
-  var cached = cache(cacheKey);
-  if (cached === cache_disabled) {
-    yield* getIterator(node);
-    return;
-  }
-  var count = 0;
-  var iterator = null;
-  while (true) {
-    if (cached.length <= count || count > cacheLimit) {
-      if (iterator == null) {
-        node = MSkip(count, node);
-        if (count > cacheLimit) {
-          cache(cacheKey, true);
-        }
-        iterator = getIterator(node);
-      }
-      var n = iterator.next();
-      if (n.done)
-        break;
-      if (count > cacheLimit) {
-        yield n.value;
-        yield* iterator;
-        return;
-      }
-      cached.push(n.value);
-    }
-    yield cached[count++];
-  }
-}
-;
 var stackTrace = require("stack-trace");
 var findSourcePos = ($___46__46__47_lib_47_findSourceStackPos__ = require("../lib/findSourceStackPos"), $___46__46__47_lib_47_findSourceStackPos__ && $___46__46__47_lib_47_findSourceStackPos__.__esModule && $___46__46__47_lib_47_findSourceStackPos__ || {default: $___46__46__47_lib_47_findSourceStackPos__}).default;
 function* runGenFeedback(generator, name, args) {
@@ -128,9 +81,10 @@ var mGenerator = function(generator) {
         return options.toStringOverride;
       });
     else {
-      var stringRep = prettyToString(name, args);
       res.toString = (function() {
-        return stringRep;
+        if (!res.toStringCached)
+          res.toStringCached = prettyToString(name, args);
+        return res.toStringCached;
       });
     }
     return new M(res);
@@ -180,7 +134,6 @@ var addFunction = function(name, func) {
     return newNode;
   };
 };
-addFunction(doCache);
 function addGenerator(generatorFunc) {
   var options = arguments[1] !== (void 0) ? arguments[1] : {};
   var thirdOption = arguments[2] !== (void 0) ? arguments[2] : false;

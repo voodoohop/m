@@ -2,8 +2,10 @@
 
 
   export var generate = function*() {
-    let res2="hey";
-  yield {t:() => 3};
+    let res2 = "hey";
+    yield {
+      t: () => 3
+    };
     yield res2;
 
   }

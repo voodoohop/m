@@ -3,6 +3,9 @@ Object.defineProperties(exports, {
   newSequenceCode: {get: function() {
       return newSequenceCode;
     }},
+  processedAndReEval: {get: function() {
+      return processedAndReEval;
+    }},
   evaluated: {get: function() {
       return evaluated;
     }},
@@ -46,6 +49,8 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
     var $__3 = i,
         importDevice = $__3[0],
         importSeqNames = $__3[1];
+    if (importDevice === "playing")
+      return false;
     return !loadedSequences.get(importDevice) || !importSeqNames.isSubset(loadedSequences.get(importDevice).get("exports"));
   }));
   if (unsatisfiedImports.count() > 0) {

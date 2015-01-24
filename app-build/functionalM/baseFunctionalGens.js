@@ -183,6 +183,11 @@ addGenerator(function* zip() {
       yield next;
   }
 });
+addGenerator(function* zipMerge(mergeNode, node) {
+  yield* getIterator(m(node).zip(mergeNode).simpleMap((function(n) {
+    return addObjectProps(n[1], n[0]);
+  })));
+});
 addGenerator(function* zipLooping() {
   for (var nodes = [],
       $__9 = 0; $__9 < arguments.length; $__9++)
@@ -282,7 +287,7 @@ addGenerator(function* count() {
     c += stepSize;
   }
 }, {noInputChain: true});
-addGenerator(function* scan(func, initial) {
+addGenerator(function* scan(initial, func) {
   var $__11;
   var node = arguments[2] !== (void 0) ? arguments[2] : null;
   if (node === null) {

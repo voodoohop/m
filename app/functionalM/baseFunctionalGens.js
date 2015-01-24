@@ -2,7 +2,10 @@
 
 var _ = require("lodash");
 
-import {addGenerator,m} from "./baseLib";
+import {
+  addGenerator, m
+}
+from "./baseLib";
 
 import {
   prettyToString, toStringObject, toStringDetailed, addFuncProp, /*clone, addObjectProp, addObjectProps, */ isIterable, getIterator, fixFloat
@@ -11,19 +14,20 @@ from "../lib/utils";
 
 import {
   immutableTom as immutableObj, addObjectProp, addObjectProps, objIsImmutable
-} from "../immutable/nodeProxiedImmutable";
+}
+from "../immutable/nodeProxiedImmutable";
 
 
 
-addGenerator(function* data(dataInput,loopLength=undefined) {
+addGenerator(function* data(dataInput, loopLength = undefined) {
   if (isIterable(dataInput)) {
     // yield* getIterator(dataInput);
     for (var d of dataInput) {
       // console.log("data:",d);
       if (dataInput.hasOwnProperty("length"))
-        yield* data(d,dataInput.length)
+        yield * data(d, dataInput.length)
       else
-        yield* data(d);
+        yield * data(d);
     }
   } else {
     // var dataObj;
@@ -58,7 +62,7 @@ addGenerator(function* loopData(dataNode) {
         return addObjectProp(prev, keys[i], val);
       }, immutableObj());
       //resData._data = data;
-      yield* getIterator(m().data(resData));
+      yield * getIterator(m().data(resData));
     }
   }
 })
@@ -92,9 +96,9 @@ addGenerator(function* set(data, node) {
 addGenerator(function* evt(data) {
   // here if data is iterable we are not looping individual properties
   if (isIterable(data)) {
-    yield* getIterator(m(data).loop());
+    yield * getIterator(m(data).loop());
   } else
-    yield *getIterator(m(data).loopData())
+    yield * getIterator(m(data).loopData())
 })
 
 addGenerator(function* prop(name, tomValue, children) {
@@ -104,33 +108,33 @@ addGenerator(function* prop(name, tomValue, children) {
     // tomValue = tomValue(n);
     // console.log("tomValueRes"+tomValue);
 
-    yield* getIterator(m(children).simpleMap(n => {
+    yield * getIterator(m(children).simpleMap(n => {
       var evaluated = tomValue(n);
       if (evaluated === undefined) {
-        console.error("tomValue undefined",evaluated, n, tomValue, ""+tomValue);
-        throw new TypeError("shouldn't try to set a property to undefined"+n+"/"+tomValue)
+        console.error("tomValue undefined", evaluated, n, tomValue, "" + tomValue);
+        throw new TypeError("shouldn't try to set a property to undefined" + n + "/" + tomValue)
       }
       return n.set(name, evaluated);
     }));
-  }
-  else
-    yield * getIterator(m(children).set({[name]: tomValue}));
+  } else
+    yield * getIterator(m(children).set({
+      [name]: tomValue
+    }));
 });
 
 
 
 addGenerator(function* loop(node) {
   if (isIterable(node)) {
-    if (node.length>0) {
+    if (node.length > 0) {
       node = Array.from(node);
       // this._loopLength = node.length;
     }
-    while(true)
-      yield* getIterator(node);
-  }
-  else {
+    while (true)
+      yield * getIterator(node);
+  } else {
     // this._loopLength = 1;
-    while(true)
+    while (true)
       yield node;
 
   }
@@ -186,6 +190,10 @@ addGenerator(function* zip(...nodes) {
 });
 
 
+addGenerator(function* zipMerge(mergeNode,node) {
+  yield* getIterator(m(node).zip(mergeNode).simpleMap(n => addObjectProps(n[1], n[0])));
+});
+
 addGenerator(function* zipLooping(...nodes) {
   var loopedIterators = nodes.map((node) => {
     // console.log(node.length,MLoop(node),MLoop(node).length)
@@ -201,7 +209,7 @@ addGenerator(function* zipLooping(...nodes) {
 
 
 addGenerator(function* invoke(func, node) {
-  yield* getIterator(func(m(node)));
+  yield * getIterator(func(m(node)));
 });
 
 
@@ -211,16 +219,15 @@ addGenerator(function* simpleMap(mapFunc, node) {
 
 
     try {
-    var mapRes=mapFunc(n);
-    }
-    catch (exception) {
-      console.error("simpleMap",""+(typeof mapFunc),""+mapFunc,node);
-      console.error("exception",exception,"in simpleMap", exception.stack);
-      throw new Error("exception in simpleMap"+exception);
+      var mapRes = mapFunc(n);
+    } catch (exception) {
+      console.error("simpleMap", "" + (typeof mapFunc), "" + mapFunc, node);
+      console.error("exception", exception, "in simpleMap", exception.stack);
+      throw new Error("exception in simpleMap" + exception);
     }
 
     if (mapRes === undefined) {
-      console.error("mapRes undefined, for node:"+n+"func:"+mapFunc);
+      console.error("mapRes undefined, for node:" + n + "func:" + mapFunc);
       throw new TypeError("simpleMap shouldn't map to undefined");
     }
 
@@ -279,7 +286,9 @@ addGenerator(function* count(start = 0, stepSize = 1) {
     yield c;
     c += stepSize;
   }
-}, {noInputChain:true});
+}, {
+  noInputChain: true
+});
 
 //
 // addGenerator(function* scan(reduceFunc, startValue, node) {
@@ -292,12 +301,12 @@ addGenerator(function* count(start = 0, stepSize = 1) {
 
 
 
-addGenerator(function* scan(func,initial,node=null){
-  if (node===null) {
-    [node,initial] = [initial,undefined];
+addGenerator(function* scan(initial, func, node = null) {
+  if (node === null) {
+    [node, initial] = [initial, undefined];
   }
   for (let n of node) {
-    if (initial===undefined) {
+    if (initial === undefined) {
       initial = n;
       continue;
     }

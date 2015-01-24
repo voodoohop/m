@@ -9,11 +9,13 @@ Object.defineProperties(exports, {
   __esModule: {value: true}
 });
 var $__time__,
-    $__lib_47_wu__;
+    $__lib_47_wu__,
+    $__lib_47_logger__;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
 var wu = ($__lib_47_wu__ = require("./lib/wu"), $__lib_47_wu__ && $__lib_47_wu__.__esModule && $__lib_47_wu__ || {default: $__lib_47_wu__}).wu;
 var osc = require("osc");
 var Bacon = require("baconjs");
+var log = ($__lib_47_logger__ = require("./lib/logger"), $__lib_47_logger__ && $__lib_47_logger__.__esModule && $__lib_47_logger__ || {default: $__lib_47_logger__}).default;
 var oscToBaconStream = function(udpPort) {
   return Bacon.fromBinder(function(sink) {
     udpPort.on("message", (function(m) {
@@ -29,9 +31,9 @@ var noteOffTracker = function(seqName, outPort, baconReset, notePlayer) {
   var noteOff = notePlayer.noteOff;
   var currentOn = {};
   baconReset.take(1).onValue((function() {
-    for (var $__2 = Object.keys(currentOn)[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__3; !($__3 = $__2.next()).done; ) {
-      let n = $__3.value;
+    for (var $__3 = Object.keys(currentOn)[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__4; !($__4 = $__3.next()).done; ) {
+      let n = $__4.value;
       notePlayer.noteOff(seqName, outPort, n);
     }
     currentOn = {};
@@ -76,6 +78,15 @@ var AbletonReceiver = function(inPort) {
     return JSON.parse(lzString.decompressFromBase64(message.args[0]));
   }));
   clipNotes.log("oscClipNotes");
+  var playingClipNotes = oscMessageIn.filter((function(message) {
+    return message.address == "/playingClipNotes";
+  })).map((function(message) {
+    return ({
+      clip: JSON.parse(lzString.decompressFromBase64(message.args[0])),
+      port: message.args[1]
+    });
+  }));
+  playingClipNotes.log("oscClipNotes");
   var sequencePlayRequests = oscMessageIn.filter((function(message) {
     return message.address == "/requestSequence";
   })).map((function(v) {
@@ -88,15 +99,12 @@ var AbletonReceiver = function(inPort) {
       port: v.args[1]
     };
   }));
-  var baconParam = (function(name) {
+  var baconParam = wu.curryable((function(deviceName, name) {
     return oscMessageIn.filter((function(message) {
-      return message.address.startsWith("/param/" + name);
+      return message.address.startsWith("/param/" + name) && message.args[2].split("/")[0] === deviceName;
     })).map((function(message) {
       return message.args[0];
     })).toProperty();
-  });
-  baconParam("1").onValue((function(v) {
-    return console.log("baconvalue", v);
   }));
   var timeInBeats = baconTime.map((function(time) {
     return time / t.beats(1);
@@ -106,6 +114,7 @@ var AbletonReceiver = function(inPort) {
     param: baconParam,
     codeChange: codeChange,
     clipNotes: clipNotes,
+    playingClipNotes: playingClipNotes,
     sequencePlayRequests: sequencePlayRequests
   };
 };

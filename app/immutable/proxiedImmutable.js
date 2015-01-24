@@ -55,36 +55,38 @@ var wrapNewProps = (target, newProps, deep) => {
     get: (t, name, receiver) => {
       if (name === "set")
         return setFunc;
-        if (name === "delete")
-          return setFunc;
-          if (name === "isImmutable")
-            return true;
-            // if (name === "toString")
-            //   return () => "vlaaaa";
-            return getFunc(target, newProps, name);
-          },
-          set: (...args) => {
-            throw new Error(["tried mutating immutableTom", args, "" + target]);
-          },
-          has: (t, name) => hasCheck(name),
-          hasOwn: (t, name) => hasCheck(name),
-          iterate: (t) => keysFunc(oldKeys, newKeys, newProps).map(k => getFunc(target, newProps, k)),
-          enumerate: () => keysFunc(oldKeys, newKeys, newProps),
-          preventExtension: () => false,
-          isExtensible: () => true,
-          ownKeys: () => keysFunc(oldKeys, newKeys, newProps),
-          getPropertyNames: () => keysFunc(oldKeys, newKeys, newProps),
-          getOwnPropertyNames: () => keysFunc(oldKeys, newKeys, newProps),
-          getOwnPropertyDescriptor: (t, name) => getPropDescriptor(name),
-          getPrototypeOf: () => nothing,
-          setPrototypeOf: () => {throw new Error(["tried deleting from immutableTom", args, target])},
-          deleteProperty: (...args) => {
-            throw ["tried deleting from immutableTom", args, target]
-          },
-          defineProperty: (...args) => {
-            throw new Error("tried defining a property of immutableTom")
-          },
-        };
+      if (name === "delete")
+        return setFunc;
+      if (name === "isImmutable")
+        return true;
+      // if (name === "toString")
+      //   return () => "vlaaaa";
+      return getFunc(target, newProps, name);
+    },
+    set: (...args) => {
+      throw new Error(["tried mutating immutableTom", args, "" + target]);
+    },
+    has: (t, name) => hasCheck(name),
+    hasOwn: (t, name) => hasCheck(name),
+    iterate: (t) => keysFunc(oldKeys, newKeys, newProps).map(k => getFunc(target, newProps, k)),
+    enumerate: () => keysFunc(oldKeys, newKeys, newProps),
+    preventExtension: () => false,
+    isExtensible: () => true,
+    ownKeys: () => keysFunc(oldKeys, newKeys, newProps),
+    getPropertyNames: () => keysFunc(oldKeys, newKeys, newProps),
+    getOwnPropertyNames: () => keysFunc(oldKeys, newKeys, newProps),
+    getOwnPropertyDescriptor: (t, name) => getPropDescriptor(name),
+    getPrototypeOf: () => nothing,
+    setPrototypeOf: () => {
+      throw new Error(["tried deleting from immutableTom", args, target])
+    },
+    deleteProperty: (...args) => {
+      throw ["tried deleting from immutableTom", args, target]
+    },
+    defineProperty: (...args) => {
+      throw new Error("tried defining a property of immutableTom")
+    },
+  };
   const newProxy = new Proxy(target, handler);
   return newProxy;
 }

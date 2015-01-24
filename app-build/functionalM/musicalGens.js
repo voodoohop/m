@@ -25,11 +25,18 @@ var $__4 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../imm
     addObjectProps = $__4.addObjectProps,
     addLazyProp = $__4.addLazyProp;
 var Immutable = require("immutable");
+addGenerator(function* note(data) {
+  yield* getIterator(m().evt({
+    pitch: 60,
+    velocity: 0.8,
+    duration: 0.5
+  }).set(data));
+});
 addGenerator(function* withNext(node) {
   var me = null;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     {
       if (me == null) {
         me = n;
@@ -47,9 +54,9 @@ const iterableWithTime = function(grouped, time) {
 addGenerator(function* groupByTime(node) {
   var currentTime = -1;
   var grouped = [];
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     {
       if (!n.hasOwnProperty("time")) {
         console.error("groupByTime called but no time property".red);
@@ -67,22 +74,22 @@ addGenerator(function* groupByTime(node) {
   }
 });
 addGenerator(function* removeDuplicateNotes(node) {
-  for (var $__7 = m(node).groupByTime()[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__8; !($__8 = $__7.next()).done; ) {
-    var timeGrouped = $__8.value;
+  for (var $__8 = m(node).groupByTime()[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__9; !($__9 = $__8.next()).done; ) {
+    var timeGrouped = $__9.value;
     {
-      for (var $__5 = _.values(_.groupBy(timeGrouped, "pitch"))[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__6; !($__6 = $__5.next()).done; ) {
-        var n = $__6.value;
+      for (var $__6 = _.values(_.groupBy(timeGrouped, "pitch"))[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__7; !($__7 = $__6.next()).done; ) {
+        var n = $__7.value;
         yield n[n.length - 1];
       }
     }
   }
 });
 addGenerator(function* lazyMap(name, mapFunc, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    let n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    let n = $__7.value;
     {
       var newN = addLazyProp(n, name, mapFunc);
       yield newN;
@@ -159,9 +166,9 @@ addGenerator(function* setValue(value, child) {
 });
 addGenerator(function* groupBy(groupFunc, node) {
   var currentGroup = [];
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    let n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    let n = $__7.value;
     {
       if (log.showDebug)
         log.debug("groupBy", currentGroup, n);
@@ -175,9 +182,9 @@ addGenerator(function* groupBy(groupFunc, node) {
 });
 addGenerator(function* slidingWindow(no, node) {
   var accumulated = [];
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    let n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    let n = $__7.value;
     {
       accumulated.push(n);
       if (accumulated.length > no)
@@ -212,17 +219,17 @@ addGenerator(function* combine(combineNode, node) {
     return (n1.me && n2.me) || (n1.other && n2.other);
   }));
   var accumulated = grouped.slidingWindow(3);
-  for (var $__7 = accumulated[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__8; !($__8 = $__7.next()).done; ) {
-    let n = $__8.value;
+  for (var $__8 = accumulated[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__9; !($__9 = $__8.next()).done; ) {
+    let n = $__9.value;
     {
       if (log.showDebug)
         log.debug("combining", n, n[1]);
       if (n[1][0].hasOwnProperty("me")) {
         log.debug("yielding", "previous:", n[0], "next:", n[2]);
-        for (var $__5 = n[1][$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__6; !($__6 = $__5.next()).done; ) {
-          let n2 = $__6.value;
+        for (var $__6 = n[1][$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__7; !($__7 = $__6.next()).done; ) {
+          let n2 = $__7.value;
           yield combineFunc(n2.me, n[0], n[2]);
         }
       }
@@ -252,16 +259,16 @@ addGenerator(function* combine2(combineNode, node) {
   var previousOthers = [];
   var nextOthers = [];
   var meWaitingForNextOther = [];
-  for (var $__7 = merged[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__8; !($__8 = $__7.next()).done; ) {
-    let n = $__8.value;
+  for (var $__8 = merged[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__9; !($__9 = $__8.next()).done; ) {
+    let n = $__9.value;
     {
       if (log.showDebug)
         log.debug("combining", "" + m, n);
       if (n.hasOwnProperty("me")) {
-        for (var $__5 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__6; !($__6 = $__5.next()).done; ) {
-          let me = $__6.value;
+        for (var $__6 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__7; !($__7 = $__6.next()).done; ) {
+          let me = $__7.value;
           {
             yield combineFunc(me, previousOthers, nextOthers);
           }
@@ -275,9 +282,9 @@ addGenerator(function* combine2(combineNode, node) {
       }
     }
   }
-  for (var $__9 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__10; !($__10 = $__9.next()).done; ) {
-    var me = $__10.value;
+  for (var $__10 = meWaitingForNextOther[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__11; !($__11 = $__10.next()).done; ) {
+    var me = $__11.value;
     {
       yield combineFunc(me, previousOthers, nextOthers);
       ;
@@ -298,12 +305,12 @@ addGenerator(function* loopLength(loopL, node) {
     return n.time < loopL;
   })).toArray();
   if (log.showDebug)
-    log.debug("looplength evaluated nodes", evaluatedNotes.length);
+    log.debug("looplength evaluated nodes", evaluatedNodes.length);
   yield* getIterator(evaluatedNodes);
   while (true) {
-    for (var $__5 = evaluatedNodes[$traceurRuntime.toProperty(Symbol.iterator)](),
-        $__6; !($__6 = $__5.next()).done; ) {
-      var n = $__6.value;
+    for (var $__6 = evaluatedNodes[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__7; !($__7 = $__6.next()).done; ) {
+      var n = $__7.value;
       {
         if (log.showDebug)
           log.debug("looplenghtime", time, count++);
@@ -330,21 +337,19 @@ addGenerator(function* flattenAndSchedule(node) {
   var scheduled = new PriorityQueue({comparator: (function(a, b) {
       return getScheduleKey(a) - getScheduleKey(b);
     })});
-  for (var $__7 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__8; !($__8 = $__7.next()).done; ) {
-    var n = $__8.value;
+  for (var $__8 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__9; !($__9 = $__8.next()).done; ) {
+    var n = $__9.value;
     {
       var minTime = Infinity;
       if (isIterable(n)) {
-        for (var $__5 = n[$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__6; !($__6 = $__5.next()).done; ) {
-          let nFlat = $__6.value;
+        for (var $__6 = n[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__7; !($__7 = $__6.next()).done; ) {
+          let nFlat = $__7.value;
           {
             var time = getScheduleKey(nFlat);
             if (time < minTime)
               minTime = time;
-            if (log.showDebug)
-              log.debug("queuing", nFlat);
             scheduled.queue(nFlat);
           }
         }
@@ -374,25 +379,11 @@ addGenerator(function* pluck(propertyName, node) {
     return e[propertyName];
   }), node));
 });
-addGenerator(function* scan(initial, mapFunc, node) {
-  var current = initial;
-  yield* getIterator(m(initial));
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
-    {
-      current = mapFunc(current, e);
-      if (log.showDebug)
-        log.debug("scan", current, e);
-      yield current;
-    }
-  }
-});
 addGenerator(function* takeTime(time, node) {
   var timeTaken = 0;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       yield e;
       timeTaken += e.event.duration;
@@ -407,9 +398,9 @@ addGenerator(function* durationSum(node) {
   }), 0));
 });
 addGenerator(function* branch(condition, branchNode, elseNode, node) {
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var e = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var e = $__7.value;
     {
       var branchTo = (condition(e) ? branchNode : elseNode);
       yield* getIterator(branchTo.takeWhile((function(n) {
@@ -469,14 +460,18 @@ addGenerator(function* translate(amount, node) {
     })));
 });
 addGenerator(function* externalProp(propName, baconProp, initialVal, node) {
-  var propVal = initialVal;
-  baconProp.onValue(function(v) {
-    propVal = v;
-  });
-  var res = node.prop(propName, (function() {
-    return propVal;
+  var asyncSeq = m().asyncDataLatest(baconProp, initialVal).simpleMap((function(v) {
+    var $__5;
+    return (($__5 = {}, Object.defineProperty($__5, propName, {
+      value: (function() {
+        return v.valueOf();
+      }),
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), $__5));
   }));
-  yield* getIterator(res);
+  yield* getIterator(m(node).zipMerge(asyncSeq));
 }, {toStringOverride: "externalProp"});
 var endMarker = m().endMarker();
 addGenerator(function* metro(tickDuration, node) {
@@ -509,9 +504,9 @@ addGenerator(function* merge(mergeNode, node) {
   var nodeIterator = getIterator(node);
   var x = nodeIterator.next();
   var nextNode = x.value;
-  for (var $__5 = mergeNode[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var mergeEvent = $__6.value;
+  for (var $__6 = mergeNode[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var mergeEvent = $__7.value;
     {
       while (nextNode != undefined && nextNode.time <= mergeEvent.time) {
         yield nextNode;
@@ -559,15 +554,16 @@ function paramEval(param) {
 addGenerator(function* bjorklund(steps, pulses, rotation, node) {
   var stepsEval = paramEval(steps);
   var pulsesEval = paramEval(pulses);
+  var rotationEval = paramEval(rotation);
   var counter = 0;
-  for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__6; !($__6 = $__5.next()).done; ) {
-    var n = $__6.value;
+  for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__7; !($__7 = $__6.next()).done; ) {
+    var n = $__7.value;
     {
       var pattern = bjorklundMaker(stepsEval(n), pulsesEval(n));
       if (pattern.length == 0)
         pattern = [1];
-      if (pattern[((counter++) + rotation) % pattern.length]) {
+      if (pattern[((counter++) + rotationEval(n)) % pattern.length]) {
         yield n;
       }
     }
@@ -621,8 +617,8 @@ function bjorklundMaker(steps, pulses) {
   build(level);
   return pattern.reverse();
 }
-var testCombine1 = m().evt({pitch: 50}).metro(1).delay(0.1);
-var testCombine2 = m().evt({pitch: 50}).metro(0.25);
+var testCombine1 = m().evt({pitch: 49}).metro(1).delay(0.1);
+var testCombine2 = m().evt({pitch: 49}).metro(0.25);
 var combined = testCombine1.combine(testCombine2);
 combined.take(10).toArray().forEach((function(n) {
   return console.log("combineTest", n);

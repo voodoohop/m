@@ -45,6 +45,9 @@ import log from "./lib/logger";
 
 var Bacon = require("baconjs");
 
+
+import * as liveClips from "./livePlayingClips";
+
 log.info("bunyasaan");
 
 // throw "bye";
@@ -159,9 +162,11 @@ import SequencePlayManager from "./sequencePlayManager";
 
 var sequencePlayManager = SequencePlayManager(timeThatAccountsForTransportJumps.toEventStream(),resetMessages, webServer.sequenceFeedback);
 
+// liveClips.subscribedSequences(sequencePlayManager.subscribedSequences);
+
 
 timeThatAccountsForTransportJumps.throttle(1000).onValue(() => console.log("playing Sequences".bgMagenta.white,
- Object.keys(sequencePlayManager.playingSequences).map(seqPath => seqPath+":"+sequencePlayManager.playingSequences[seqPath].port)));
+ Object.keys(sequencePlayManager.playingSequences).map(seqPath => seqPath)));
 
 import {baconStorer, onCodeLoaded, storedSequences} from "./codeStore";
 
@@ -183,6 +188,9 @@ var Easer = require('functional-easing').Easer;
 
 //timeThatAccountsForTransportJumps.toEventStream().skipDuplicates().log("beat");
 webServer.beatFeedback(timeThatAccountsForTransportJumps.toEventStream().map((t) => Math.floor(t.time)).skipDuplicates());
+
+
+
 
 
 

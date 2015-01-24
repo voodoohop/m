@@ -53,7 +53,7 @@ module.exports = component('GeneratorList', function (props) {
     // var keyOuter = generator.device;
     // return <TreeView key=generator.device
     if (typeof treeNode == "object" && treeNode != null && !treeNode.hasOwnProperty("isSequenceGenerator")) {
-      var keys=Object.keys(treeNode);
+      var keys= Object.keys(treeNode).sort();
       return keys.map(function (nodeKey) { return <TreeView key={""+nodeKey+"_"+key} defaultCollapsed={root} nodeLabel={nodeKey}>{createItem(treeNode[nodeKey],false,key+"/"+nodeKey)}</TreeView>});
     }
     else {

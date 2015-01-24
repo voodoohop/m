@@ -7,6 +7,7 @@ var $__patchConsoleLog__,
     $__lib_47_utils__,
     $__generatorModuleManager__,
     $__lib_47_logger__,
+    $__livePlayingClips__,
     $__webConnection__,
     $__sequencePlayManager__,
     $__codeStore__;
@@ -26,6 +27,7 @@ var moduleManager = ($__generatorModuleManager__ = require("./generatorModuleMan
 var _ = require("lodash");
 var log = ($__lib_47_logger__ = require("./lib/logger"), $__lib_47_logger__ && $__lib_47_logger__.__esModule && $__lib_47_logger__ || {default: $__lib_47_logger__}).default;
 var Bacon = require("baconjs");
+var liveClips = ($__livePlayingClips__ = require("./livePlayingClips"), $__livePlayingClips__ && $__livePlayingClips__.__esModule && $__livePlayingClips__ || {default: $__livePlayingClips__});
 log.info("bunyasaan");
 var traceur = require("traceur");
 var timeResetRequest = new Bacon.Bus();
@@ -76,7 +78,7 @@ var SequencePlayManager = ($__sequencePlayManager__ = require("./sequencePlayMan
 var sequencePlayManager = SequencePlayManager(timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
 timeThatAccountsForTransportJumps.throttle(1000).onValue((function() {
   return console.log("playing Sequences".bgMagenta.white, Object.keys(sequencePlayManager.playingSequences).map((function(seqPath) {
-    return seqPath + ":" + sequencePlayManager.playingSequences[seqPath].port;
+    return seqPath;
   })));
 }));
 var $__8 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),

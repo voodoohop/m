@@ -145,7 +145,7 @@ var addFuncProp = function(eventObject, name, func) {
   Object.defineProperty(newObject, name, jsPropDescriptor);
   return newObject;
 };
-var toStringDetailed = _.memoize(function(v) {
+var toStringDetailed = function(v) {
   if (v == null)
     return "null";
   if (!v.isTom) {
@@ -164,7 +164,7 @@ var toStringDetailed = _.memoize(function(v) {
     return stringified;
   }
   return "" + v;
-});
+};
 var toStringObject = function(o) {
   if (typeof o == "object") {
     o.prototype.toString = (function() {

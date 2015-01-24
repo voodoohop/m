@@ -11,10 +11,14 @@ import log from "./lib/logger";
 
 export default function wrapSequenceError(error, deviceStruct) {
 
-  log.error("error",{err:error});
+  log.error("error", {
+    err: error
+  });
 
   var stack = stackTrace.parse(error);
-  if (log.showDebug) log.debug({stack:stack});
+  if (log.showDebug) log.debug({
+    stack: stack
+  });
   // console.warn("stackArray");
   // stack.forEach(s => console.warn("stackt",s));
   // console.log("stackstack", error.toString(), error.stack);
@@ -40,9 +44,9 @@ export default function wrapSequenceError(error, deviceStruct) {
   //   else
   //     console.error("couldn't find sourceMap error transformer");
   // }
-  log.warn("looking for errorpos",deviceStruct);
+  log.warn("looking for errorpos", deviceStruct);
   var errorPos = getSourcePos(deviceStruct.sourcePos, stack);
-  log.warn("found errorPos",errorPos);
+  log.warn("found errorPos", errorPos);
   //  process.exit(1);
   // repl.start({
   //   prompt: "genMusic stdin> ",
@@ -53,7 +57,7 @@ export default function wrapSequenceError(error, deviceStruct) {
   return {
     error: error,
 
-    errorPos:errorPos,
+    errorPos: errorPos,
     description: _.last(error.toString().split("\n")),
     stackTrace: stack
 

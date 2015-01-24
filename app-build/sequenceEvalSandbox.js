@@ -13,7 +13,8 @@ var $__functionalM_47_baseLib__,
     $__lib_47_logger__,
     $__lib_47_utils__,
     $__oscAbleton__,
-    $__lib_47_findSourceStackPos__;
+    $__lib_47_findSourceStackPos__,
+    $__livePlayingClips__;
 var teoria = require("teoria");
 var m = ($__functionalM_47_baseLib__ = require("./functionalM/baseLib"), $__functionalM_47_baseLib__ && $__functionalM_47_baseLib__.__esModule && $__functionalM_47_baseLib__ || {default: $__functionalM_47_baseLib__}).m;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
@@ -34,6 +35,7 @@ var vm = require("vm");
 var stackTrace = require("stack-trace");
 var getSourcePos = ($__lib_47_findSourceStackPos__ = require("./lib/findSourceStackPos"), $__lib_47_findSourceStackPos__ && $__lib_47_findSourceStackPos__.__esModule && $__lib_47_findSourceStackPos__ || {default: $__lib_47_findSourceStackPos__}).default;
 var ramda = require("ramda");
+var livePlayingClips = ($__livePlayingClips__ = require("./livePlayingClips"), $__livePlayingClips__ && $__livePlayingClips__.__esModule && $__livePlayingClips__ || {default: $__livePlayingClips__});
 function getSandBox(loadedSequences) {
   var deviceStruct = arguments[1] !== (void 0) ? arguments[1] : null;
   var loggerOverride = arguments[2] !== (void 0) ? arguments[2] : false;
@@ -51,6 +53,9 @@ function getSandBox(loadedSequences) {
     });
   };
   var seqLoader = {get: (function(m) {
+      if (m === "playing") {
+        return {"default": livePlayingClips.getSequence(deviceStruct.device)};
+      }
       console.log("seqLoader: requesting sequences from", m);
       var evaluated = loadedSequences.getIn([m, "evaluated"]);
       console.log("seqLoader: sending evaluated", evaluated);
@@ -62,7 +67,7 @@ function getSandBox(loadedSequences) {
     "$traceurRuntime": $traceurRuntime,
     "m": m,
     "t": t,
-    "params": abletonReceiver.param,
+    "params": abletonReceiver.param(deviceStruct.device),
     "wu": wu,
     "teoria": teoria,
     "immutable": immutable,
