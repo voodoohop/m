@@ -67,21 +67,21 @@ var wu = null;
     Wu.prototype[name] = fn;
     expectedArgs += 1;
     wu[name] = wu.curryable((function() {
-      var $__11;
+      var $__12;
       for (var args = [],
           $__4 = 0; $__4 < arguments.length; $__4++)
         args[$__4] = arguments[$__4];
       const iterable = args.pop();
-      return ($__11 = wu(iterable))[name].apply($__11, $traceurRuntime.spread(args));
+      return ($__12 = wu(iterable))[name].apply($__12, $traceurRuntime.spread(args));
     }), expectedArgs);
   });
   const rewrap = (function(fn) {
     return function() {
-      var $__11;
+      var $__12;
       for (var args = [],
           $__4 = 0; $__4 < arguments.length; $__4++)
         args[$__4] = arguments[$__4];
-      return wu(($__11 = fn).call.apply($__11, $traceurRuntime.spread([this], args)));
+      return wu(($__12 = fn).call.apply($__12, $traceurRuntime.spread([this], args)));
     };
   });
   const rewrapStaticMethod = (function(name, fn) {
@@ -92,11 +92,11 @@ var wu = null;
   });
   function curry(fn, args) {
     return function() {
-      var $__11;
+      var $__12;
       for (var moreArgs = [],
           $__4 = 0; $__4 < arguments.length; $__4++)
         moreArgs[$__4] = arguments[$__4];
-      return ($__11 = fn).call.apply($__11, $traceurRuntime.spread([this], args, moreArgs));
+      return ($__12 = fn).call.apply($__12, $traceurRuntime.spread([this], args, moreArgs));
     };
   }
   staticMethod("curryable", (function(fn) {
@@ -265,7 +265,7 @@ var wu = null;
     }
   }, 1);
   rewrapPrototypeAndStatic("invoke", function*(name) {
-    var $__11;
+    var $__12;
     for (var args = [],
         $__5 = 1; $__5 < arguments.length; $__5++)
       args[$__5 - 1] = arguments[$__5];
@@ -273,7 +273,7 @@ var wu = null;
         $__1; !($__1 = $__0.next()).done; ) {
       let x = $__1.value;
       {
-        yield ($__11 = x)[name].apply($__11, $traceurRuntime.spread(args));
+        yield ($__12 = x)[name].apply($__12, $traceurRuntime.spread(args));
       }
     }
   });
@@ -331,6 +331,8 @@ var wu = null;
     }
   }, 1);
   rewrapPrototypeAndStatic("slice", function*() {
+    var $__10,
+        $__11;
     var start = arguments[0] !== (void 0) ? arguments[0] : 0;
     var stop = arguments[1] !== (void 0) ? arguments[1] : Infinity;
     if (stop < start) {
@@ -339,8 +341,8 @@ var wu = null;
     for (var $__0 = this.enumerate()[$traceurRuntime.toProperty(Symbol.iterator)](),
         $__1; !($__1 = $__0.next()).done; ) {
       let $__9 = $__1.value,
-          x = $__9[0],
-          i = $__9[1];
+          x = ($__10 = $__9[$traceurRuntime.toProperty(Symbol.iterator)](), ($__11 = $__10.next()).done ? void 0 : $__11.value),
+          i = ($__11 = $__10.next()).done ? void 0 : $__11.value;
       {
         if (i < start) {
           continue;
@@ -363,7 +365,7 @@ var wu = null;
   });
   rewrapPrototypeAndStatic("take", function*(n) {
     if (n < 1) {
-      return;
+      return ;
     }
     let i = 0;
     for (var $__0 = this[$traceurRuntime.toProperty(Symbol.iterator)](),
@@ -418,7 +420,7 @@ var wu = null;
   const _zip = rewrap(function*(iterables) {
     var longest = arguments[1] !== (void 0) ? arguments[1] : false;
     if (!iterables.length) {
-      return;
+      return ;
     }
     const iters = iterables.map(getIterator);
     const numIters = iterables.length;
@@ -435,7 +437,7 @@ var wu = null;
               done = $__9.done;
           if (done) {
             if (!longest) {
-              return;
+              return ;
             }
             if (++numFinished == numIters) {
               finished = true;
@@ -486,11 +488,11 @@ var wu = null;
               fn(x);
             } catch (e) {
               reject(e);
-              return;
+              return ;
             }
             if (Date.now() - start > maxBlock) {
               setTimeout(loop, timeout);
-              return;
+              return ;
             }
           }
         }

@@ -36,12 +36,8 @@ function createHotSwappableSequence(object,fieldName) {
   return {swapper: swapper, currentSequence: seq.hotSwapper(swapper, "swapSequence")};
 }
 
-
-
-
-abletonReceiver.playingClipNotes.onValue(function(v) {
+export var newPlayingClip = abletonReceiver.playingClipNotes.map(function(v) {
   log.info("received new playing clip at time",ableTime,v);
-
   var notes = _.sortBy(v.clip.notes, (n) => n.time);
   var seq=m().data(notes.map((n) => {
     return {
@@ -52,13 +48,20 @@ abletonReceiver.playingClipNotes.onValue(function(v) {
       color: "yellow"
     }
   }
-)).loopLength(v.clip.loopEnd-v.clip.loopStart);//.delay(Math.floor(ableTime-0.3));
+)).loopLength(v.clip.loopEnd-v.clip.loopStart)
+.setMetaData({port: v.port});
+//.delay(Math.floor(ableTime-0.3));
+  return {port: v.port, sequence:seq, name:v.clip.name};
+});
+
+newPlayingClip.onValue(function(v) {
+  log.info("new playing sequence",v);
   log.info("updating livePlayingCLips which should trigger a hotSwap",livePlayingClips);
   if (livePlayingClips[v.port])
-    livePlayingClips[v.port].swapper.swapSequence = seq;
+    livePlayingClips[v.port].swapper.swapSequence = v.sequence;
   else {
     var swapper = {};
-    livePlayingClips[v.port] = {swapper: swapper, currentSequence: seq.hotSwapper(swapper, "swapSequence")};
+    livePlayingClips[v.port] = {swapper: swapper, currentSequence: v.sequence.hotSwapper(swapper, "swapSequence")};
   }
   log.info("playing in live", livePlayingClips);
 });

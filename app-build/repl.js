@@ -1,5 +1,5 @@
 "use strict";
-return;
+return ;
 var repl = require("repl");
 var envName = process.env.NODE_ENV || "dev";
 var replServer = repl.start({

@@ -5,7 +5,7 @@ traceur --symbols=parse --arrow-functions=true --unicode-expressions=true --nume
 #--source-maps
 #browserify browser/braceEditor.js > browser-build/app.js
 #iojs --harmony_proxies --harmony --harmony_sloppy --harmony_arrow_functions index.js | bunyan -l info
- node --harmony_symbols  --harmony_typeof --harmony_scoping --harmony_modules  --harmony_proxies  --harmony_collections --harmony_generators --harmony_iteration  --harmony_numeric_literals  --harmony_strings --harmony_arrays  --harmony_maths  --harmony_promises index.js | bunyan -l debug
+node --harmony --harmony_proxies index.js | bunyan -l debug
 
 #
 #node  --harmony --harmony-proxies index.js

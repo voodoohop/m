@@ -3,6 +3,8 @@ import {
 }
 from "./time";
 
+var _ = require("lodash");
+
 // import timeInterpolator from "./timeInterpolator";
 
 import {
@@ -15,6 +17,14 @@ var osc = require("osc");
 var Bacon = require("baconjs");
 
 import log from "./lib/logger";
+
+
+var Max4Node = require('max4node');
+
+export var maxControl = new Max4Node();
+maxControl.bind();
+
+
 
 var oscToBaconStream = function(udpPort) {
 
@@ -110,8 +120,16 @@ var AbletonReceiver = function(inPort) {
 
   var baconParam = wu.curryable((deviceName, name) => oscMessageIn
     .filter((message) => message.address.startsWith("/param/" + name) && message.args[2].split("/")[0] === deviceName)
-    .map((message) => message.args[0]).toProperty());
+    .map((message) => ({value: message.args[0], port:message.args[1]})).toProperty());
 
+  var baconParams = wu.curryable((path,name) => {
+    var device = path.split("/")[0];
+    // var seqName = path.split("/")[1].split(":")[0];
+    var port = path.split("/")[1].split(":")[1]
+    return oscMessageIn
+    .filter(message => message.address.startsWith("/param/"+name) && message.args[2].split("/")[0] === device && ""+message.args[1] == ""+port)
+    .map(message => message.args[0]).toProperty();
+  });
 
   //  baconParam("1").onValue((v) => console.log("baconvalue", v));
 
@@ -121,6 +139,8 @@ var AbletonReceiver = function(inPort) {
   return {
     time: timeInBeats,
     param: baconParam,
+    params: baconParams,
+    // subscribeParam: (name,port) => baconParam,
     codeChange: codeChange,
     clipNotes: clipNotes,
     playingClipNotes: playingClipNotes,
@@ -216,6 +236,7 @@ var AbletonSender = function(outPort) {
     noteOff: noteOff,
     param: param,
     generatorUpdate: generatorUpdate,
+
     // usedTime: function(baconTime) {
     //   diffTime = baconTime;
     // }
@@ -226,3 +247,11 @@ var AbletonSender = function(outPort) {
 
 export var abletonSender = AbletonSender(8916);
 export var abletonReceiver = AbletonReceiver(8895);
+
+
+export var subscribeInOutInstrument = function(path) {
+  return _.extend(
+  {inputParams: abletonReceiver.params(path)}
+  ,abletonSender.subscribeInstrument(path.split(":")[0], Number(path.split(":")[1]))
+  );
+}

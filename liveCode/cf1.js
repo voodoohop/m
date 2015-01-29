@@ -3,6 +3,9 @@ import {CarimboChords2} from "abletonClip_CarimboChords2";
 import clip from "playing";
 import {extendScaleToFullRange} from "scaleTools";
 
+log(clip);
+
+
 export var toChord = clip.combine(CarimboChords2.groupByTime().simpleMap(n=> ({time:n[0].time, notes:n})))
 .pitch(n => {
     if (!n.previous)

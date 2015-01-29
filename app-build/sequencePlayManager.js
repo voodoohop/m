@@ -15,20 +15,34 @@ var _ = require("lodash");
 var immutableTom = ($__immutable_47_nodeProxiedImmutable__ = require("./immutable/nodeProxiedImmutable"), $__immutable_47_nodeProxiedImmutable__ && $__immutable_47_nodeProxiedImmutable__.__esModule && $__immutable_47_nodeProxiedImmutable__ || {default: $__immutable_47_nodeProxiedImmutable__}).immutableTom;
 var $__2 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
     abletonReceiver = $__2.abletonReceiver,
-    abletonSender = $__2.abletonSender;
+    abletonSender = $__2.abletonSender,
+    subscribeInOutInstrument = $__2.subscribeInOutInstrument;
 var processedSequences = ($__generatorModuleManager__ = require("./generatorModuleManager"), $__generatorModuleManager__ && $__generatorModuleManager__.__esModule && $__generatorModuleManager__ || {default: $__generatorModuleManager__}).processedSequences;
 var sequenceSubscribe = abletonReceiver.sequencePlayRequests;
 var $__default = function(time, resetMessages, sequenceFeedback) {
   var resetRequests = new Bacon.Bus();
   var availableSequences = {};
   var playSequencer = (function(sequencer, inst, name, device) {
-    return sequencer.onValue((function(playFunc) {
+    var innerStopFunc = null;
+    var outerStopFunc = sequencer.scan((function() {
+      return null;
+    }), (function(stopFunc, playFunc) {
       sequenceFeedback.push(_.extend({
         seqName: name,
         device: device
       }, playFunc.evt));
-      playFunc.play(inst);
+      var newStopFunc = playFunc.play(inst);
+      return (function() {
+        stopFunc();
+        newStopFunc();
+      });
+    })).onValue((function(v) {
+      return innerStopFunc = v;
     }));
+    return (function() {
+      innerStopFunc();
+      outerStopFunc();
+    });
   });
   var playingSequences = {};
   var Sequencer = BaconSequencer(time);
@@ -74,13 +88,15 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     console.log("subscribeRequest", sub);
     if (!availableSequences[sub.path] || !availableSequences[sub.path].evaluatedDetails || !availableSequences[sub.path].evaluatedDetails[sub.name] || !availableSequences[sub.path].evaluatedDetails[sub.name].playable) {
       console.warn("tried subscribing to " + sub.name + " but not available or playable", availableSequences[sub.path]);
-      return;
+      return ;
     }
     console.log("subscribing", sub.path);
+    console.log("subscribed", subscribedSequences);
+    console.log("playing", playingSequences);
     if (_.find(subscribedSequences, (function(s) {
       return s.port == sub.port && s.path == sub.path;
     })))
-      return;
+      return ;
     _.remove(subscribedSequences, (function(s) {
       return s.port == sub.port;
     }));
@@ -98,12 +114,12 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
     playSeqs.forEach((function(s) {
       var port = s.port;
       console.log("creating instrument for", seq.device + "/" + seq.name, port);
-      var seqInst = abletonSender.subscribeInstrument(seq.device + "/" + seq.name, port);
+      var seqInst = subscribeInOutInstrument(seq.device + "/" + seq.name + ":" + port);
       var key = seq.device + "/" + seq.name + ":" + port;
       if (playingSequences[key])
         playingSequences[key].stop();
       playingSequences[key] = {
-        stop: playSequencer(Sequencer(seq.sequence, seq.device + "/" + seq.name), seqInst, seq.name, seq.device),
+        stop: playSequencer(Sequencer(seq.sequence, seq.device + "/" + seq.name + ":" + port), seqInst, seq.name, seq.device),
         sequence: seq.sequence,
         name: seq.name,
         path: seq.device + "/" + seq.name,
@@ -126,7 +142,7 @@ var $__default = function(time, resetMessages, sequenceFeedback) {
   processedSequences.onValue((function(seq) {
     if (seq.evaluatedError) {
       console.error("not processing", seq.device, "due to error", seq.evaluatedError);
-      return;
+      return ;
     }
     availableSequences[seq.device + "/" + seq.name] = seq;
     console.log("terminating ", seq.device + "/" + seq.name, "in playingSequences", playingSequences);

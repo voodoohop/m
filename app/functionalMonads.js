@@ -13,6 +13,10 @@ from "./functionalM/musicalGens";
 import {}
 from "./functionalM/asyncSequence";
 
+import {
+
+} from "./functionalM/cacher";
+
 import hrTimer from "./lib/hrtimer";
 
 var assert = require("assert");
@@ -21,7 +25,32 @@ export var m = mImported;
 
 var _ = require("lodash");
 
+import {getIterator} from "./lib/utils";
+
 console.log("mprototype", m.prototype);
+
+var bigInt = require('big-integer');
+var number = bigInt(1);
+var last = bigInt(1);
+
+var smallNumber = 1;
+var smallLast = 1;
+
+console.log("fibonacci");
+for(var i=0;i<100;i++){
+  //var number = number.add(last);
+  //last = number.minus(last);
+  var smallTmp = smallLast + smallNumber;
+  smallLast = smallNumber;
+  smallNumber = smallTmp;
+  var tmp = number.add(last);
+  console.log("s:"+smallNumber);
+  last = number;
+  number = tmp;
+  console.log("b:"+number)
+  console.log((i + 3) + ":" + number.mod(3).toString()+":"+(smallNumber%3));
+}
+// process.exit(1);
 
 var mTest = m({
   pitch: 10
@@ -1702,6 +1731,31 @@ log(OndasGroove.merge(m().evt({
 
 
 
+
+
+
+
+function* fibonacci() {
+  let a = 0, b = 1;
+
+  while(true) {
+    yield a;
+    [a, b] = [b, a + b];
+  }
+}
+
+var fib = m().evt({fib:fibonacci()});
+
+console.log(fib.take(10).toArray());
+
+var count =0;
+
+for (let n of fibonacci()) {
+  if (n%3==0)
+  console.log(count);
+  if (count++ > 100)
+    return;
+}
 
 
 // throw "bye";

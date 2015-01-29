@@ -12,7 +12,7 @@ import {
 from "./immutable/nodeProxiedImmutable";
 
 import {
-  abletonReceiver, abletonSender
+  abletonReceiver, abletonSender, subscribeInOutInstrument
 }
 from "./oscAbleton";
 
@@ -25,7 +25,7 @@ var sequenceSubscribe = abletonReceiver.sequencePlayRequests;
 
 
 export default function(time, resetMessages, sequenceFeedback) {
-  //console.log(sequenceSubscribe);
+  // console.log(sequenceSubscribe);
   // sequenceSubscribe.log("seqSubsribe");
 
   // TODO: can probably remove these reset requests...
@@ -33,14 +33,20 @@ export default function(time, resetMessages, sequenceFeedback) {
 
   var availableSequences = {};
 
-  var playSequencer = (sequencer, inst, name, device) => sequencer.onValue((playFunc) => {
+  var playSequencer = (sequencer, inst, name, device) => {
+    var innerStopFunc = null;
+    var outerStopFunc = sequencer.scan( () =>null, (stopFunc, playFunc) => {
     // console.log("sending seqName",name);
-    sequenceFeedback.push(_.extend({
-      seqName: name,
-      device: device
-    }, playFunc.evt));
-    playFunc.play(inst);
-  });
+      sequenceFeedback.push(_.extend({
+        seqName: name,
+        device: device
+      }, playFunc.evt));
+      var newStopFunc = playFunc.play(inst);
+      return () => { stopFunc(); newStopFunc()};
+    }).onValue(v => innerStopFunc = v);
+    return () => {innerStopFunc(); outerStopFunc()};
+  };
+
   var playingSequences = {};
 
   var Sequencer = BaconSequencer(time);
@@ -91,6 +97,8 @@ export default function(time, resetMessages, sequenceFeedback) {
       return;
     }
     console.log("subscribing", sub.path); //, "subscribed", subscribedSequences);
+    console.log("subscribed",subscribedSequences);
+    console.log("playing", playingSequences);
     if (_.find(subscribedSequences, (s) => s.port == sub.port && s.path == sub.path))
       return;
 
@@ -113,12 +121,12 @@ export default function(time, resetMessages, sequenceFeedback) {
       var port = s.port;
       console.log("creating instrument for", seq.device + "/" + seq.name, port);
 
-      var seqInst = abletonSender.subscribeInstrument(seq.device + "/" + seq.name, port);
+      var seqInst = subscribeInOutInstrument(seq.device + "/" + seq.name+":"+port);
       var key=seq.device + "/" + seq.name+":"+port;
       if (playingSequences[key])
         playingSequences[key].stop();
       playingSequences[key] = {
-        stop: playSequencer(Sequencer(seq.sequence, seq.device + "/" + seq.name), seqInst, seq.name, seq.device),
+        stop: playSequencer(Sequencer(seq.sequence, seq.device + "/" + seq.name+":"+port), seqInst, seq.name, seq.device),
         sequence: seq.sequence,
         name: seq.name,
         path: seq.device + "/" + seq.name,

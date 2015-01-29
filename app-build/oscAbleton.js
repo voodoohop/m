@@ -1,10 +1,16 @@
 "use strict";
 Object.defineProperties(exports, {
+  maxControl: {get: function() {
+      return maxControl;
+    }},
   abletonSender: {get: function() {
       return abletonSender;
     }},
   abletonReceiver: {get: function() {
       return abletonReceiver;
+    }},
+  subscribeInOutInstrument: {get: function() {
+      return subscribeInOutInstrument;
     }},
   __esModule: {value: true}
 });
@@ -12,10 +18,14 @@ var $__time__,
     $__lib_47_wu__,
     $__lib_47_logger__;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
+var _ = require("lodash");
 var wu = ($__lib_47_wu__ = require("./lib/wu"), $__lib_47_wu__ && $__lib_47_wu__.__esModule && $__lib_47_wu__ || {default: $__lib_47_wu__}).wu;
 var osc = require("osc");
 var Bacon = require("baconjs");
 var log = ($__lib_47_logger__ = require("./lib/logger"), $__lib_47_logger__ && $__lib_47_logger__.__esModule && $__lib_47_logger__ || {default: $__lib_47_logger__}).default;
+var Max4Node = require('max4node');
+var maxControl = new Max4Node();
+maxControl.bind();
 var oscToBaconStream = function(udpPort) {
   return Bacon.fromBinder(function(sink) {
     udpPort.on("message", (function(m) {
@@ -103,6 +113,18 @@ var AbletonReceiver = function(inPort) {
     return oscMessageIn.filter((function(message) {
       return message.address.startsWith("/param/" + name) && message.args[2].split("/")[0] === deviceName;
     })).map((function(message) {
+      return ({
+        value: message.args[0],
+        port: message.args[1]
+      });
+    })).toProperty();
+  }));
+  var baconParams = wu.curryable((function(path, name) {
+    var device = path.split("/")[0];
+    var port = path.split("/")[1].split(":")[1];
+    return oscMessageIn.filter((function(message) {
+      return message.address.startsWith("/param/" + name) && message.args[2].split("/")[0] === device && "" + message.args[1] == "" + port;
+    })).map((function(message) {
       return message.args[0];
     })).toProperty();
   }));
@@ -112,6 +134,7 @@ var AbletonReceiver = function(inPort) {
   return {
     time: timeInBeats,
     param: baconParam,
+    params: baconParams,
     codeChange: codeChange,
     clipNotes: clipNotes,
     playingClipNotes: playingClipNotes,
@@ -180,3 +203,6 @@ var AbletonSender = function(outPort) {
 };
 var abletonSender = AbletonSender(8916);
 var abletonReceiver = AbletonReceiver(8895);
+var subscribeInOutInstrument = function(path) {
+  return _.extend({inputParams: abletonReceiver.params(path)}, abletonSender.subscribeInstrument(path.split(":")[0], Number(path.split(":")[1])));
+};

@@ -10,6 +10,8 @@ import wrapError from "./wrapSequenceError";
 import sandbox from "./sequenceEvalSandbox";
 
 import hrTimer from "./lib/hrtimer";
+
+
 // var wait=require('wait.for-es6')
 
 function getSequenceGenerator(code, loadedSequences, seqContext) {
@@ -50,9 +52,10 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     if (!res.isSequenceGenerator)
       return res;
     var sampleSize = 100;
-    var playableSequence = seq.toPlayable().take(sampleSize);
+    var playableSequence = seq.toPlayable().take(sampleSize).takeWhile(n => n.time<16);
     var testerCode = "result = sequence.toArray();";
     // console.log("testing playableSequence:".bgYellow,seq, playableSequence);
+
 
     var globalBack = {};
     for (let key of Object.keys(sequenceSandbox)) {
@@ -83,9 +86,12 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
       global[key] = globalBack[key];
 
     // global = globalBackup;
-    if (!res.evaluatedError && testSeqResult && testSeqResult.length > 0) {
-      var lastBeatTime = testSeqResult[testSeqResult.length - 1].time;
-      console.log("testSeqResult", lastBeatTime, timeTaken);
+    if (!res.evaluatedError && testSeqResult && testSeqResult.length >= 0) {
+
+      var lastBeatTime = 0;
+      if (testSeqResult.length > 0)
+        lastBeatTime = testSeqResult[testSeqResult.length - 1].time;
+      console.log("testSeqResult",  lastBeatTime, timeTaken,testSeqResult);
       res.playable = true;
       res.eventSample = testSeqResult;
       res.timeTaken = timeTaken;

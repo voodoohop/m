@@ -12,6 +12,7 @@ var $__1 = ($__baseLib__ = require("./baseLib"), $__baseLib__ && $__baseLib__.__
 var log = ($___46__46__47_lib_47_logger__ = require("../lib/logger"), $___46__46__47_lib_47_logger__ && $___46__46__47_lib_47_logger__.__esModule && $___46__46__47_lib_47_logger__ || {default: $___46__46__47_lib_47_logger__}).default;
 var SortedMap = require("collections/sorted-map");
 var $__3 = ($___46__46__47_lib_47_utils__ = require("../lib/utils"), $___46__46__47_lib_47_utils__ && $___46__46__47_lib_47_utils__.__esModule && $___46__46__47_lib_47_utils__ || {default: $___46__46__47_lib_47_utils__}),
+    forOf = $__3.forOf,
     prettyToString = $__3.prettyToString,
     toStringObject = $__3.toStringObject,
     toStringDetailed = $__3.toStringDetailed,
@@ -25,12 +26,12 @@ var $__4 = ($___46__46__47_immutable_47_nodeProxiedImmutable__ = require("../imm
     addObjectProps = $__4.addObjectProps,
     addLazyProp = $__4.addLazyProp;
 var Immutable = require("immutable");
-addGenerator(function* note(data) {
+addGenerator(function* note(node) {
   yield* getIterator(m().evt({
     pitch: 60,
     velocity: 0.8,
-    duration: 0.5
-  }).set(data));
+    duration: 0.2
+  }));
 });
 addGenerator(function* withNext(node) {
   var me = null;
@@ -60,7 +61,7 @@ addGenerator(function* groupByTime(node) {
     {
       if (!n.hasOwnProperty("time")) {
         console.error("groupByTime called but no time property".red);
-        return;
+        return ;
       }
       if (n.time > currentTime) {
         if (grouped.length > 0) {
@@ -111,6 +112,7 @@ addGenerator(function* lazyResolve(node) {
     var merged = res.reduce((function(prev, next) {
       return m(prev).merge(next);
     }), []);
+    merged = m(n).merge(merged);
     return merged;
   }));
   yield* getIterator(mapped);
@@ -125,21 +127,24 @@ addGenerator(function* automationOnly(node) {
   yield* getIterator(m(node).set({noteDisabled: true}));
 });
 addGenerator(function* notePlay(node) {
-  yield* getIterator(m(node).filter(isNote).lazyMap("automation_noteOnOff", (function(n) {
-    return [{
-      type: "noteOn",
-      velocity: n.velocity,
-      pitch: n.pitch,
-      duration: n.duration,
-      time: n.time,
-      color: n.color,
-      noteDisabled: n.noteDisabled
-    }, {
-      type: "noteOff",
-      pitch: n.pitch,
-      time: n.time + n.duration,
-      noteDisabled: n.noteDisabled
-    }];
+  yield* getIterator(m(node).lazyMap("automation_noteOnOff", (function(n) {
+    if (isNote(n))
+      return ([{
+        type: "noteOn",
+        velocity: n.velocity,
+        pitch: n.pitch,
+        duration: n.duration,
+        time: n.time,
+        color: n.color,
+        noteDisabled: n.noteDisabled
+      }, {
+        type: "noteOff",
+        pitch: n.pitch,
+        time: n.time + n.duration,
+        noteDisabled: n.noteDisabled
+      }]);
+    else
+      return [];
   })));
 });
 addGenerator(function* automate(paramName, valGenerator, node) {
@@ -189,7 +194,8 @@ addGenerator(function* slidingWindow(no, node) {
       accumulated.push(n);
       if (accumulated.length > no)
         accumulated.shift();
-      log.debug("slidingWindow accumulated", accumulated);
+      if (log.showDebug)
+        log.debug("slidingWindow accumulated", accumulated);
       if (accumulated.length == no)
         yield accumulated;
     }
@@ -226,7 +232,8 @@ addGenerator(function* combine(combineNode, node) {
       if (log.showDebug)
         log.debug("combining", n, n[1]);
       if (n[1][0].hasOwnProperty("me")) {
-        log.debug("yielding", "previous:", n[0], "next:", n[2]);
+        if (log.showDebug)
+          log.debug("yielding", "previous:", n[0], "next:", n[2]);
         for (var $__6 = n[1][$traceurRuntime.toProperty(Symbol.iterator)](),
             $__7; !($__7 = $__6.next()).done; ) {
           let n2 = $__7.value;
@@ -337,31 +344,29 @@ addGenerator(function* flattenAndSchedule(node) {
   var scheduled = new PriorityQueue({comparator: (function(a, b) {
       return getScheduleKey(a) - getScheduleKey(b);
     })});
-  for (var $__8 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__9; !($__9 = $__8.next()).done; ) {
-    var n = $__9.value;
-    {
-      var minTime = Infinity;
-      if (isIterable(n)) {
-        for (var $__6 = n[$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__7; !($__7 = $__6.next()).done; ) {
-          let nFlat = $__7.value;
-          {
-            var time = getScheduleKey(nFlat);
-            if (time < minTime)
-              minTime = time;
-            scheduled.queue(nFlat);
-          }
+  yield* forOf(node, (function(n) {
+    var minTime = Infinity;
+    var toYield = [];
+    if (isIterable(n)) {
+      for (var $__6 = n[$traceurRuntime.toProperty(Symbol.iterator)](),
+          $__7; !($__7 = $__6.next()).done; ) {
+        let nFlat = $__7.value;
+        {
+          var time = getScheduleKey(nFlat);
+          if (time < minTime)
+            minTime = time;
+          scheduled.queue(nFlat);
         }
-      } else {
-        yield n;
-        minTime = getScheduleKey(n);
       }
-      while (scheduled.length > 0 && getScheduleKey(scheduled.peek()) < minTime) {
-        yield scheduled.dequeue();
-      }
+    } else {
+      toYield.push(n);
+      minTime = getScheduleKey(n);
     }
-  }
+    while (scheduled.length > 0 && getScheduleKey(scheduled.peek()) < minTime) {
+      toYield.push(scheduled.dequeue());
+    }
+    return toYield;
+  }));
   while (scheduled.length > 0) {
     yield scheduled.dequeue();
   }
@@ -397,12 +402,12 @@ addGenerator(function* durationSum(node) {
     return sum + timedEvent.duration;
   }), 0));
 });
-addGenerator(function* branch(condition, branchNode, elseNode, node) {
+addGenerator(function* branch(condition, branchNode, node) {
   for (var $__6 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
       $__7; !($__7 = $__6.next()).done; ) {
     var e = $__7.value;
     {
-      var branchTo = (condition(e) ? branchNode : elseNode);
+      var branchTo = (condition(e) ? branchNode : node);
       yield* getIterator(branchTo.takeWhile((function(n) {
         return n.time < e.duration;
       })).set({time: (function(n) {
@@ -437,7 +442,7 @@ addGenerator(function* delay(amount, node) {
         log.debug("ntomshould delay", n);
       return n[0].set("time", n[0].time + n[1].delayAmount);
     })));
-    return;
+    return ;
   } else
     yield* getIterator(m(node).map((function(n) {
       return n.set("time", amount + n.time);
@@ -453,7 +458,7 @@ addGenerator(function* translate(amount, node) {
         log.debug("ntomshould translate", n);
       return n[0].set("pitch", n[0].pitch + n[1].translateAmount);
     })));
-    return;
+    return ;
   } else
     yield* getIterator(m(node).map((function(n) {
       return n.set("pitch", amount + n.pitch);
@@ -491,7 +496,7 @@ addGenerator(function* durationsFromTime(node) {
   while (true) {
     var next = i.next().value;
     if (next === undefined)
-      return;
+      return ;
     if (previous != undefined && previous.hasOwnProperty("time") && next.hasOwnProperty("time")) {
       yield addObjectProps(previous, {duration: next.time - previous.time - 0.01});
     }

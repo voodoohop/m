@@ -201,3 +201,22 @@ export var prettyToString = function(name, args) {
   //console.log(res.prototype.toString());
   return stringReperesentation;
 }
+
+
+
+export function forOf(iterable, callback) {
+  var generator = function*() {
+  var iterator = getIterator(iterable);
+  var next;
+  var currentParams=null;
+  while (next = iterator.next(currentParams)) {
+    if (next.done)
+      return;
+    var res = callback(next.value);
+    if (res != undefined)
+      for (let r of res)
+        currentParams = yield(r);
+    }
+  }
+  return generator();
+}

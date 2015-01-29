@@ -8,7 +8,7 @@ import {
 from "./baseLib";
 
 import {
-  prettyToString, toStringObject, toStringDetailed, addFuncProp, /*clone, addObjectProp, addObjectProps, */ isIterable, getIterator, fixFloat
+  forOfWithParams, prettyToString, toStringObject, toStringDetailed, addFuncProp, /*clone, addObjectProp, addObjectProps, */ isIterable, getIterator, fixFloat
 }
 from "../lib/utils";
 
@@ -17,6 +17,7 @@ import {
 }
 from "../immutable/nodeProxiedImmutable";
 
+import log from "../lib/logger";
 
 
 addGenerator(function* data(dataInput, loopLength = undefined) {
@@ -48,7 +49,8 @@ addGenerator(function* data(dataInput, loopLength = undefined) {
 // TODO: remove this data generator nonsense? if it's not used later yes!
 addGenerator(function* loopData(dataNode) {
   for (var data of dataNode) {
-    // console.log("loopData",data);
+    if(log.showDebug)
+      log.debug("loopData",data, isIterable(data));
     var keys = Object.keys(data);
 
     if (keys.length == 0) {

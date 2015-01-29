@@ -33,6 +33,9 @@ Object.defineProperties(exports, {
   prettyToString: {get: function() {
       return prettyToString;
     }},
+  forOf: {get: function() {
+      return forOf;
+    }},
   __esModule: {value: true}
 });
 var $__wu__;
@@ -188,3 +191,22 @@ var prettyToString = function(name, args) {
   var stringReperesentation = "" + parentNode + "." + name + "(" + args.map(toStringDetailed).join(", ") + ")";
   return stringReperesentation;
 };
+function forOf(iterable, callback) {
+  var generator = function*() {
+    var iterator = getIterator(iterable);
+    var next;
+    var currentParams = null;
+    while (next = iterator.next(currentParams)) {
+      if (next.done)
+        return ;
+      var res = callback(next.value);
+      if (res != undefined)
+        for (var $__2 = res[$traceurRuntime.toProperty(Symbol.iterator)](),
+            $__3; !($__3 = $__2.next()).done; ) {
+          let r = $__3.value;
+          currentParams = yield (r);
+        }
+    }
+  };
+  return generator();
+}

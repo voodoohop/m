@@ -15,7 +15,7 @@ import log from "../lib/logger";
 var SortedMap = require("collections/sorted-map");
 
 import {
-  prettyToString, toStringObject, toStringDetailed, addFuncProp, /*clone, addObjectProp, addObjectProps, */ isIterable, getIterator, fixFloat
+  forOf, prettyToString, toStringObject, toStringDetailed, addFuncProp, /*clone, addObjectProp, addObjectProps, */ isIterable, getIterator, fixFloat
 }
 from "../lib/utils";
 
@@ -26,8 +26,8 @@ from "../immutable/nodeProxiedImmutable";
 
 var Immutable = require("immutable");
 
-addGenerator(function* note(data) {
-  yield* getIterator(m().evt({pitch:60,velocity:0.8, duration: 0.5}).set(data));
+addGenerator(function* note(node) {
+  yield* getIterator(m().evt({pitch:60,velocity:0.8, duration: 0.2}));
 });
 
 addGenerator(function* withNext(node) {
@@ -115,8 +115,6 @@ addGenerator(function* lazyResolve(node) {
     // // console.log(n.automation_param1,lazyProps(n));
     var res = lazyProps(n).map(k => n[k]).map(autoSeq => autoSeq(n));
 
-
-
     var merged = res.reduce((prev, next) => {
       return m(prev).merge(next);
     }, [] /* or [n], to keep previous */ );
@@ -126,8 +124,11 @@ addGenerator(function* lazyResolve(node) {
     // console.log("----------".bgBlack);
 
     // var m(res[0]).toArray());
+    // console.log("lazymap merged",typeof merged);
+    merged = m(n).merge(merged);
     return merged; //.simpleMap(n => n());
   });
+  // mapped = mapped.merge(m(n));
   // // console.log("toA",mapped.toArray().map(n => ""+n));
   //.flattenAndSchedule();//.merge(node);
   // // console.log(m(node).simpleMap(lazyProps).toArray().map(n => n));
@@ -150,20 +151,27 @@ addGenerator(function* notePlay(node) {
 
   // // console.log(MToArray(MTake(2,notes)));
   // // console.log("notes", m.data(notes).take(5).toArray());
-  yield * getIterator(m(node).filter(isNote).lazyMap("automation_noteOnOff", n => [{
-    type: "noteOn",
-    velocity: n.velocity,
-    pitch: n.pitch,
-    duration: n.duration,
-    time: n.time,
-    color: n.color,
-    noteDisabled: n.noteDisabled
-  }, {
-    type: "noteOff",
-    pitch: n.pitch,
-    time: n.time + n.duration,
-    noteDisabled: n.noteDisabled
-  }]));
+  yield * getIterator(m(node).lazyMap("automation_noteOnOff", n => {
+
+  if (isNote(n))
+    return ([{
+        type: "noteOn",
+        velocity: n.velocity,
+        pitch: n.pitch,
+        duration: n.duration,
+        time: n.time,
+        color: n.color,
+        noteDisabled: n.noteDisabled
+      }, {
+        type: "noteOff",
+        pitch: n.pitch,
+        time: n.time + n.duration,
+        noteDisabled: n.noteDisabled
+      }]);
+  else
+    return [];
+  }
+  ));
 })
 
 
@@ -205,7 +213,10 @@ addGenerator(function* automate(paramName, valGenerator, node) {
 
 addGenerator(function* toPlayable(node) {
   yield * getIterator(
-    m(node).notePlay().lazyResolve().flattenAndSchedule()
+    m(node).notePlay()
+    // .merge(m(node).filter(n => n.type=="continuous"))
+    .lazyResolve()
+    .flattenAndSchedule()
   )
 })
 
@@ -237,7 +248,8 @@ addGenerator(function* slidingWindow(no, node) {
     accumulated.push(n);
     if (accumulated.length > no)
       accumulated.shift();
-    log.debug("slidingWindow accumulated", accumulated);
+    if(log.showDebug)
+      log.debug("slidingWindow accumulated", accumulated);
     if (accumulated.length == no)
       yield accumulated;
   }
@@ -270,6 +282,7 @@ addGenerator(function* combine(combineNode, node) {
     if (log.showDebug)
       log.debug("combining", n, n[1]);
     if (n[1][0].hasOwnProperty("me")) {
+      if(log.showDebug)
       log.debug("yielding", "previous:", n[0], "next:", n[2]);
       for (let n2 of n[1])
         yield combineFunc(n2.me, n[0], n[2]);
@@ -432,45 +445,35 @@ addGenerator(function* flattenAndSchedule(node) {
       return getScheduleKey(a) - getScheduleKey(b)
     }
   });
-  for (var n of node) {
+  yield* forOf(node,n => {
     var minTime = Infinity;
+
+    var toYield=[];
+
     if (isIterable(n)) {
       for (let nFlat of n) {
         var time = getScheduleKey(nFlat); //.time;
         // if (log.showDebug) log.debug("key for flatten",time);
         if (time < minTime)
           minTime = time;
-        // if (log.showDebug) log.debug("minTime", minTime);
-        //if (!scheduled.has(time));,
-        // if (log.showDebug) log.debug("queuing", nFlat);
-        scheduled.queue(nFlat);
-        // if (log.showDebug) log.debug("scheduled",minTime);
-        //scheduled.get(time).push(nFlat);
 
-        // if (log.showDebug) log.debug("scheduled",scheduled);
+        scheduled.queue(nFlat);
 
       }
     } else {
-      yield n;
+      toYield.push(n);
       minTime = getScheduleKey(n);
     }
     // if (log.showDebug) log.debug("minTime2", getScheduleKey(scheduled.peek()), minTime);
     while (scheduled.length > 0 && getScheduleKey(scheduled.peek()) < minTime) {
       // if (log.showDebug) log.debug("scheduledLength",scheduled.length, scheduled.peek());
-      yield scheduled.dequeue();
+      toYield.push(scheduled.dequeue());
       // if (log.showDebug) log.debug("scheduledLength2",scheduled.length);
     }
-    // for (let k of scheduled.keySeq().sort().takeWhile(x => x < minTime)) {
-    //
-    //     // if (log.showDebug) log.debug("yielding");
-    //     yield* getIterator(scheduled.get(k));
-    //     scheduled = scheduled.delete(k);
-    //
-    // }
 
 
-
-  }
+    return toYield;
+  });
 
   while (scheduled.length > 0) {
     // if (log.showDebug) log.debug("scheduledLength2",scheduled.length);
@@ -590,10 +593,10 @@ addGenerator(function* durationSum(node) {
 
 
 
-addGenerator(function* branch(condition, branchNode, elseNode, node) {
+addGenerator(function* branch(condition, branchNode, node) {
   for (var e of node) {
     //// console.log("branching", condition, e);
-    var branchTo = (condition(e) ? branchNode : elseNode);
+    var branchTo = (condition(e) ? branchNode : node);
 
     //// console.log(e,branchTo.set);
     yield * getIterator(branchTo.takeWhile((n) => n.time < e.duration).set({

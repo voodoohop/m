@@ -34,15 +34,16 @@ m().addGen(function* asyncDataLatest(subscribable, initialVal) {
   })));
 });
 m().addGen(function* hotSwapper2(func, node) {
+  var $__4;
   log.info("hotswapper added to sequence " + node);
   var lastTime = -1;
   var activeSequenceIterator = getIterator(node);
-  var hotSwapIterator = {next: (function() {
+  var hotSwapIterator = {next: function() {
       var n = activeSequenceIterator.next();
       if (!n.done && n.value.time)
         lastTime = n.value.time;
       return n;
-    })};
+    }};
   var swapFunc = function(newSequence) {
     var startTime = arguments[1] !== (void 0) ? arguments[1] : null;
     if (startTime === null) {
@@ -52,7 +53,14 @@ m().addGen(function* hotSwapper2(func, node) {
     activeSequenceIterator = getIterator(m(newSequence).delay(Math.max(startTime, 0)));
   };
   func(swapFunc);
-  yield* hotSwapIterator;
+  yield* ($__4 = {}, Object.defineProperty($__4, Symbol.iterator, {
+    value: (function() {
+      return hotSwapIterator;
+    }),
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), $__4);
 });
 var swap;
 var tst = m().evt({
@@ -80,6 +88,7 @@ log.debug(i.next().value);
 log.debug(i.next().value);
 log.debug(i.next().value);
 m().addGen(function* hotSwapper(swapReference, fieldName, node) {
+  var $__4;
   fieldName = "" + fieldName;
   var lastTime = -1;
   var activeSequenceIterator = null;
@@ -100,15 +109,22 @@ m().addGen(function* hotSwapper(swapReference, fieldName, node) {
     }));
     log.debug("filtered", filtered, filtered.length);
     if (filtered.length === 0)
-      return;
+      return ;
     var newSequence = swapReference[fieldName];
     if (newSequence == activeSequence)
-      return;
+      return ;
     activeSequence = newSequence;
     activeSequenceIterator = getIterator(m(newSequence));
     log.debug("swapped sequence for new sequence: " + newSequence);
   });
-  yield* hotSwapIterator;
+  yield* ($__4 = {}, Object.defineProperty($__4, Symbol.iterator, {
+    value: (function() {
+      return hotSwapIterator;
+    }),
+    configurable: true,
+    enumerable: true,
+    writable: true
+  }), $__4);
 });
 swap = {};
 var tst2 = m().evt({
@@ -138,3 +154,20 @@ Object.observe(obj, function(changes) {
 });
 obj.name = "hemanth";
 console.log("should have observed the change to hemanth");
+m().addGen(function* continuousAutomate(paramName, automateFunc, node) {
+  yield immutableObj({
+    type: "continuous",
+    paramName: paramName,
+    automation: automateFunc,
+    time: 0,
+    duration: Infinity
+  });
+  if (node)
+    for (var $__5 = node[$traceurRuntime.toProperty(Symbol.iterator)](),
+        $__6; !($__6 = $__5.next()).done; ) {
+      let n = $__6.value;
+      {
+        yield n;
+      }
+    }
+});

@@ -35,6 +35,7 @@ export default function getSourcePos(sourcePosMapper, trace = false) {
 
   var stackEntry = _.find(stack, s => s.eval === true || s.functionName === "eval");
   if (stackEntry !== undefined)
+    if(log.showDebug)
     log.debug("found stackEntry", stackEntry);
   // console.log("stack",stack);
   var pos = null;

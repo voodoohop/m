@@ -1,6 +1,6 @@
 
 
-var swing= (n) => n.swing(1/4,0.15);
+var swing= (n) => n.swing(1/4,0.05);
 
 // var param1 = 0.5;
 // var param2 = 0.5;

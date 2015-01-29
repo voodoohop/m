@@ -30,7 +30,8 @@ var Easer = require('functional-easing').Easer;
 var _ = require("lodash");
 var $__7 = ($__oscAbleton__ = require("./oscAbleton"), $__oscAbleton__ && $__oscAbleton__.__esModule && $__oscAbleton__ || {default: $__oscAbleton__}),
     abletonReceiver = $__7.abletonReceiver,
-    abletonSender = $__7.abletonSender;
+    abletonSender = $__7.abletonSender,
+    maxControl = $__7.maxControl;
 var vm = require("vm");
 var stackTrace = require("stack-trace");
 var getSourcePos = ($__lib_47_findSourceStackPos__ = require("./lib/findSourceStackPos"), $__lib_47_findSourceStackPos__ && $__lib_47_findSourceStackPos__.__esModule && $__lib_47_findSourceStackPos__ || {default: $__lib_47_findSourceStackPos__}).default;
@@ -67,7 +68,14 @@ function getSandBox(loadedSequences) {
     "$traceurRuntime": $traceurRuntime,
     "m": m,
     "t": t,
-    "params": abletonReceiver.param(deviceStruct.device),
+    "params": (function(paramName) {
+      return abletonReceiver.param(deviceStruct.device, paramName).map((function(v) {
+        return v.value;
+      }));
+    }),
+    "params2": (function(paramName) {
+      return abletonReceiver.param(deviceStruct.device, paramName);
+    }),
     "wu": wu,
     "teoria": teoria,
     "immutable": immutable,
@@ -79,7 +87,14 @@ function getSandBox(loadedSequences) {
       return new Easer();
     }),
     "log": loggerOverride ? loggerOverride : remoteLog,
-    "Symbol": Symbol
+    "Symbol": Symbol,
+    "playingClip": livePlayingClips.newPlayingClip,
+    "maxControl": maxControl,
+    "automate": (function(paramName, automation) {
+      automation.onValue((function(v) {
+        return abletonSender.param(deviceStruct.path, v.port, paramName, v.value, -1);
+      }));
+    })
   };
   return sandbox;
 }

@@ -105,6 +105,7 @@ function M() {
   this.currentNode = node;
   this.name = node.name;
   this.isTom = true;
+  this.metaData = this.currentNode.metaData;
   this.length = node.length;
   this[wu.iteratorSymbol] = node[wu.iteratorSymbol];
 }
@@ -131,6 +132,8 @@ var addFunction = function(name, func) {
     var callArgs = (this.currentNode != rootNode && !options.noInputChain) ? $traceurRuntime.spread(args, [this.currentNode]) : args;
     var newNode = func.apply(null, $traceurRuntime.spread(callArgs));
     newNode.parentNode = this;
+    if (!newNode.metaData && newNode.parentNode.metaData)
+      newNode.metaData = newNode.parentNode.metaData;
     return newNode;
   };
 };
@@ -153,6 +156,13 @@ addGenerator(function* val(value) {
     yield immutableObj(value);
   else
     yield value;
+});
+addFunction("setMetaData", function setMetaData(data, node) {
+  var newNode = m(node);
+  if (node.metaData)
+    data = _.extend({}, node.metaData, data);
+  newNode.metaData = data;
+  return newNode;
 });
 M.prototype.addGen = addGenerator;
 M.prototype.getIterator = getIterator;

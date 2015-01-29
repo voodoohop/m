@@ -12,13 +12,15 @@ var wu = ($__lib_47_wu__ = require("./lib/wu"), $__lib_47_wu__ && $__lib_47_wu__
 var getIterator = ($__lib_47_utils__ = require("./lib/utils"), $__lib_47_utils__ && $__lib_47_utils__.__esModule && $__lib_47_utils__ || {default: $__lib_47_utils__}).getIterator;
 var t = ($__time__ = require("./time"), $__time__ && $__time__.__esModule && $__time__ || {default: $__time__}).t;
 var Bacon = require("baconjs");
-var eventPlayer = function(evtWithOffset) {
+var eventPlayer = function(evtWithOffset, baconTime) {
   var evt = evtWithOffset.evt;
   var firstTime = evtWithOffset.firstTime.offset;
   return {
     evt: evt,
     play: function(instrument) {
+      var stopFunc = null;
       if (evt.type == "noteOn" && !evt.noteDisabled) {
+        console.log("playing noteOn", evt);
         instrument.noteOn(evt.pitch.valueOf(), evt.velocity.valueOf(), evt.time + firstTime);
       }
       if (evt.type == "noteOff" && !evt.noteDisabled) {
@@ -27,11 +29,20 @@ var eventPlayer = function(evtWithOffset) {
       if (evt.type == "automation") {
         instrument.param(evt.name, evt.automationVal, evt.time + firstTime);
       }
+      if (evt.type == "continuous") {
+        console.log("continuous event", evt, instrument);
+        var res = evt.automation(evt, instrument.inputParams, baconTime);
+        if (res && res.onValue)
+          stopFunc = res.onValue((function(v) {
+            return instrument.param(evt.paramName, v, -1);
+          }));
+      }
+      return stopFunc;
     }
   };
 };
-var BaconSequencer = wu.curryable(function(baconTime, sequence) {
-  console.log("sequencer", sequence);
+var BaconSequencer = wu.curryable(function(baconTime, sequence, path) {
+  console.log("sequencer", sequence, path);
   if (sequence == null || sequence.error || sequence.evaluatedError)
     return [new Bacon.Error(sequence.error || sequence.evaluatedError || sequence)];
   var seqIterator = null;
@@ -45,17 +56,27 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
       if (seqIterator == null) {
         console.log("skipping to", prevTime, "for sequence", sequence);
         seqIterator = getIterator(sequence.skipWhile((function(n) {
-          return n.time < prevTime;
+          return n.type !== "continuous" && n.time < prevTime;
         })).toPlayable());
-        next = seqIterator.next(prevTime);
+        next = seqIterator.next({
+          time: prevTime,
+          path: path
+        });
       }
       var count = 0;
-      if (next == null) {
-        console.warn("next is null", Object.keys(sequence), sequence.currentNode);
+      var eventsNow = [];
+      if (next == null || next.done) {
         return [];
       }
       while (next.value.time < prevTime) {
+        if (next.value.type === "continuous")
+          eventsNow.push({
+            evt: next.value,
+            firstTime: {offset: 0}
+          });
         next = seqIterator.next(prevTime);
+        if (next.done)
+          break;
         console.warn("time lag:", prevTime - next.value.time + "".bgRed);
         if (count++ > 5) {
           console.log("event overflow, yielding to bacon", time.toFixed(2));
@@ -63,9 +84,8 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
         }
       }
       if (time - prevTime > 1)
-        return [];
-      var eventsNow = [];
-      while (next.value.time <= time) {
+        return eventsNow;
+      while (!next.done && next.value.time <= time) {
         eventsNow.push({
           evt: next.value,
           firstTime: {offset: 0}
@@ -78,5 +98,7 @@ var BaconSequencer = wu.curryable(function(baconTime, sequence) {
     }));
   })).flatMap((function(v) {
     return Bacon.fromArray(v);
-  })).map(eventPlayer);
+  })).map((function(evt) {
+    return eventPlayer(evt, baconTime);
+  }));
 });

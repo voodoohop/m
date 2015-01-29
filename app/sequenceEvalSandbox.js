@@ -34,7 +34,7 @@ var Easer = require('functional-easing').Easer;
 var _ = require("lodash");
 
 import {
-  abletonReceiver, abletonSender
+  abletonReceiver, abletonSender, maxControl
 }
 from "./oscAbleton";
 
@@ -48,6 +48,7 @@ import getSourcePos from "./lib/findSourceStackPos";
 var ramda = require("ramda");
 
 import * as livePlayingClips from "./livePlayingClips";
+
 
 
 export default function getSandBox(loadedSequences, deviceStruct = null, loggerOverride = false) {
@@ -93,7 +94,8 @@ export default function getSandBox(loadedSequences, deviceStruct = null, loggerO
     "$traceurRuntime": $traceurRuntime,
     "m": m,
     "t": t,
-    "params": abletonReceiver.param(deviceStruct.device),
+    "params": (paramName) => abletonReceiver.param(deviceStruct.device,paramName).map(v => v.value),
+    "params2": (paramName) => abletonReceiver.param(deviceStruct.device, paramName),
     "wu": wu,
     "teoria": teoria,
     "immutable": immutable,
@@ -104,7 +106,12 @@ export default function getSandBox(loadedSequences, deviceStruct = null, loggerO
     "easer": () => new Easer(),
     "log": loggerOverride ? loggerOverride : remoteLog,
     // "console": {log: remoteLog, warn: remoteLog, error: remoteLog},
-    "Symbol": Symbol
+    "Symbol": Symbol,
+    "playingClip": livePlayingClips.newPlayingClip,
+    "maxControl":maxControl,
+    "automate": (paramName,automation) => {
+      automation.onValue(v => abletonSender.param(deviceStruct.path, v.port, paramName, v.value, -1));
+    }
   };
 
 

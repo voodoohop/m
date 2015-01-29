@@ -8,6 +8,7 @@ var $__patchConsoleLog__,
     $__generatorModuleManager__,
     $__lib_47_logger__,
     $__livePlayingClips__,
+    $__syncedTime__,
     $__webConnection__,
     $__sequencePlayManager__,
     $__codeStore__;
@@ -29,50 +30,11 @@ var log = ($__lib_47_logger__ = require("./lib/logger"), $__lib_47_logger__ && $
 var Bacon = require("baconjs");
 var liveClips = ($__livePlayingClips__ = require("./livePlayingClips"), $__livePlayingClips__ && $__livePlayingClips__.__esModule && $__livePlayingClips__ || {default: $__livePlayingClips__});
 log.info("bunyasaan");
-var traceur = require("traceur");
-var timeResetRequest = new Bacon.Bus();
-var lastCodeResetNo = -1;
-var decodedTime = abletonReceiver.time.diff(0, (function(a, b) {
-  return b - a;
-})).skip(1).zip(abletonReceiver.time.skip(1), (function(timeDiff, time) {
-  return {
-    timeDiff: timeDiff,
-    time: time
-  };
-})).map((function(time) {
-  return time.timeDiff < -8 ? _.extend({reset: true}, time) : time;
-})).combine(timeResetRequest.debounceImmediate(500).toProperty(), function(time, codeReset) {
-  if (lastCodeResetNo != codeReset) {
-    console.log("RESET", time, codeReset);
-    lastCodeResetNo = codeReset;
-    return _.extend({reset: true}, time);
-  }
-  return time;
-}).scan({}, (function(prev, time) {
-  var newTime = _.clone(time);
-  if (prev.firstTime > 0 && !time.reset)
-    newTime.firstTime = prev.firstTime;
-  else
-    newTime.firstTime = time.time - time.time % t.bars(4);
-  return newTime;
-}));
-var timeThatAccountsForTransportJumps2 = decodedTime.map((function(t) {
-  return {
-    time: t.time,
-    offset: 0
-  };
-}));
-var timeThatAccountsForTransportJumps = timeThatAccountsForTransportJumps2;
-var resetMessages = decodedTime.map((function(t) {
-  return t.reset;
-})).filter((function(t) {
-  return t;
-})).debounce(50);
+var $__6 = ($__syncedTime__ = require("./syncedTime"), $__syncedTime__ && $__syncedTime__.__esModule && $__syncedTime__ || {default: $__syncedTime__}),
+    timeThatAccountsForTransportJumps = $__6.time,
+    resetMessages = $__6.resetMessages;
 timeThatAccountsForTransportJumps.throttle(1000).log("timeWithOffset");
 resetMessages.log("RESET");
-setTimeout((function() {
-  return timeResetRequest.push("first time resseeet");
-}), 2000);
 var webServer = ($__webConnection__ = require("./webConnection"), $__webConnection__ && $__webConnection__.__esModule && $__webConnection__ || {default: $__webConnection__}).default;
 var SequencePlayManager = ($__sequencePlayManager__ = require("./sequencePlayManager"), $__sequencePlayManager__ && $__sequencePlayManager__.__esModule && $__sequencePlayManager__ || {default: $__sequencePlayManager__}).default;
 var sequencePlayManager = SequencePlayManager(timeThatAccountsForTransportJumps.toEventStream(), resetMessages, webServer.sequenceFeedback);
@@ -81,11 +43,10 @@ timeThatAccountsForTransportJumps.throttle(1000).onValue((function() {
     return seqPath;
   })));
 }));
-var $__8 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
-    baconStorer = $__8.baconStorer,
-    onCodeLoaded = $__8.onCodeLoaded,
-    storedSequences = $__8.storedSequences;
-var Easer = require('functional-easing').Easer;
+var $__9 = ($__codeStore__ = require("./codeStore"), $__codeStore__ && $__codeStore__.__esModule && $__codeStore__ || {default: $__codeStore__}),
+    baconStorer = $__9.baconStorer,
+    onCodeLoaded = $__9.onCodeLoaded,
+    storedSequences = $__9.storedSequences;
 webServer.beatFeedback(timeThatAccountsForTransportJumps.toEventStream().map((function(t) {
   return Math.floor(t.time);
 })).skipDuplicates());
@@ -121,9 +82,9 @@ setTimeout(function() {
   moduleManager.newSequenceCode.push(_.find(storedSequences, (function(s) {
     return s.device === "userExtensions";
   })));
-  for (var $__9 = storedSequences[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__10; !($__10 = $__9.next()).done; ) {
-    var seq = $__10.value;
+  for (var $__10 = storedSequences[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__11; !($__11 = $__10.next()).done; ) {
+    var seq = $__11.value;
     {
       if (seq.device !== "userExtensions")
         moduleManager.newSequenceCode.push({
@@ -151,7 +112,11 @@ var generatorList = moduleManager.processedSequences.scan({}, (function(prev, ne
   return prev;
 })).map(_.values).debounce(50);
 baconStorer.plug(moduleManager.processedSequences);
-generatorList.onValue((function(v) {
+generatorList.map((function(gl) {
+  return gl.filter((function(g) {
+    return g.evaluatedDetails && g.evaluatedDetails.playable;
+  }));
+})).onValue((function(v) {
   console.log("sending genList to ableton", v.map((function(v) {
     return v.device + "/" + v.name;
   })));

@@ -39,7 +39,9 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
     if (!res.isSequenceGenerator)
       return res;
     var sampleSize = 100;
-    var playableSequence = seq.toPlayable().take(sampleSize);
+    var playableSequence = seq.toPlayable().take(sampleSize).takeWhile((function(n) {
+      return n.time < 16;
+    }));
     var testerCode = "result = sequence.toArray();";
     var globalBack = {};
     for (var $__3 = Object.keys(sequenceSandbox)[$traceurRuntime.toProperty(Symbol.iterator)](),
@@ -69,9 +71,11 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
       let key = $__6.value;
       global[key] = globalBack[key];
     }
-    if (!res.evaluatedError && testSeqResult && testSeqResult.length > 0) {
-      var lastBeatTime = testSeqResult[testSeqResult.length - 1].time;
-      console.log("testSeqResult", lastBeatTime, timeTaken);
+    if (!res.evaluatedError && testSeqResult && testSeqResult.length >= 0) {
+      var lastBeatTime = 0;
+      if (testSeqResult.length > 0)
+        lastBeatTime = testSeqResult[testSeqResult.length - 1].time;
+      console.log("testSeqResult", lastBeatTime, timeTaken, testSeqResult);
       res.playable = true;
       res.eventSample = testSeqResult;
       res.timeTaken = timeTaken;

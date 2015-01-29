@@ -15,6 +15,8 @@ import {
 }
 from "../immutable/nodeProxiedImmutable";
 
+
+
 var util = require("util");
 
 var _ = require("lodash");
@@ -102,6 +104,7 @@ function M(node = rootNode) {
   this.currentNode = node;
   this.name = node.name;
   this.isTom = true;
+  this.metaData = this.currentNode.metaData;
   //this.parentNode=null;
   // this._loopLength=node._loopLength;
   this.length = node.length;
@@ -144,6 +147,10 @@ var addFunction = function(name, func, options = rootNode) {
     var newNode = func(...callArgs);
     // console.log("lineNumber",name,(new Error()).stack);
     newNode.parentNode = this;
+    if (! newNode.metaData && newNode.parentNode.metaData)
+      newNode.metaData = newNode.parentNode.metaData;
+
+    // newNode.metaData = _.extend({},this.metaData,newNode.metaData);
     // console.log("name",name," returning",newNode);
     return newNode;
   }
@@ -229,6 +236,15 @@ addGenerator(function* val(value) {
     yield immutableObj(value);
   else
     yield value;
+});
+
+addFunction("setMetaData",function setMetaData(data,node) {
+  // this.metaData = data;
+  var newNode = m(node);
+  if (node.metaData)
+    data = _.extend({}, node.metaData, data);
+  newNode.metaData = data;
+  return newNode;
 });
 
 M.prototype.addGen = addGenerator;

@@ -38,6 +38,8 @@ processed.onError((function(e) {
 }));
 var loadedSequenceStream = new Bacon.Bus();
 var evalStreamEntry = function(loadedSequences, newSequence) {
+  var $__4,
+      $__5;
   console.log("evaluating new Sequence:".underline, newSequence);
   var newSeqIm = Immutable.fromJS(newSequence);
   if (newSeqIm.get("error"))
@@ -46,9 +48,11 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
     return v.get("exports");
   })).flatten();
   var unsatisfiedImports = newSeqIm.get("imports").entrySeq().filter((function(i) {
+    var $__4,
+        $__5;
     var $__3 = i,
-        importDevice = $__3[0],
-        importSeqNames = $__3[1];
+        importDevice = ($__4 = $__3[$traceurRuntime.toProperty(Symbol.iterator)](), ($__5 = $__4.next()).done ? void 0 : $__5.value),
+        importSeqNames = ($__5 = $__4.next()).done ? void 0 : $__5.value;
     if (importDevice === "playing")
       return false;
     return !loadedSequences.get(importDevice) || !importSeqNames.isSubset(loadedSequences.get(importDevice).get("exports"));
@@ -68,9 +72,9 @@ var evalStreamEntry = function(loadedSequences, newSequence) {
     }));
   }
   var $__3 = evalSequences(newSequence, loadedSequences),
-      evaluated = $__3[0],
-      details = $__3[1],
-      error = $__3[2];
+      evaluated = ($__4 = $__3[$traceurRuntime.toProperty(Symbol.iterator)](), ($__5 = $__4.next()).done ? void 0 : $__5.value),
+      details = ($__5 = $__4.next()).done ? void 0 : $__5.value,
+      error = ($__5 = $__4.next()).done ? void 0 : $__5.value;
   var evaluatedRes = null;
   if (!details) {
     console.error("eval of ", newSequence, "FAILED!!!".red);
@@ -88,9 +92,11 @@ var processedAndReEval = new Bacon.Bus();
 processedAndReEval.plug(processed);
 var markForReEval = function(loadedSequences, device) {
   loadedSequences.entrySeq().forEach((function(s) {
+    var $__4,
+        $__5;
     var $__3 = s,
-        seqName = $__3[0],
-        seq = $__3[1];
+        seqName = ($__4 = $__3[$traceurRuntime.toProperty(Symbol.iterator)](), ($__5 = $__4.next()).done ? void 0 : $__5.value),
+        seq = ($__5 = $__4.next()).done ? void 0 : $__5.value;
     if (!seq) {
       console.error("seq is null at wrong place", seqName, seq);
       throw (new TypeError("seq is null," + seqName));

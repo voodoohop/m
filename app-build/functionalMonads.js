@@ -37,17 +37,38 @@ var $__functionalM_47_baseLib__,
     $__functionalM_47_genexporters__,
     $__functionalM_47_musicalGens__,
     $__functionalM_47_asyncSequence__,
-    $__lib_47_hrtimer__;
+    $__functionalM_47_cacher__,
+    $__lib_47_hrtimer__,
+    $__lib_47_utils__;
 var mImported = ($__functionalM_47_baseLib__ = require("./functionalM/baseLib"), $__functionalM_47_baseLib__ && $__functionalM_47_baseLib__.__esModule && $__functionalM_47_baseLib__ || {default: $__functionalM_47_baseLib__}).m;
 ($__functionalM_47_baseFunctionalGens__ = require("./functionalM/baseFunctionalGens"), $__functionalM_47_baseFunctionalGens__ && $__functionalM_47_baseFunctionalGens__.__esModule && $__functionalM_47_baseFunctionalGens__ || {default: $__functionalM_47_baseFunctionalGens__});
 ($__functionalM_47_genexporters__ = require("./functionalM/genexporters"), $__functionalM_47_genexporters__ && $__functionalM_47_genexporters__.__esModule && $__functionalM_47_genexporters__ || {default: $__functionalM_47_genexporters__});
 ($__functionalM_47_musicalGens__ = require("./functionalM/musicalGens"), $__functionalM_47_musicalGens__ && $__functionalM_47_musicalGens__.__esModule && $__functionalM_47_musicalGens__ || {default: $__functionalM_47_musicalGens__});
 ($__functionalM_47_asyncSequence__ = require("./functionalM/asyncSequence"), $__functionalM_47_asyncSequence__ && $__functionalM_47_asyncSequence__.__esModule && $__functionalM_47_asyncSequence__ || {default: $__functionalM_47_asyncSequence__});
+($__functionalM_47_cacher__ = require("./functionalM/cacher"), $__functionalM_47_cacher__ && $__functionalM_47_cacher__.__esModule && $__functionalM_47_cacher__ || {default: $__functionalM_47_cacher__});
 var hrTimer = ($__lib_47_hrtimer__ = require("./lib/hrtimer"), $__lib_47_hrtimer__ && $__lib_47_hrtimer__.__esModule && $__lib_47_hrtimer__ || {default: $__lib_47_hrtimer__}).default;
 var assert = require("assert");
 var m = mImported;
 var _ = require("lodash");
+var getIterator = ($__lib_47_utils__ = require("./lib/utils"), $__lib_47_utils__ && $__lib_47_utils__.__esModule && $__lib_47_utils__ || {default: $__lib_47_utils__}).getIterator;
 console.log("mprototype", m.prototype);
+var bigInt = require('big-integer');
+var number = bigInt(1);
+var last = bigInt(1);
+var smallNumber = 1;
+var smallLast = 1;
+console.log("fibonacci");
+for (var i = 0; i < 100; i++) {
+  var smallTmp = smallLast + smallNumber;
+  smallLast = smallNumber;
+  smallNumber = smallTmp;
+  var tmp = number.add(last);
+  console.log("s:" + smallNumber);
+  last = number;
+  number = tmp;
+  console.log("b:" + number);
+  console.log((i + 3) + ":" + number.mod(3).toString() + ":" + (smallNumber % 3));
+}
 var mTest = m({pitch: 10}).loop();
 console.log("------", "" + mTest);
 console.log("------", mTest.take(10).toArray());
@@ -149,9 +170,9 @@ var kick_real = m().evt({
 var profilerDataStore = [];
 var profileSamples = 2000;
 var startTime = hrTimer();
-for (var $__2 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__3; !($__3 = $__2.next()).done; ) {
-  var n = $__3.value;
+for (var $__3 = kick.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__4; !($__4 = $__3.next()).done; ) {
+  var n = $__4.value;
   {
     var x = ({
       time: n.time,
@@ -165,9 +186,9 @@ var timeTaken = hrTimer() - startTime;
 log("time:", timeTaken);
 log("-------------".bgRed);
 console.log(kick.toPlayable().take(50).toArray()[49]);
-for (var $__4 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__5; !($__5 = $__4.next()).done; ) {
-  var n = $__5.value;
+for (var $__5 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__6; !($__6 = $__5.next()).done; ) {
+  var n = $__6.value;
   {
     var cx = ({
       time: n.time,
@@ -178,9 +199,9 @@ for (var $__4 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
 }
 timeTaken = hrTimer() - startTime;
 log("time:", timeTaken);
-for (var $__6 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__7; !($__7 = $__6.next()).done; ) {
-  var n = $__7.value;
+for (var $__7 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__8; !($__8 = $__7.next()).done; ) {
+  var n = $__8.value;
   {
     var x = ({
       time: n.time,
@@ -204,9 +225,9 @@ for (var $__6 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty
 }
 timeTaken = hrTimer() - startTime;
 log("time2:", timeTaken);
-for (var $__8 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
-    $__9; !($__9 = $__8.next()).done; ) {
-  var n = $__9.value;
+for (var $__9 = tom.toPlayable().take(profileSamples)[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__10; !($__10 = $__9.next()).done; ) {
+  var n = $__10.value;
   var x = ({
     time: n.time,
     pitch: n.pitch,
@@ -307,9 +328,9 @@ m(flautaAcid).take(16).toArray().forEach((function(n) {
 }));
 var getPitches = function(sequence) {
   var pitches = {};
-  for (var $__10 = sequence[$traceurRuntime.toProperty(Symbol.iterator)](),
-      $__11; !($__11 = $__10.next()).done; ) {
-    let n = $__11.value;
+  for (var $__11 = sequence[$traceurRuntime.toProperty(Symbol.iterator)](),
+      $__12; !($__12 = $__11.next()).done; ) {
+    let n = $__12.value;
     if (n && n.pitch)
       pitches[n.pitch] = true;
   }
@@ -1359,3 +1380,27 @@ log(OndasGroove.merge(m().evt({
   duration: 0.1,
   velocity: 0.9
 }).metro(1)).take(50).toArray());
+function* fibonacci() {
+  var $__13,
+      $__14,
+      $__15;
+  let a = 0,
+      b = 1;
+  while (true) {
+    yield a;
+    ($__13 = [b, a + b], a = ($__14 = $__13[$traceurRuntime.toProperty(Symbol.iterator)](), ($__15 = $__14.next()).done ? void 0 : $__15.value), b = ($__15 = $__14.next()).done ? void 0 : $__15.value, $__13);
+  }
+}
+var fib = m().evt({fib: fibonacci()});
+console.log(fib.take(10).toArray());
+var count = 0;
+for (var $__11 = fibonacci()[$traceurRuntime.toProperty(Symbol.iterator)](),
+    $__12; !($__12 = $__11.next()).done; ) {
+  let n = $__12.value;
+  {
+    if (n % 3 == 0)
+      console.log(count);
+    if (count++ > 100)
+      return ;
+  }
+}

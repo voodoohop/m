@@ -52,7 +52,7 @@ var syncedOscillators = function() {
 var tickListeners = [];
 function tick(rawTicks) {
   if (tickListeners == null)
-    return;
+    return ;
   tickListeners.forEach(function(listener) {
     listener(rawTicks);
   });
@@ -132,7 +132,7 @@ function deviceReady() {
       userFunc(log, currentTime, oscillators(currentTime), scheduledEvents, null, tomSequencer.createSequence);
     }
     tomSequencer.triggerEvents(currentTime);
-    return;
+    return ;
     console.log(globalTime, userControlSequence.get(Math.floor(globalTime)));
   }
   tickListeners.push(timeChanged);

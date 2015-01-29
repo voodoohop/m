@@ -4,6 +4,12 @@ import {
 from "./baseLib";
 
 
+import {
+ /*clone, addObjectProp, addObjectProps, */ isIterable, getIterator
+}
+from "../lib/utils";
+
+import {m} from "../functionalMonads";
 
 var cacheLimit = 10;
 var cache_disabled = {
@@ -35,7 +41,7 @@ var cache = createCache();
 //   return origGenerator;
 // };
 
-function* doCache(node) {
+addGenerator(function* doCache(node) {
   // yield * getIterator(node);
   // return;
 
@@ -58,7 +64,7 @@ function* doCache(node) {
   while (true) {
     if (cached.length <= count || count > cacheLimit) {
       if (iterator == null) {
-        node = MSkip(count, node);
+        node = m(node).skip(count);
         if (count > cacheLimit) {
           cache(cacheKey, true);
           // console.warn("cache full", node);
@@ -79,7 +85,4 @@ function* doCache(node) {
     yield cached[count++];
   }
 
-}
-
-;
-addGenerator(doCache);
+});

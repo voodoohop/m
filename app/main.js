@@ -96,52 +96,8 @@ log.info("bunyasaan");
 // var seqTest2 = m.evt({name:"baconTest",duration:10}).loop().metro(60);
 // BaconSequencer(abletonReceiver.time,seqTest2).log("seqTest");
 
-var traceur = require("traceur");
 
-
-var timeResetRequest = new Bacon.Bus();
-
-var lastCodeResetNo = -1;
-
-
-var decodedTime = abletonReceiver.time.diff(0,(a,b) => b-a).skip(1).zip(abletonReceiver.time.skip(1),(timeDiff,time) => {return {timeDiff,time}})
-  .map((time) => time.timeDiff < -8 ? _.extend({reset:true},time) : time)
-  .combine(timeResetRequest.debounceImmediate(500).toProperty(),
-    function(time, codeReset) {
-      if (lastCodeResetNo != codeReset) {
-        console.log("RESET",time,codeReset);
-        lastCodeResetNo = codeReset;
-        return _.extend({reset:true},time);
-      }
-      return time;
-    }
-  )
-  .scan({},(prev,time) => {
-    var newTime = _.clone(time);
-    if (prev.firstTime > 0 && !time.reset)
-      newTime.firstTime = prev.firstTime;
-    else
-      newTime.firstTime = time.time-time.time % t.bars(4);
-    return newTime;
-  });
-
-
-
-
-// TODO: could move all this time stuff to sequencePlayManager or another module
-// TODO: timeThatAccountsForTransportJumps should be a stream of functions that can convert time to global ableton time automatically
-// TODO: make every stream have its own starttime
-var timeThatAccountsForTransportJumps2 = decodedTime.map((t) => {
-  // return {time: t.time-t.firstTime, offset: t.firstTime}
-  return {time: t.time, offset: 0}
-
-  });
-
-
-var timeThatAccountsForTransportJumps = timeThatAccountsForTransportJumps2;
-
-var resetMessages = decodedTime.map((t) => t.reset).filter((t) => t).debounce(50);
-
+import {time as timeThatAccountsForTransportJumps, resetMessages } from "./syncedTime";
 
 timeThatAccountsForTransportJumps.throttle(1000).log("timeWithOffset");
 
@@ -152,8 +108,8 @@ resetMessages.log("RESET");
 //var OSCSequencer = TomFRPSequencer(timeThatAccountsForTransportJumps);
 
 // decodedTime.log("decodedTime");
-
-setTimeout(() => timeResetRequest.push("first time resseeet"), 2000);
+//
+// setTimeout(() => timeResetRequest.push("first time resseeet"), 2000);
 
 import webServer from "./webConnection";
 
@@ -175,9 +131,6 @@ import {baconStorer, onCodeLoaded, storedSequences} from "./codeStore";
 
 // console.log(new TWEEN.Tween({a:2}));
 // throw "hey";
-
-var Easer = require('functional-easing').Easer;
-
 
 
 
@@ -266,7 +219,7 @@ var generatorList = moduleManager.processedSequences
 
 baconStorer.plug(moduleManager.processedSequences);
 
-generatorList.onValue((v) => {
+generatorList.map(gl => gl.filter(g => g.evaluatedDetails && g.evaluatedDetails.playable)).onValue((v) => {
   console.log("sending genList to ableton",v.map(v => v.device+"/"+v.name));
   // webServer.generatorUpdate(v);
   abletonSender.generatorUpdate(v);

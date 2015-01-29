@@ -36,7 +36,7 @@ m().addGen(function* hotSwapper2(func,node) {
   var lastTime = -1;
   var activeSequenceIterator = getIterator(node);
   var hotSwapIterator = {
-    next:() => {
+    next: function() {
       var n = activeSequenceIterator.next();
       if (!n.done && n.value.time)
         lastTime = n.value.time;
@@ -55,7 +55,7 @@ m().addGen(function* hotSwapper2(func,node) {
 
   func(swapFunc);
 
-  yield* hotSwapIterator;
+  yield* {[Symbol.iterator]: () => hotSwapIterator};
 });
 
 var swap;
@@ -120,7 +120,7 @@ m().addGen(function* hotSwapper(swapReference, fieldName,node) {
       log.debug("swapped sequence for new sequence: "+newSequence);
     });
 
-    yield* hotSwapIterator;
+    yield* {[Symbol.iterator]: () => hotSwapIterator};
 });
 
 
@@ -153,3 +153,19 @@ Object.observe(obj,function(changes) {console.log(changes); })
 obj.name = "hemanth";
 
 console.log("should have observed the change to hemanth");
+
+
+
+m().addGen(function* continuousAutomate(paramName, automateFunc,node) {
+  // automateFunc.toString = () => "automateFunc";
+
+  yield immutableObj({type:"continuous",
+  paramName: paramName,
+  automation: automateFunc,
+  time:0,
+  duration:Infinity});
+  if (node)
+  for (let n of node) {
+    yield n;
+  }
+});
