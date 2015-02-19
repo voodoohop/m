@@ -195,7 +195,7 @@ addGenerator(function* automate(paramName, valGenerator, node) {
       })
       // .duration(n.duration)
       .loop()
-      .metro(1 / 4)
+      .metro(1 / 8)
       .takeWhile(a => a.time < n.duration)
       .simpleMap(n => n.set("automationVal", valGenerator(n)))
       .delay(n.time)

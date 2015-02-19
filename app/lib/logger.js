@@ -19,15 +19,15 @@ var logLevels = ["info", "error", "fatal", "warn", "debug"];
 var log = bunyan.createLogger({
   name: 'MusicGen',
   streams: [
-    ...logLevels.map(level => ({
+    ...logLevels.map(level => {return {
       level: level,
       stream: new MyRawStream(),
       type: "raw"
-    })),
-    ...logLevels.map(level => ({
+    }}),
+    ...logLevels.map(level => { return {
       level: level,
       stream: process.stdout
-    }))
+    }})
   ]
 });
 

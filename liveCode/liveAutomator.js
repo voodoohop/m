@@ -50,20 +50,35 @@
     })
     ;
 
-
+   
+    // var oneKnob1 = new Bacon.Bus();
+    // var oneKnob2 = new Bacon.Bus();
       export var oneKnob = m()
       .continuousAutomate("param1",(n, params, time) => {
         // log("hey");
-        var p1 = params("1").filter(v => v < 64).map(v => v/127).map(v => v*2);
-        var p2 = params("2").filter(v => v >= 64).map(v => v/127).map(v => (v-0.5)*2);
+        var p1 = params("1").filter(v => v <= 64).map(v => v/127).map(v => v*2);
         return p1;
       })
       .continuousAutomate("param2",(n, params, time) => {
         // log("hey");
-        var p1 = params("3").filter(v => v < 64).map(v => v/127).map(v => v*2);
-        var p2 = params("4").filter(v => v >= 64).map(v => v/127).map(v => (v-0.5)*2);
+        var p2 = params("1").filter(v => v >= 64).map(v => v/127).map(v => (v-0.5)*2);
+        return p2;
+      })
+            .continuousAutomate("param3",(n, params, time) => {
+        // log("hey");
+        var p1 = params("2").filter(v => v <= 64).map(v => v/127).map(v => v*2);
         return p1;
+      })
+      .continuousAutomate("param4",(n, params, time) => {
+        // log("hey");
+        var p2 = params("2").filter(v => v >= 64).map(v => v/127).map(v => (v-0.5)*2);
+        return p2;
       });
+      
+      export var longSin = m().continuousAutomate("param1",(n,params,time) => time.map(t => {
+        //   log(t);
+          return Math.sin(Math.PI*2*t.time/64)*0.5+0.5;
+      }))
     //   )
     //   ;
 

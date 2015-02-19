@@ -18,6 +18,7 @@ var Bacon = require("baconjs");
 
 import log from "./lib/logger";
 
+var Rx = require("Rx");
 
 var Max4Node = require('max4node');
 
@@ -29,9 +30,23 @@ maxControl.bind();
 var oscToBaconStream = function(udpPort) {
 
   return Bacon.fromBinder(function(sink) {
-    udpPort.on("message", (m) => sink(m));
+    var callback = (m) => sink(m);
+    udpPort.on("message", callback);
     return function() {
-      console.log("baconunsubscribe")
+      console.log("baconunsubscribe");
+      udpPort.removeListener("message", callback);x
+    };
+  });
+
+}
+
+var oscToRxStream = function(udpPort) {
+
+  return Rx.Observable.create(function(observer) {
+    var callback = (m) => observer.onNext(m);
+    udpPort.on("message",callback );
+    return function() {
+      udpPort.removeListener("message", callback);
     };
   });
 
@@ -78,6 +93,9 @@ var AbletonReceiver = function(inPort) {
 
   var oscMessageIn = oscToBaconStream(udpPort);
 
+  var rxOscMessageIn = oscToRxStream(udpPort);
+
+
   var codeChange = oscMessageIn.filter((message) => message.address == "/codeChange").map((oscBundle) => oscBundle.args[0]);
 
 
@@ -118,6 +136,16 @@ var AbletonReceiver = function(inPort) {
     })
 
 
+  var rxParam = wu.curryable((path,name) => {
+    var device = path.split("/")[0];
+    // var seqName = path.split("/")[1].split(":")[0];
+    var port = path.split("/")[1].split(":")[1]
+    return rxOscMessageIn
+    .filter(message => message.address.startsWith("/param/"+name) && message.args[2].split("/")[0] === device && ""+message.args[1] == ""+port)
+    .map(message => message.args[0]);
+  });
+
+
   var baconParam = wu.curryable((deviceName, name) => oscMessageIn
     .filter((message) => message.address.startsWith("/param/" + name) && message.args[2].split("/")[0] === deviceName)
     .map((message) => ({value: message.args[0], port:message.args[1]})).toProperty());
@@ -139,6 +167,7 @@ var AbletonReceiver = function(inPort) {
   return {
     time: timeInBeats,
     param: baconParam,
+    rxParam: rxParam,
     params: baconParams,
     // subscribeParam: (name,port) => baconParam,
     codeChange: codeChange,
@@ -171,6 +200,10 @@ var AbletonSender = function(outPort) {
   //   }
   // });
 
+  var requestPlayingClip = function(port) {
+    udpPort.send({address: "/requestPlayingClip"}, "127.0.0.1",port)
+  }
+
   var noteOn = wu.curryable(function(seqPath, outPort, pitch, velocity, time) {
     console.log("noteOn", seqPath, pitch, time * t.beats(1));
     udpPort.send({
@@ -201,11 +234,7 @@ var AbletonSender = function(outPort) {
     }, "127.0.0.1", outPort);
   });
 
-  var baconInstrumentBus = new Bacon.Bus();
 
-  baconInstrumentBus.onValue((v) => {
-
-  });
 
   // var diffTime = null;
 
@@ -218,7 +247,9 @@ var AbletonSender = function(outPort) {
   };
 
   return {
-    instrument: function(seqPath) {
+    requestPlayingClip: requestPlayingClip,
+    instrument:
+     function(seqPath) {
       return {
         noteOn: noteOn(seqPath, outPort),
         noteOff: noteOff(seqPath, outPort),

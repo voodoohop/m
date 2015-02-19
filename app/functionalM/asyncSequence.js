@@ -22,7 +22,7 @@ m().addGen(function* asyncData(subscribable,initialVal) {
       return res;
     }
   }
-  yield* iterator;
+  yield* {[Symbol.iterator]: () => iterator};
 })
 
 m().addGen(function* asyncDataLatest(subscribable,initialVal) {

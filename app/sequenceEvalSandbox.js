@@ -42,6 +42,7 @@ var vm = require("vm");
 
 var stackTrace = require("stack-trace");
 
+var Bacon = require("baconjs");
 
 import getSourcePos from "./lib/findSourceStackPos";
 
@@ -81,7 +82,7 @@ export default function getSandBox(loadedSequences, deviceStruct = null, loggerO
         return {"default":livePlayingClips.getSequence(deviceStruct.device)};
       }
       console.log("seqLoader: requesting sequences from", m);
-      var evaluated = loadedSequences.getIn([m, "evaluated"]);
+      var evaluated = loadedSequences.getIn([m, "evaluated"]).toJS();
       console.log("seqLoader: sending evaluated", evaluated);
       if (!evaluated)
         throw new Error("evaluated sequences falsy" + m);
@@ -91,10 +92,11 @@ export default function getSandBox(loadedSequences, deviceStruct = null, loggerO
 
 
   var sandbox = {
-    "$traceurRuntime": $traceurRuntime,
+    "Bacon": Bacon,
     "m": m,
     "t": t,
     "params": (paramName) => abletonReceiver.param(deviceStruct.device,paramName).map(v => v.value),
+    "rxParams": (paramName) => abletonReceiver.rxParam(deviceStruct.device,paramName).map(v => v.value),
     "params2": (paramName) => abletonReceiver.param(deviceStruct.device, paramName),
     "wu": wu,
     "teoria": teoria,
@@ -102,6 +104,8 @@ export default function getSandBox(loadedSequences, deviceStruct = null, loggerO
     "_": _,
     "R": ramda,
     "System": seqLoader,
+    "require": seqLoader.get,
+    "exports": {},
     "clone": clone,
     "easer": () => new Easer(),
     "log": loggerOverride ? loggerOverride : remoteLog,

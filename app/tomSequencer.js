@@ -25,7 +25,7 @@ var eventPlayer = function(evtWithOffset,baconTime) {
     evt: evt,
     play: function(instrument) {
 
-      var stopFunc =null;
+      var stopFunc = () => {};
       if (evt.type == "noteOn" && !evt.noteDisabled) {
         console.log("playing noteOn", evt);
         instrument.noteOn(evt.pitch.valueOf(), evt.velocity.valueOf(), evt.time + firstTime);

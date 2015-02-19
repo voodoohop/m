@@ -20201,6 +20201,7 @@ var testFixture = {
                 TryStatement: 'TryStatement',
                 TypeAlias: 'TypeAlias',
                 TypeAnnotation: 'TypeAnnotation',
+                TypeCastExpression: 'TypeCastExpression',
                 TypeofTypeAnnotation: 'TypeofTypeAnnotation',
                 TypeParameterDeclaration: 'TypeParameterDeclaration',
                 TypeParameterInstantiation: 'TypeParameterInstantiation',

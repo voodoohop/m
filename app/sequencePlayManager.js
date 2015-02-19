@@ -119,6 +119,7 @@ export default function(time, resetMessages, sequenceFeedback) {
 
     playSeqs.forEach(s => {
       var port = s.port;
+      abletonSender.requestPlayingClip(port);
       console.log("creating instrument for", seq.device + "/" + seq.name, port);
 
       var seqInst = subscribeInOutInstrument(seq.device + "/" + seq.name+":"+port);

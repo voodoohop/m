@@ -22,7 +22,7 @@
 
 
 import "./patchConsoleLog";
-
+// var colors = require('colors');
 var teoria = require("teoria");
 
 import {m} from "./functionalMonads";

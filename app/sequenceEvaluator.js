@@ -19,11 +19,11 @@ function getSequenceGenerator(code, loadedSequences, seqContext) {
   var sequenceSandbox = sandbox(loadedSequences, seqContext, false);
 
   var availableGlobals = _.keys(sequenceSandbox);
-  var f = new Function(...availableGlobals, "return " + code);
-  console.log("evaluating code:\n" + "return " + code);
+  var f = new Function(...availableGlobals, code);
+  console.log("evaluating code:\n" + code);
   var globals = availableGlobals.map(k => sequenceSandbox[k]);
   console.log("running sequences on", availableGlobals, globals);
-  return () => f(...globals);
+  return () => { f(...globals); console.log("sequences exported",Object.keys(sequenceSandbox.exports)); return sequenceSandbox.exports};
 }
 
 var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) {
@@ -58,18 +58,17 @@ var testIfSeqEmitsNotes = function(sequences, sequenceSandbox, sequenceContext) 
 
 
     var globalBack = {};
-    for (let key of Object.keys(sequenceSandbox)) {
-      globalBack[key] = global[key];
-      global[key] = sequenceSandbox[key];
-    }
+    // for (let key of Object.keys(...sequenceSandbox)) {
+    //   globalBack[key] = global[key];
+    //   global[key] = sequenceSandbox[key];
+    // }
     globalBack.sequence = global.sequence;
     global.sequence = playableSequence;
-
     var startTime = hrTimer();
     var testSeqResult = null;
     var timeTaken;
     try {
-      console.log("global m before running code", global["m"]);
+      // console.log("global m before running code", global["m"]);
       testSeqResult = vm.runInThisContext(testerCode, {
         timeout: 2500
       });

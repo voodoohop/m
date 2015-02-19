@@ -18,15 +18,16 @@
 console.log("start");
 var dispName = require('stack-displayname');
 
+require("6to5/register")(require("./6to5options"));
+
 require('source-map-support').install();
-require('traceur/bin/traceur-runtime');
+// require('traceur/bin/traceur-runtime');
 
 Error.stackTraceLimit = 100;
 
 
-console.log("requiring main2");
 console.log("requiring main3");
-require('./app-build/main');
+require('./app/main');
 
 
 
